@@ -449,18 +449,18 @@ body {
 }
 
 .delete-btn {
-  background-color: #dc3545;
+  background-color: #ea8685;
   color: white;
-  border: none;
-  padding: 6px 12px;
-  border-radius: 4px;
-  cursor: pointer;
-  font-size: 12px;
-  transition: background-color 0.2s;
+  font-size: 14px;
+  font-weight: bold;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  line-height: 1;
 }
 
 .delete-btn:hover {
-  background-color: #c82333;
+  background-color: #e66767;
 }
 
 .add-preset-project {

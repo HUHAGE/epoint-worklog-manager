@@ -237,10 +237,13 @@ function handleFormSubmit(event) {
     alert('请选择或输入项目名称');
     return;
   }
+
+  // 检查是否在编辑模式
+  const editingLogId = logForm.dataset.editingLogId;
   
   // 创建新的日志对象
   const newLog = {
-    id: Date.now(), // 使用时间戳作为唯一ID
+    id: editingLogId ? parseInt(editingLogId) : Date.now(), // 如果是编辑模式，使用原来的ID
     project,
     content,
     hours,
@@ -248,8 +251,18 @@ function handleFormSubmit(event) {
     createdAt: new Date().toISOString()
   };
   
-  // 添加到待填写日志列表
-  logs.pending.push(newLog);
+  if (editingLogId) {
+    // 编辑模式：替换原有日志
+    const index = logs.pending.findIndex(log => log.id === parseInt(editingLogId));
+    if (index !== -1) {
+      logs.pending[index] = newLog;
+    }
+    // 清除编辑状态
+    delete logForm.dataset.editingLogId;
+  } else {
+    // 添加模式：添加到待填写日志列表
+    logs.pending.push(newLog);
+  }
   
   // 保存到存储
   saveLogs();
@@ -262,7 +275,7 @@ function handleFormSubmit(event) {
   document.getElementById('date').value = today;
   
   // 显示成功提示
-  showSuccessMessage('日志添加成功，可在"待填写"页面查看');
+  showSuccessMessage(editingLogId ? '日志修改成功' : '日志添加成功，可在"待填写"页面查看');
   
   // 更新项目标签
   updateProjectTabs();
@@ -270,11 +283,48 @@ function handleFormSubmit(event) {
   // 重新渲染待填写日志列表
   renderPendingLogs();
   
-  // 切换到待填写标签页
-  setTimeout(() => {
+  // 如果是编辑模式，立即切换到待填写标签页
+  if (editingLogId) {
     switchTab('pending');
-  }, 1500);
+  } else {
+    // 添加模式，延迟切换
+    setTimeout(() => {
+      switchTab('pending');
+    }, 1500);
+  }
 }
+
+// 将这些函数定义为全局函数
+window.editLog = function(id) {
+  const log = logs.pending.find(log => log.id === id);
+  if (!log) return;
+  
+  // 切换到添加日志标签页
+  switchTab('add');
+  
+  // 显示表单
+  showLogForm();
+  
+  // 设置编辑模式标记
+  logForm.dataset.editingLogId = id;
+  
+  // 填充表单数据
+  // 检查项目是否在预设项目中
+  if (presetProjects.includes(log.project)) {
+    projectSelect.value = log.project;
+    projectSelect.classList.remove('hidden');
+    projectInput.classList.add('hidden');
+  } else {
+    projectSelect.value = 'other';
+    projectInput.value = log.project;
+    projectSelect.classList.remove('hidden');
+    projectInput.classList.remove('hidden');
+  }
+  
+  document.getElementById('content').value = log.content;
+  document.getElementById('hours').value = log.hours;
+  document.getElementById('date').value = log.date;
+};
 
 // 处理项目选择变化
 function handleProjectSelectChange() {
@@ -372,11 +422,7 @@ function renderPendingLogs() {
           <div class="action-icon fill-btn" title="提交">
             <svg viewBox="0 0 24 24" width="16" height="16"><path fill="currentColor" d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z"/></svg>
           </div>
-          <div class="action-icon delete-btn" title="删除">
-            <svg viewBox="0 0 24 24" width="16" height="16">
-              <path fill="currentColor" d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/>
-            </svg>
-          </div>
+          <div class="action-icon delete-btn" title="删除">×</div>
         </div>
       </div>
       <div class="log-date">${formatDate(log.date)}</div>
@@ -420,11 +466,7 @@ function renderFilledLogs() {
         <div class="log-project">${escapeHtml(log.project)}</div>
         <div class="log-hours">${log.hours}h</div>
         <div class="log-actions">
-          <div class="action-icon delete-btn" title="删除">
-            <svg viewBox="0 0 24 24" width="16" height="16">
-              <path fill="currentColor" d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/>
-            </svg>
-          </div>
+          <div class="action-icon delete-btn" title="删除">×</div>
         </div>
       </div>
       <div class="log-date">${formatDate(log.date)}</div>
@@ -440,39 +482,6 @@ function renderFilledLogs() {
 }
 
 // 将这些函数定义为全局函数
-window.editLog = function(id) {
-  const log = logs.pending.find(log => log.id === id);
-  if (!log) return;
-  
-  // 显示表单
-  showLogForm();
-  
-  // 填充表单数据
-  // 检查项目是否在预设项目中
-  if (presetProjects.includes(log.project)) {
-    projectSelect.value = log.project;
-    projectSelect.classList.remove('hidden');
-    projectInput.classList.add('hidden');
-  } else {
-    projectSelect.value = 'other';
-    projectInput.value = log.project;
-    projectSelect.classList.remove('hidden');
-    projectInput.classList.remove('hidden');
-  }
-  
-  document.getElementById('content').value = log.content;
-  document.getElementById('hours').value = log.hours;
-  document.getElementById('date').value = log.date;
-  
-  // 从待填写列表中移除该日志
-  logs.pending = logs.pending.filter(log => log.id !== id);
-  
-  // 保存并重新渲染
-  saveLogs();
-  updateProjectTabs();
-  renderPendingLogs();
-};
-
 window.fillLog = function(id) {
   const logIndex = logs.pending.findIndex(log => log.id === id);
   if (logIndex === -1) return;
