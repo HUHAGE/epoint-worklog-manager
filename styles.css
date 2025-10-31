@@ -176,12 +176,15 @@ body {
 }
 
 .btn-small {
-  padding: 6px 12px;
-  border-radius: 4px;
+  padding: 4px 8px;
+  border-radius: 3px;
   border: none;
   cursor: pointer;
-  font-size: 12px;
-  transition: all 0.3s;
+  font-size: 11px;
+  transition: all 0.2s ease;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  white-space: nowrap;
 }
 
 .preset-btn {
@@ -258,15 +261,19 @@ body {
 .logs-list {
   display: flex;
   flex-direction: column;
-  gap: 15px;
+  gap: 10px;
 }
 
 .log-item {
   border: 1px solid #eee;
   border-radius: 6px;
-  padding: 15px;
+  padding: 12px;
   background-color: #fafafa;
   transition: box-shadow 0.3s;
+  position: relative;
+  height: 120px; /* 固定高度 */
+  display: flex;
+  flex-direction: column;
 }
 
 .log-item:hover {
@@ -277,9 +284,10 @@ body {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 10px;
-  padding-bottom: 8px;
+  margin-bottom: 8px;
+  padding-bottom: 6px;
   border-bottom: 1px solid #eee;
+  flex-shrink: 0;
 }
 
 .log-project {
@@ -292,48 +300,85 @@ body {
   color: #777;
 }
 
+/* 修改日志内容区域布局 */
+.log-content-wrapper {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 15px;
+  flex: 1;
+  overflow: hidden;
+}
+
+.log-content-main {
+  flex: 1;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+}
+
 .log-content {
-  margin-bottom: 10px;
   color: #555;
-  line-height: 1.5;
+  line-height: 1.4;
+  font-size: 13px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  display: -webkit-box;
+  -webkit-line-clamp: 2; /* 限制显示2行 */
+  -webkit-box-orient: vertical;
+  margin-bottom: 5px;
+  flex: 1;
+  cursor: pointer;
 }
 
 .log-hours {
   font-weight: 500;
   color: #667eea;
-  margin-bottom: 15px;
+  font-size: 13px;
+  flex-shrink: 0;
 }
 
 .log-actions {
   display: flex;
-  gap: 10px;
+  gap: 5px;
+  align-items: center;
+  flex-shrink: 0;
 }
 
 .btn-edit {
-  background-color: #ffc107;
-  color: #212529;
+  background-color: #f8f9fa;
+  color: #6c757d;
+  border: 1px solid #dee2e6;
 }
 
 .btn-edit:hover {
-  background-color: #e0a800;
+  background-color: #e9ecef;
+  border-color: #adb5bd;
+  transform: translateY(-1px);
 }
 
 .btn-fill {
-  background-color: #28a745;
-  color: white;
+  background-color: #d4edda;
+  color: #155724;
+  border: 1px solid #c3e6cb;
 }
 
 .btn-fill:hover {
-  background-color: #218838;
+  background-color: #c3e6cb;
+  border-color: #b1dfbb;
+  transform: translateY(-1px);
 }
 
 .btn-delete {
-  background-color: #dc3545;
-  color: white;
+  background-color: #f8d7da;
+  color: #721c24;
+  border: 1px solid #f5c6cb;
 }
 
 .btn-delete:hover {
-  background-color: #c82333;
+  background-color: #f5c6cb;
+  border-color: #f1b0b7;
+  transform: translateY(-1px);
 }
 
 .filled-log-item {
@@ -451,4 +496,86 @@ body {
   border-radius: 4px;
   font-family: inherit;
   font-size: 14px;
+}
+
+/* 自定义对话框样式 */
+.custom-dialog {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  z-index: 2000;
+}
+
+.dialog-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0, 0, 0, 0.5);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.dialog-content {
+  background-color: white;
+  border-radius: 8px;
+  width: 400px;
+  max-width: 90%;
+  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+}
+
+.dialog-header {
+  padding: 15px 20px;
+  border-bottom: 1px solid #eee;
+}
+
+.dialog-header h3 {
+  margin: 0;
+  color: #333;
+}
+
+.dialog-body {
+  padding: 20px;
+}
+
+.dialog-body p {
+  margin: 0 0 15px 0;
+  line-height: 1.5;
+}
+
+.dialog-options {
+  margin: 15px 0;
+}
+
+.dialog-footer {
+  padding: 15px 20px;
+  border-top: 1px solid #eee;
+  text-align: right;
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+}
+
+/* 成功提示消息样式 */
+.success-message {
+  position: fixed;
+  bottom: 20px;
+  left: 50%;
+  transform: translateX(-50%);
+  background-color: #4CAF50;
+  color: white;
+  padding: 10px 20px;
+  border-radius: 4px;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+  opacity: 0;
+  transition: opacity 0.3s ease;
+  z-index: 1000;
+}
+
+.success-message.show {
+  opacity: 1;
 }

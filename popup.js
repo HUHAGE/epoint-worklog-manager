@@ -17,20 +17,19 @@ let activeProjectFilter = 'all';
 const tabButtons = document.querySelectorAll('.tab-button');
 const pendingTab = document.getElementById('pending-tab');
 const filledTab = document.getElementById('filled-tab');
-const presetTab = document.getElementById('preset-tab'); // 新增预设信息tab
 const logForm = document.getElementById('log-form');
 const pendingLogsList = document.getElementById('pending-logs-list');
 const filledLogsList = document.getElementById('filled-logs-list');
-const presetProjectsTabList = document.getElementById('preset-projects-tab-list'); // 预设信息tab中的列表
-const newPresetProjectTab = document.getElementById('new-preset-project-tab'); // 预设信息tab中的输入框
-const addPresetProjectTabBtn = document.getElementById('add-preset-project-tab-btn'); // 预设信息tab中的添加按钮
-const savePresetProjectsTabBtn = document.getElementById('save-preset-projects-tab-btn'); // 预设信息tab中的保存按钮
 const addLogBtn = document.getElementById('add-log-btn');
 const cancelLogBtn = document.getElementById('cancel-log-btn');
 const projectTabs = document.querySelector('.project-tabs');
+const presetProjectsBtn = document.getElementById('preset-projects-btn');
 const presetModal = document.getElementById('preset-modal');
 const closeModal = document.querySelector('.close-modal');
-const closeInfoModalBtn = document.getElementById('close-info-modal'); // 关闭信息模态框的按钮
+const presetProjectsList = document.getElementById('preset-projects-list');
+const newPresetProject = document.getElementById('new-preset-project');
+const addPresetProjectBtn = document.getElementById('add-preset-project-btn');
+const savePresetProjectsBtn = document.getElementById('save-preset-projects-btn');
 const projectSelect = document.getElementById('project-select');
 const projectInput = document.getElementById('project');
 
@@ -49,19 +48,17 @@ document.addEventListener('DOMContentLoaded', function() {
   
   // 初始化项目选择下拉框
   updateProjectSelect();
-  
-  // 确保预设项目模态框初始状态为隐藏
-  if (presetModal) {
-    presetModal.classList.add('hidden');
-  }
 });
+
+
 
 // 绑定事件监听器
 function bindEventListeners() {
   // 标签页切换
   tabButtons.forEach(button => {
     button.addEventListener('click', () => {
-      switchTab(button.dataset.tab);
+      const tabName = button.dataset.tab;
+      switchTab(tabName);
     });
   });
   
@@ -85,6 +82,11 @@ function bindEventListeners() {
     }
   });
   
+  // 预设项目按钮
+  if (presetProjectsBtn) {
+    presetProjectsBtn.addEventListener('click', showPresetModal);
+  }
+  
   // 关闭模态框
   if (closeModal) {
     closeModal.addEventListener('click', hidePresetModal);
@@ -97,23 +99,19 @@ function bindEventListeners() {
     });
   }
   
-  // 关闭信息模态框按钮
-  if (closeInfoModalBtn) {
-    closeInfoModalBtn.addEventListener('click', hidePresetModal);
+  // 添加预设项目
+  if (addPresetProjectBtn) {
+    addPresetProjectBtn.addEventListener('click', addNewPresetProject);
+  }
+  
+  // 保存预设项目
+  if (savePresetProjectsBtn) {
+    savePresetProjectsBtn.addEventListener('click', savePresetProjects);
   }
   
   // 项目选择变化
   if (projectSelect) {
     projectSelect.addEventListener('change', handleProjectSelectChange);
-  }
-  
-  // 预设信息tab中的功能
-  if (addPresetProjectTabBtn) {
-    addPresetProjectTabBtn.addEventListener('click', addNewPresetProjectFromTab);
-  }
-  
-  if (savePresetProjectsTabBtn) {
-    savePresetProjectsTabBtn.addEventListener('click', savePresetProjectsFromTab);
   }
 }
 
@@ -130,22 +128,18 @@ function switchTab(tabName) {
     }
   });
   
+  // 获取所有标签页内容
+  const tabPanes = document.querySelectorAll('.tab-pane');
+  
+  // 隐藏所有标签页内容
+  tabPanes.forEach(pane => {
+    pane.classList.remove('active');
+  });
+  
   // 显示对应的标签内容
-  if (tabName === 'pending') {
-    pendingTab.classList.add('active');
-    filledTab.classList.remove('active');
-    presetTab.classList.remove('active'); // 隐藏预设信息tab
-  } else if (tabName === 'filled') {
-    pendingTab.classList.remove('active');
-    filledTab.classList.add('active');
-    presetTab.classList.remove('active'); // 隐藏预设信息tab
-  } else if (tabName === 'preset') {
-    pendingTab.classList.remove('active');
-    filledTab.classList.remove('active');
-    presetTab.classList.add('active'); // 显示预设信息tab
-    
-    // 渲染预设项目列表
-    renderPresetProjectsListForTab();
+  const activePane = document.getElementById(`${tabName}-tab`);
+  if (activePane) {
+    activePane.classList.add('active');
   }
   
   // 渲染对应标签页的内容
@@ -232,14 +226,19 @@ function handleFormSubmit(event) {
   const today = new Date().toISOString().split('T')[0];
   document.getElementById('date').value = today;
   
-  // 隐藏表单
-  hideLogForm();
+  // 显示成功提示
+  showSuccessMessage('日志添加成功，可在"待填写"页面查看');
   
   // 更新项目标签
   updateProjectTabs();
   
   // 重新渲染待填写日志列表
   renderPendingLogs();
+  
+  // 切换到待填写标签页
+  setTimeout(() => {
+    switchTab('pending');
+  }, 1500);
 }
 
 // 处理项目选择变化
@@ -431,11 +430,11 @@ function deleteLog(id, type) {
   renderLogs();
 }
 
-// 显示预设项目提示模态框
+// 显示预设项目模态框
 function showPresetModal() {
+  renderPresetProjectsList();
   if (presetModal) {
     presetModal.classList.remove('hidden');
-    document.body.classList.add('modal-open');
   }
 }
 
@@ -446,47 +445,30 @@ function hidePresetModal() {
   }
 }
 
-// 渲染预设项目列表（tab页中）
-function renderPresetProjectsListForTab() {
-  // 确保presetProjectsTabList存在
-  if (!presetProjectsTabList) return;
+// 渲染预设项目列表
+function renderPresetProjectsList() {
+  // 确保presetProjectsList存在
+  if (!presetProjectsList) return;
   
   if (presetProjects.length === 0) {
-    presetProjectsTabList.innerHTML = '<p class="empty-message">暂无预设项目</p>';
+    presetProjectsList.innerHTML = '<p class="empty-message">暂无预设项目</p>';
     return;
   }
   
-  presetProjectsTabList.innerHTML = presetProjects.map((project, index) => `
+  presetProjectsList.innerHTML = presetProjects.map((project, index) => `
     <div class="preset-project-item">
-      <input type="text" value="${escapeHtml(project)}" data-index="${index}" class="preset-project-input">
-      <button class="btn-small btn-delete" onclick="removePresetProjectFromTab(${index})">删除</button>
+      <span>${escapeHtml(project)}</span>
+      <button class="btn-small btn-delete" onclick="removePresetProject(${index})">删除</button>
     </div>
   `).join('');
-  
-  // 为每个输入框添加事件监听器
-  document.querySelectorAll('.preset-project-input').forEach(input => {
-    input.addEventListener('blur', function() {
-      const index = parseInt(this.dataset.index);
-      const newValue = this.value.trim();
-      if (newValue && newValue !== presetProjects[index]) {
-        presetProjects[index] = newValue;
-      }
-    });
-    
-    input.addEventListener('keypress', function(e) {
-      if (e.key === 'Enter') {
-        this.blur();
-      }
-    });
-  });
 }
 
-// 添加新的预设项目（tab页中）
-function addNewPresetProjectFromTab() {
-  // 确保newPresetProjectTab存在
-  if (!newPresetProjectTab) return;
+// 添加新的预设项目
+function addNewPresetProject() {
+  // 确保newPresetProject存在
+  if (!newPresetProject) return;
   
-  const projectName = newPresetProjectTab.value.trim();
+  const projectName = newPresetProject.value.trim();
   if (!projectName) {
     alert('请输入项目名称');
     return;
@@ -498,26 +480,25 @@ function addNewPresetProjectFromTab() {
   }
   
   presetProjects.push(projectName);
-  newPresetProjectTab.value = '';
-  renderPresetProjectsListForTab();
+  newPresetProject.value = '';
+  renderPresetProjectsList();
 }
 
-// 删除预设项目（tab页中）
-function removePresetProjectFromTab(index) {
+// 删除预设项目
+function removePresetProject(index) {
   presetProjects.splice(index, 1);
-  renderPresetProjectsListForTab();
+  renderPresetProjectsList();
 }
 
-// 保存预设项目（tab页中）
-function savePresetProjectsFromTab() {
+// 保存预设项目
+function savePresetProjects() {
   try {
     localStorage.setItem('presetProjects', JSON.stringify(presetProjects));
     updateProjectSelect();
+    hidePresetModal();
     console.log('预设项目已保存');
-    alert('预设项目保存成功！');
   } catch (error) {
     console.error('保存预设项目失败:', error);
-    alert('保存预设项目失败，请查看控制台了解详情。');
   }
 }
 
@@ -574,4 +555,28 @@ function escapeHtml(text) {
 function formatDate(dateString) {
   const options = { year: 'numeric', month: 'short', day: 'numeric' };
   return new Date(dateString).toLocaleDateString('zh-CN', options);
+}
+
+// 显示成功提示消息
+function showSuccessMessage(message) {
+  // 创建提示元素
+  const messageElement = document.createElement('div');
+  messageElement.className = 'success-message';
+  messageElement.textContent = message;
+  
+  // 添加到页面
+  document.querySelector('.container').appendChild(messageElement);
+  
+  // 显示提示
+  setTimeout(() => {
+    messageElement.classList.add('show');
+  }, 100);
+  
+  // 自动隐藏提示
+  setTimeout(() => {
+    messageElement.classList.remove('show');
+    setTimeout(() => {
+      messageElement.remove();
+    }, 500);
+  }, 3000);
 }
