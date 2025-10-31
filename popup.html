@@ -15,36 +15,50 @@
     <div class="tabs">
       <button class="tab-button active" data-tab="pending">待填写</button>
       <button class="tab-button" data-tab="filled">已填写</button>
+      <button class="tab-button" data-tab="preset">预设信息</button>
     </div>
     
     <div class="tab-content">
       <!-- 待填写标签页 -->
       <div id="pending-tab" class="tab-pane active">
-        <div class="form-container">
-          <h2>添加日志</h2>
-          <form id="log-form">
+        <div class="form-container compact-form">
+          <button id="add-log-btn" class="btn-primary compact-btn">+ 添加日志</button>
+          <form id="log-form" class="hidden">
             <div class="form-group">
               <label for="project">项目:</label>
-              <input type="text" id="project" required>
+              <div class="project-input-container">
+                <select id="project-select" class="project-select">
+                  <option value="">请选择项目</option>
+                </select>
+              </div>
+              <input type="text" id="project" placeholder="或输入新项目" class="hidden">
             </div>
             <div class="form-group">
               <label for="content">日志内容:</label>
               <textarea id="content" rows="3" required></textarea>
             </div>
-            <div class="form-group">
-              <label for="hours">工时:</label>
-              <input type="number" id="hours" min="0" step="0.5" required>
+            <div class="form-row">
+              <div class="form-group half-width">
+                <label for="hours">工时:</label>
+                <input type="number" id="hours" min="0" step="0.5" required>
+              </div>
+              <div class="form-group half-width">
+                <label for="date">日期:</label>
+                <input type="date" id="date" required>
+              </div>
             </div>
-            <div class="form-group">
-              <label for="date">日期:</label>
-              <input type="date" id="date" required>
+            <div class="form-actions">
+              <button type="button" id="cancel-log-btn" class="btn-secondary">取消</button>
+              <button type="submit" class="btn-primary">添加日志</button>
             </div>
-            <button type="submit" class="btn-primary">添加日志</button>
           </form>
         </div>
         
         <div class="logs-container">
           <h2>待填写日志列表</h2>
+          <div class="project-tabs">
+            <button class="project-tab-btn active" data-project="all">全部项目</button>
+          </div>
           <div id="pending-logs-list" class="logs-list">
             <!-- 日志列表将通过JavaScript动态生成 -->
           </div>
@@ -60,8 +74,26 @@
           </div>
         </div>
       </div>
+      
+      <!-- 预设信息标签页 -->
+      <div id="preset-tab" class="tab-pane">
+        <div class="logs-container">
+          <h2>预设项目管理</h2>
+          <div class="preset-projects-list" id="preset-projects-tab-list">
+            <!-- 预设项目列表将通过JavaScript动态生成 -->
+          </div>
+          <div class="add-preset-project">
+            <input type="text" id="new-preset-project-tab" placeholder="输入新项目名称">
+            <button id="add-preset-project-tab-btn" class="btn-small">添加</button>
+          </div>
+          <div class="form-actions" style="margin-top: 15px;">
+            <button id="save-preset-projects-tab-btn" class="btn-primary">保存预设项目</button>
+          </div>
+        </div>
+      </div>
     </div>
   </div>
+  
   
   <script src="popup.js"></script>
 </body>

@@ -83,12 +83,17 @@ body {
   display: block;
 }
 
-.form-container {
+.compact-form {
   background-color: #fff;
   border-radius: 8px;
-  padding: 20px;
+  padding: 15px;
   box-shadow: 0 2px 10px rgba(0,0,0,0.05);
   margin-bottom: 20px;
+}
+
+.compact-btn {
+  width: 100%;
+  padding: 12px;
 }
 
 .form-container h2 {
@@ -101,6 +106,15 @@ body {
   margin-bottom: 15px;
 }
 
+.form-row {
+  display: flex;
+  gap: 15px;
+}
+
+.half-width {
+  flex: 1;
+}
+
 .form-group label {
   display: block;
   margin-bottom: 5px;
@@ -109,7 +123,8 @@ body {
 }
 
 .form-group input,
-.form-group textarea {
+.form-group textarea,
+.form-group select {
   width: 100%;
   padding: 10px;
   border: 1px solid #ddd;
@@ -120,7 +135,8 @@ body {
 }
 
 .form-group input:focus,
-.form-group textarea:focus {
+.form-group textarea:focus,
+.form-group select:focus {
   outline: none;
   border-color: #667eea;
   box-shadow: 0 0 0 2px rgba(102, 126, 234, 0.2);
@@ -136,12 +152,65 @@ body {
   font-size: 14px;
   font-weight: 500;
   transition: transform 0.2s, box-shadow 0.2s;
-  width: 100%;
 }
 
 .btn-primary:hover {
   transform: translateY(-2px);
   box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
+}
+
+.btn-secondary {
+  background-color: #6c757d;
+  color: white;
+  border: none;
+  padding: 12px 20px;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 14px;
+  font-weight: 500;
+  transition: background-color 0.3s;
+}
+
+.btn-secondary:hover {
+  background-color: #5a6268;
+}
+
+.btn-small {
+  padding: 6px 12px;
+  border-radius: 4px;
+  border: none;
+  cursor: pointer;
+  font-size: 12px;
+  transition: all 0.3s;
+}
+
+.preset-btn {
+  background-color: #667eea;
+  color: white;
+  margin-left: 10px;
+}
+
+.preset-btn:hover {
+  background-color: #5a6fd8;
+}
+
+.form-actions {
+  display: flex;
+  gap: 10px;
+  justify-content: flex-end;
+}
+
+.project-input-container {
+  display: flex;
+  align-items: center;
+}
+
+.project-select {
+  flex: 1;
+}
+
+.hidden {
+  display: none;
 }
 
 .logs-container {
@@ -155,6 +224,35 @@ body {
   font-size: 1.2em;
   margin-bottom: 15px;
   color: #444;
+}
+
+.project-tabs {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 5px;
+  margin-bottom: 15px;
+  border-bottom: 1px solid #eee;
+  padding-bottom: 10px;
+}
+
+.project-tab-btn {
+  padding: 6px 12px;
+  border: 1px solid #ddd;
+  background-color: #f8f9fa;
+  border-radius: 15px;
+  cursor: pointer;
+  font-size: 12px;
+  transition: all 0.3s;
+}
+
+.project-tab-btn:hover {
+  background-color: #e9ecef;
+}
+
+.project-tab-btn.active {
+  background-color: #667eea;
+  color: white;
+  border-color: #667eea;
 }
 
 .logs-list {
@@ -211,15 +309,6 @@ body {
   gap: 10px;
 }
 
-.btn-small {
-  padding: 6px 12px;
-  border-radius: 4px;
-  border: none;
-  cursor: pointer;
-  font-size: 12px;
-  transition: all 0.3s;
-}
-
 .btn-edit {
   background-color: #ffc107;
   color: #212529;
@@ -253,4 +342,113 @@ body {
 
 .filled-log-item .log-header {
   border-bottom: 1px dashed #28a745;
+}
+
+.empty-message {
+  text-align: center;
+  color: #777;
+  padding: 20px;
+}
+
+/* 模态框样式 */
+.modal {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0,0,0,0.5);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 1000;
+}
+
+.modal-content {
+  background-color: white;
+  border-radius: 8px;
+  width: 400px;
+  max-width: 90%;
+  box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+}
+
+.modal-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 15px 20px;
+  border-bottom: 1px solid #eee;
+}
+
+.modal-header h3 {
+  margin: 0;
+  color: #333;
+}
+
+.close-modal {
+  font-size: 24px;
+  cursor: pointer;
+  color: #aaa;
+}
+
+.close-modal:hover {
+  color: #333;
+}
+
+.modal-body {
+  padding: 20px;
+}
+
+.preset-projects-list {
+  max-height: 200px;
+  overflow-y: auto;
+  margin-bottom: 15px;
+}
+
+.preset-project-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 10px;
+  border-bottom: 1px solid #eee;
+}
+
+.preset-project-item:last-child {
+  border-bottom: none;
+}
+
+.add-preset-project {
+  display: flex;
+  gap: 10px;
+  margin-top: 15px;
+}
+
+.add-preset-project input {
+  flex: 1;
+}
+
+.modal-footer {
+  padding: 15px 20px;
+  border-top: 1px solid #eee;
+  text-align: right;
+}
+
+.checkbox-label {
+  display: flex;
+  align-items: center;
+  cursor: pointer;
+}
+
+.checkbox-label input {
+  margin-right: 8px;
+}
+
+/* 预设项目输入框样式 */
+.preset-project-input {
+  flex: 1;
+  padding: 8px;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  font-family: inherit;
+  font-size: 14px;
 }
