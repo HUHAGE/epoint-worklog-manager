@@ -8,7 +8,7 @@ let logs = {
 let presetProjects = [];
 
 // 当前活动的标签页
-let activeTab = 'pending';
+let activeTab = 'add';
 
 // 当前活动的项目筛选
 let activeProjectFilter = 'all';
@@ -48,6 +48,9 @@ document.addEventListener('DOMContentLoaded', function() {
   
   // 初始化项目选择下拉框
   updateProjectSelect();
+  
+  // 切换到增加日志标签页
+  switchTab('add');
 });
 
 
@@ -84,7 +87,9 @@ function bindEventListeners() {
   
   // 预设项目按钮
   if (presetProjectsBtn) {
-    presetProjectsBtn.addEventListener('click', showPresetModal);
+    presetProjectsBtn.addEventListener('click', () => {
+      switchTab('preset');
+    });
   }
   
   // 关闭模态框
@@ -112,6 +117,36 @@ function bindEventListeners() {
   // 项目选择变化
   if (projectSelect) {
     projectSelect.addEventListener('change', handleProjectSelectChange);
+  }
+  
+  // 预设标签页中的添加按钮
+  const addPresetProjectTabBtn = document.getElementById('add-preset-project-tab-btn');
+  if (addPresetProjectTabBtn) {
+    addPresetProjectTabBtn.addEventListener('click', () => {
+      const newPresetProjectTab = document.getElementById('new-preset-project-tab');
+      if (newPresetProjectTab) {
+        const projectName = newPresetProjectTab.value.trim();
+        if (!projectName) {
+          alert('请输入项目名称');
+          return;
+        }
+        
+        if (presetProjects.includes(projectName)) {
+          alert('该项目已存在');
+          return;
+        }
+        
+        presetProjects.push(projectName);
+        newPresetProjectTab.value = '';
+        renderPresetProjectsList();
+      }
+    });
+  }
+  
+  // 预设标签页中的保存按钮
+  const savePresetProjectsTabBtn = document.getElementById('save-preset-projects-tab-btn');
+  if (savePresetProjectsTabBtn) {
+    savePresetProjectsTabBtn.addEventListener('click', savePresetProjects);
   }
 }
 
@@ -317,21 +352,48 @@ function renderPendingLogs() {
     return;
   }
   
-  pendingLogsList.innerHTML = filteredLogs.map(log => `
-    <div class="log-item" data-id="${log.id}">
-      <div class="log-header">
-        <span class="log-project">${escapeHtml(log.project)}</span>
-        <span class="log-date">${formatDate(log.date)}</span>
+  // 清空列表
+  pendingLogsList.innerHTML = '';
+  
+  // 为每个日志创建元素
+  filteredLogs.forEach(log => {
+    const logItem = document.createElement('div');
+    logItem.className = 'log-item';
+    logItem.dataset.id = log.id;
+    
+    logItem.innerHTML = `
+      <div class="log-item-header">
+        <div class="log-project">${escapeHtml(log.project)}</div>
+        <div class="log-hours">${log.hours}h</div>
+        <div class="log-actions">
+          <div class="action-icon edit-btn" title="编辑">
+            <svg viewBox="0 0 24 24" width="16" height="16"><path fill="currentColor" d="M3 17.25V21h3.75L17.81 9.94l-3.75-3.75L3 17.25zM20.71 7.04c.39-.39.39-1.02 0-1.41l-2.34-2.34c-.39-.39-1.02-.39-1.41 0l-1.83 1.83 3.75 3.75 1.83-1.83z"/></svg>
+          </div>
+          <div class="action-icon fill-btn" title="提交">
+            <svg viewBox="0 0 24 24" width="16" height="16"><path fill="currentColor" d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z"/></svg>
+          </div>
+          <div class="action-icon delete-btn" title="删除">
+            <svg viewBox="0 0 24 24" width="16" height="16">
+              <path fill="currentColor" d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/>
+            </svg>
+          </div>
+        </div>
       </div>
+      <div class="log-date">${formatDate(log.date)}</div>
       <div class="log-content">${escapeHtml(log.content)}</div>
-      <div class="log-hours">工时: ${log.hours} 小时</div>
-      <div class="log-actions">
-        <button class="btn-small btn-edit" onclick="editLog(${log.id})">编辑</button>
-        <button class="btn-small btn-fill" onclick="fillLog(${log.id})">填充</button>
-        <button class="btn-small btn-delete" onclick="deleteLog(${log.id}, 'pending')">删除</button>
-      </div>
-    </div>
-  `).join('');
+    `;
+    
+    // 添加事件监听器
+    const editBtn = logItem.querySelector('.edit-btn');
+    const fillBtn = logItem.querySelector('.fill-btn');
+    const deleteBtn = logItem.querySelector('.delete-btn');
+    
+    editBtn.addEventListener('click', () => editLog(log.id));
+    fillBtn.addEventListener('click', () => fillLog(log.id));
+    deleteBtn.addEventListener('click', () => deleteLog(log.id, 'pending'));
+    
+    pendingLogsList.appendChild(logItem);
+  });
 }
 
 // 渲染已填写日志列表
@@ -344,23 +406,41 @@ function renderFilledLogs() {
     return;
   }
   
-  filledLogsList.innerHTML = logs.filled.map(log => `
-    <div class="log-item filled-log-item" data-id="${log.id}">
-      <div class="log-header">
-        <span class="log-project">${escapeHtml(log.project)}</span>
-        <span class="log-date">${formatDate(log.date)}</span>
+  // 清空列表
+  filledLogsList.innerHTML = '';
+  
+  // 为每个日志创建元素
+  logs.filled.forEach(log => {
+    const logItem = document.createElement('div');
+    logItem.className = 'log-item filled-log-item';
+    logItem.dataset.id = log.id;
+    
+    logItem.innerHTML = `
+      <div class="log-item-header">
+        <div class="log-project">${escapeHtml(log.project)}</div>
+        <div class="log-hours">${log.hours}h</div>
+        <div class="log-actions">
+          <div class="action-icon delete-btn" title="删除">
+            <svg viewBox="0 0 24 24" width="16" height="16">
+              <path fill="currentColor" d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/>
+            </svg>
+          </div>
+        </div>
       </div>
+      <div class="log-date">${formatDate(log.date)}</div>
       <div class="log-content">${escapeHtml(log.content)}</div>
-      <div class="log-hours">工时: ${log.hours} 小时</div>
-      <div class="log-actions">
-        <button class="btn-small btn-delete" onclick="deleteLog(${log.id}, 'filled')">删除</button>
-      </div>
-    </div>
-  `).join('');
+    `;
+    
+    // 添加删除按钮事件监听器
+    const deleteBtn = logItem.querySelector('.delete-btn');
+    deleteBtn.addEventListener('click', () => deleteLog(log.id, 'filled'));
+    
+    filledLogsList.appendChild(logItem);
+  });
 }
 
-// 编辑日志
-function editLog(id) {
+// 将这些函数定义为全局函数
+window.editLog = function(id) {
   const log = logs.pending.find(log => log.id === id);
   if (!log) return;
   
@@ -391,10 +471,9 @@ function editLog(id) {
   saveLogs();
   updateProjectTabs();
   renderPendingLogs();
-}
+};
 
-// 填充日志（将日志从未填写移动到已填写）
-function fillLog(id) {
+window.fillLog = function(id) {
   const logIndex = logs.pending.findIndex(log => log.id === id);
   if (logIndex === -1) return;
   
@@ -412,10 +491,9 @@ function fillLog(id) {
   // 这里应该实现实际的填充逻辑，将日志数据发送到公司系统
   console.log('正在将日志填充到公司系统:', log);
   // TODO: 实现实际的填充功能
-}
+};
 
-// 删除日志
-function deleteLog(id, type) {
+window.deleteLog = function(id, type) {
   if (!confirm('确定要删除这条日志吗？')) return;
   
   if (type === 'pending') {
@@ -428,7 +506,7 @@ function deleteLog(id, type) {
   saveLogs();
   updateProjectTabs();
   renderLogs();
-}
+};
 
 // 显示预设项目模态框
 function showPresetModal() {
@@ -447,47 +525,51 @@ function hidePresetModal() {
 
 // 渲染预设项目列表
 function renderPresetProjectsList() {
-  // 确保presetProjectsList存在
-  if (!presetProjectsList) return;
-  
-  if (presetProjects.length === 0) {
-    presetProjectsList.innerHTML = '<p class="empty-message">暂无预设项目</p>';
-    return;
-  }
-  
-  presetProjectsList.innerHTML = presetProjects.map((project, index) => `
-    <div class="preset-project-item">
-      <span>${escapeHtml(project)}</span>
-      <button class="btn-small btn-delete" onclick="removePresetProject(${index})">删除</button>
-    </div>
-  `).join('');
-}
+  const presetProjectsTabList = document.getElementById('preset-projects-tab-list');
+  if (!presetProjectsTabList) return;
 
-// 添加新的预设项目
-function addNewPresetProject() {
-  // 确保newPresetProject存在
-  if (!newPresetProject) return;
+  presetProjectsTabList.innerHTML = '';
   
-  const projectName = newPresetProject.value.trim();
-  if (!projectName) {
-    alert('请输入项目名称');
-    return;
-  }
-  
-  if (presetProjects.includes(projectName)) {
-    alert('该项目已存在');
-    return;
-  }
-  
-  presetProjects.push(projectName);
-  newPresetProject.value = '';
-  renderPresetProjectsList();
-}
-
-// 删除预设项目
-function removePresetProject(index) {
-  presetProjects.splice(index, 1);
-  renderPresetProjectsList();
+  presetProjects.forEach((project, index) => {
+    const projectItem = document.createElement('div');
+    projectItem.className = 'preset-project-item';
+    
+    const projectInput = document.createElement('input');
+    projectInput.type = 'text';
+    projectInput.value = project;
+    projectInput.className = 'preset-project-input';
+    projectInput.dataset.index = index;
+    
+    const deleteBtn = document.createElement('button');
+    deleteBtn.className = 'btn-small delete-btn';
+    deleteBtn.textContent = '删除';
+    deleteBtn.dataset.index = index;
+    
+    projectItem.appendChild(projectInput);
+    projectItem.appendChild(deleteBtn);
+    presetProjectsTabList.appendChild(projectItem);
+    
+    // 添加修改事件监听
+    projectInput.addEventListener('change', (e) => {
+      const index = parseInt(e.target.dataset.index);
+      const newValue = e.target.value.trim();
+      if (newValue && !presetProjects.includes(newValue)) {
+        presetProjects[index] = newValue;
+      } else {
+        e.target.value = presetProjects[index];
+        if (presetProjects.includes(newValue)) {
+          alert('项目名称已存在');
+        }
+      }
+    });
+    
+    // 添加删除事件监听
+    deleteBtn.addEventListener('click', (e) => {
+      const index = parseInt(e.target.dataset.index);
+      presetProjects.splice(index, 1);
+      renderPresetProjectsList();
+    });
+  });
 }
 
 // 保存预设项目
@@ -496,7 +578,7 @@ function savePresetProjects() {
     localStorage.setItem('presetProjects', JSON.stringify(presetProjects));
     updateProjectSelect();
     hidePresetModal();
-    console.log('预设项目已保存');
+    showSuccessMessage('预设项目已保存');
   } catch (error) {
     console.error('保存预设项目失败:', error);
   }
@@ -537,6 +619,14 @@ function loadPresetProjects() {
     console.error('加载预设项目失败:', error);
     presetProjects = [];
   }
+  renderPresetProjectsList();
+  updateProjectSelect();
+}
+
+// 删除预设项目
+function removePresetProject(index) {
+  presetProjects.splice(index, 1);
+  renderPresetProjectsList();
 }
 
 // 辅助函数：转义HTML特殊字符
@@ -579,4 +669,78 @@ function showSuccessMessage(message) {
       messageElement.remove();
     }, 500);
   }, 3000);
+}
+
+function createLogElement(log) {
+  const logItem = document.createElement('div');
+  logItem.className = 'log-item';
+  
+  const header = document.createElement('div');
+  header.className = 'log-item-header';
+  
+  const project = document.createElement('div');
+  project.className = 'log-project';
+  project.textContent = log.project;
+  
+  const hours = document.createElement('div');
+  hours.className = 'log-hours';
+  hours.textContent = log.hours + 'h';
+  
+  const actions = document.createElement('div');
+  actions.className = 'log-actions';
+  
+  // 编辑图标
+  const editIcon = document.createElement('div');
+  editIcon.className = 'action-icon';
+  editIcon.innerHTML = '<svg viewBox="0 0 24 24" width="16" height="16"><path fill="currentColor" d="M3 17.25V21h3.75L17.81 9.94l-3.75-3.75L3 17.25zM20.71 7.04c.39-.39.39-1.02 0-1.41l-2.34-2.34c-.39-.39-1.02-.39-1.41 0l-1.83 1.83 3.75 3.75 1.83-1.83z"/></svg>';
+  editIcon.title = '编辑';
+  
+  // 提交图标
+  const submitIcon = document.createElement('div');
+  submitIcon.className = 'action-icon';
+  submitIcon.innerHTML = '<svg viewBox="0 0 24 24" width="16" height="16"><path fill="currentColor" d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z"/></svg>';
+  submitIcon.title = '提交';
+  
+  // 删除图标
+  const deleteIcon = document.createElement('div');
+  deleteIcon.className = 'action-icon';
+  deleteIcon.innerHTML = '<svg viewBox="0 0 24 24" width="16" height="16"><path fill="currentColor" d="M6 19c0 1.1.9 2 2 2h8c1.1 0 2-.9 2-2V7H6v12zM19 4h-3.5l-1-1h-5l-1 1H5v2h14V4z"/></svg>';
+  deleteIcon.title = '删除';
+  
+  actions.appendChild(editIcon);
+  actions.appendChild(submitIcon);
+  actions.appendChild(deleteIcon);
+  
+  // 将项目名称、工时和操作按钮添加到header
+  header.appendChild(project);
+  header.appendChild(hours);
+  header.appendChild(actions);
+  
+  // 日期显示在单独的行
+  const date = document.createElement('div');
+  date.className = 'log-date';
+  date.textContent = log.date;
+  
+  const content = document.createElement('div');
+  content.className = 'log-content';
+  content.textContent = log.content;
+  
+  logItem.appendChild(header);
+  logItem.appendChild(date);
+  logItem.appendChild(content);
+  
+  // 添加事件监听器
+  editIcon.addEventListener('click', () => {
+    // 编辑日志的处理逻辑
+  });
+  
+  submitIcon.addEventListener('click', () => {
+    // 提交日志的处理逻辑
+  });
+  
+  deleteIcon.addEventListener('click', () => {
+    // 删除日志的处理逻辑
+  });
+  
+  return logItem;
 }
