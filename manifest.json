@@ -1,0 +1,18 @@
+{
+  "manifest_version": 3,
+  "name": "Epoint工作日志管理器",
+  "version": "1.0",
+  "description": "管理并自动填充工作日志到公司系统",
+  "permissions": [
+    "storage"
+  ],
+  "action": {
+    "default_popup": "popup.html",
+    "default_title": "Epoint工作日志管理器"
+  },
+  "icons": {
+    "16": "icons/icon16.png",
+    "48": "icons/icon48.png",
+    "128": "icons/icon128.png"
+  }
+}

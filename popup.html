@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>工作日志管理器</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <div class="container">
+    <div class="header">
+      <h1>工作日志管理器</h1>
+    </div>
+    
+    <div class="tabs">
+      <button class="tab-button active" data-tab="pending">待填写</button>
+      <button class="tab-button" data-tab="filled">已填写</button>
+    </div>
+    
+    <div class="tab-content">
+      <!-- 待填写标签页 -->
+      <div id="pending-tab" class="tab-pane active">
+        <div class="form-container">
+          <h2>添加日志</h2>
+          <form id="log-form">
+            <div class="form-group">
+              <label for="project">项目:</label>
+              <input type="text" id="project" required>
+            </div>
+            <div class="form-group">
+              <label for="content">日志内容:</label>
+              <textarea id="content" rows="3" required></textarea>
+            </div>
+            <div class="form-group">
+              <label for="hours">工时:</label>
+              <input type="number" id="hours" min="0" step="0.5" required>
+            </div>
+            <div class="form-group">
+              <label for="date">日期:</label>
+              <input type="date" id="date" required>
+            </div>
+            <button type="submit" class="btn-primary">添加日志</button>
+          </form>
+        </div>
+        
+        <div class="logs-container">
+          <h2>待填写日志列表</h2>
+          <div id="pending-logs-list" class="logs-list">
+            <!-- 日志列表将通过JavaScript动态生成 -->
+          </div>
+        </div>
+      </div>
+      
+      <!-- 已填写标签页 -->
+      <div id="filled-tab" class="tab-pane">
+        <div class="logs-container">
+          <h2>已填写日志列表</h2>
+          <div id="filled-logs-list" class="logs-list">
+            <!-- 已填写日志列表将通过JavaScript动态生成 -->
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+  
+  <script src="popup.js"></script>
+</body>
+</html>
