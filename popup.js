@@ -32,6 +32,7 @@ const addPresetProjectBtn = document.getElementById('add-preset-project-btn');
 const savePresetProjectsBtn = document.getElementById('save-preset-projects-btn');
 const projectSelect = document.getElementById('project-select');
 const projectInput = document.getElementById('project');
+const toastContainer = document.getElementById('toast-container');
 
 // 初始化
 document.addEventListener('DOMContentLoaded', function() {
@@ -127,12 +128,12 @@ function bindEventListeners() {
       if (newPresetProjectTab) {
         const projectName = newPresetProjectTab.value.trim();
         if (!projectName) {
-          alert('请输入项目名称');
+          showToast('请输入项目名称');
           return;
         }
         
         if (presetProjects.includes(projectName)) {
-          alert('该项目已存在');
+          showToast('该项目已存在');
           return;
         }
         
@@ -150,6 +151,24 @@ function bindEventListeners() {
   if (savePresetProjectsTabBtn) {
     savePresetProjectsTabBtn.addEventListener('click', savePresetProjects);
   }
+}
+
+function showToast(message, duration = 3000) {
+  const toast = document.createElement('div');
+  toast.className = 'toast-message';
+  toast.textContent = message;
+  toastContainer.appendChild(toast);
+
+  setTimeout(() => {
+    toast.classList.add('show');
+  }, 10);
+
+  setTimeout(() => {
+    toast.classList.remove('show');
+    setTimeout(() => {
+      toast.remove();
+    }, 300);
+  }, duration);
 }
 
 // 切换标签页
@@ -236,7 +255,7 @@ function handleFormSubmit(event) {
   const date = document.getElementById('date').value;
   
   if (!project) {
-    alert('请选择或输入项目名称');
+    showToast('项目名称不能为空');
     return;
   }
 
@@ -277,7 +296,7 @@ function handleFormSubmit(event) {
   document.getElementById('date').value = today;
   
   // 显示成功提示
-  showSuccessMessage(editingLogId ? '日志修改成功' : '日志添加成功，可在"待填写"页面查看');
+  showToast(editingLogId ? '日志修改成功' : '日志已保存');
   
   // 更新项目标签
   updateProjectTabs();
@@ -590,7 +609,7 @@ window.restoreLog = function(id) {
   renderLogs();
   
   // 显示成功提示
-  showSuccessMessage('日志已还原到待填写列表');
+  showToast('日志已还原到待填写列表');
 };
 
 // 将这些函数定义为全局函数
@@ -600,7 +619,7 @@ window.fillLog = function(id) {
   const logIndex = logs.pending.findIndex(log => log.id === id);
   if (logIndex === -1) {
     console.error('Log not found with id:', id);
-    alert('未找到对应的日志记录，请刷新页面后重试');
+    showToast('未找到对应的日志记录，请刷新页面后重试');
     return;
   }
   
@@ -621,7 +640,7 @@ window.fillLog = function(id) {
       // 检查chrome.tabs API是否可用
       if (typeof chrome === 'undefined' || !chrome.tabs) {
         console.error('chrome.tabs API not available');
-        alert('Chrome API不可用，请确保扩展权限正确设置。');
+        showToast('Chrome API不可用，请确保扩展权限正确设置。');
         return;
       }
       
@@ -644,14 +663,14 @@ window.fillLog = function(id) {
               const fakeTab = { id: Date.now(), url: manualUrl };
               processTabUrl(fakeTab, log);
             } else {
-              alert('未输入URL，将尝试在当前页面填充数据');
+              showToast('未输入URL，将尝试在当前页面填充数据');
               // 尝试获取当前标签页ID，即使没有URL
               chrome.tabs.query({}, function(allTabs) {
                 if (allTabs && allTabs.length > 0) {
                   const currentTab = allTabs[0];
                   processTabUrl(currentTab, log);
                 } else {
-                  alert('无法获取任何标签页信息，请刷新页面后重试');
+                  showToast('无法获取任何标签页信息，请刷新页面后重试');
                   // 恢复日志状态
                   logs.filled.pop();
                   logs.pending.push(log);
@@ -668,7 +687,7 @@ window.fillLog = function(id) {
                 const currentTab = allTabs[0];
                 processTabUrl(currentTab, log);
               } else {
-                alert('无法获取任何标签页信息，请刷新页面后重试');
+                showToast('无法获取任何标签页信息，请刷新页面后重试');
                 // 恢复日志状态
                 logs.filled.pop();
                 logs.pending.push(log);
@@ -746,13 +765,13 @@ window.fillLog = function(id) {
           saveLogs();
           updateProjectTabs();
           renderLogs();
-          alert('操作已取消，日志已移回待填写列表');
+          showToast('操作已取消，日志已移回待填写列表');
         }
       }
     }
     } catch (error) {
       console.error('Error in fillLog:', error);
-      alert('发生错误: ' + error.message);
+      showToast('发生错误: ' + error.message);
       
       // 出错时，将日志移回待填写列表
       logs.filled.pop(); // 从已填写列表移除
@@ -777,15 +796,17 @@ function fillLogToPage(tabId, log) {
     }, (results) => {
       console.log('Script execution results:', results);
       if (chrome.runtime.lastError) {
-        console.error('Script execution error:', chrome.runtime.lastError);
-        alert('填充日志时发生错误: ' + chrome.runtime.lastError.message);
+        console.error('脚本注入失败:', chrome.runtime.lastError.message);
+        showToast(`脚本注入失败: ${chrome.runtime.lastError.message}`);
+        // 恢复日志到待填写列表
+        window.restoreLog(log.id);
       } else if (results && results[0] && results[0].result === 'success') {
-        alert('日志已成功填充到页面！');
+        showToast('日志填写成功！');
       }
     });
   } catch (error) {
     console.error('Error executing script:', error);
-    alert('填充日志时发生错误: ' + error.message);
+    showToast('填充日志时发生错误: ' + error.message);
   }
 }
 
@@ -892,7 +913,7 @@ function renderPresetProjectsList() {
       } else {
         e.target.value = presetProjects[index];
         if (presetProjects.includes(newValue)) {
-          alert('项目名称已存在');
+          showToast('项目名称已存在');
         }
       }
     });
@@ -912,7 +933,7 @@ function savePresetProjects() {
     localStorage.setItem('presetProjects', JSON.stringify(presetProjects));
     updateProjectSelect();
     hidePresetModal();
-    showSuccessMessage('预设项目已保存');
+    showToast('预设项目已保存');
   } catch (error) {
     console.error('保存预设项目失败:', error);
   }
@@ -981,29 +1002,7 @@ function formatDate(dateString) {
   return new Date(dateString).toLocaleDateString('zh-CN', options);
 }
 
-// 显示成功提示消息
-function showSuccessMessage(message) {
-  // 创建提示元素
-  const messageElement = document.createElement('div');
-  messageElement.className = 'success-message';
-  messageElement.textContent = message;
-  
-  // 添加到页面
-  document.querySelector('.container').appendChild(messageElement);
-  
-  // 显示提示
-  setTimeout(() => {
-    messageElement.classList.add('show');
-  }, 100);
-  
-  // 自动隐藏提示
-  setTimeout(() => {
-    messageElement.classList.remove('show');
-    setTimeout(() => {
-      messageElement.remove();
-    }, 500);
-  }, 3000);
-}
+
 
 function createLogElement(log) {
   const logItem = document.createElement('div');
