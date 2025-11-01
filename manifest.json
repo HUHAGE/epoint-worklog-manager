@@ -10,7 +10,11 @@
     "scripting"
   ],
   "host_permissions": [
-    "https://oa.epoint.com.cn/*"
+    "https://oa.epoint.com.cn/*",
+    "http://oa.epoint.com.cn/*",
+    "https://*.epoint.com.cn/*",
+    "http://*.epoint.com.cn/*",
+    "<all_urls>"
   ],
   "action": {
     "default_popup": "popup.html",

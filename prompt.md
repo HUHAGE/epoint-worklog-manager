@@ -8,3 +8,6 @@
 
 
 接下来，实现提交按钮的功能，点击提交后，将待填写的日志填充到公司的日志页面，对应日志页面地址：https://oa.epoint.com.cn/epointprojectm/projectmanage/mission/missionapply/missionapplyadd。对应的页面代码路径：日志页面\missionapplyadd.html。填充的位置是填充到页面的datagrid中，填充的内容包括：任务名称、工作内容、申请工时，任务时间默认是当前日期。如果datagrid中的行数不够，自动增加新的行。
+
+
+点击“提交”按钮，判断当前浏览器是否处于https://oa.epoint.com.cn/epointprojectm/projectmanage/mission/missionapply/missionapplyadd页面，否则提示：请先打开非功能任务申请页面，然后点击提交按钮。missionapplyadd页面打开时会默认加载三条任务数据到datagrid中，点击提交按钮后，请你将对应的任务数据填充到datagrid中，如果datagrid中的行数不够，自动增加新的行。
