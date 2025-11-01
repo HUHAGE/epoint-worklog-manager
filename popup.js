@@ -288,12 +288,9 @@ function handleFormSubmit(event) {
   // 如果是编辑模式，立即切换到待填写标签页
   if (editingLogId) {
     switchTab('pending');
-  } else {
-    // 添加模式，延迟切换
-    setTimeout(() => {
-      switchTab('pending');
-    }, 1500);
   }
+  // 注意：新增模式下不再自动跳转到待填写页面
+  // 用户可以手动点击"待填写"标签页查看新增的日志
 }
 
 // 将这些函数定义为全局函数
@@ -818,21 +815,51 @@ function injectFillLogScript(logData) {
       return checkElement();
     }
 
-    // 等待mini加载完成
+    // 等待mini加载完成 - 增加更长的等待时间和更多的检查次数
     if (typeof mini === 'undefined') {
       // 如果mini框架未定义，等待一段时间再检查
       console.log('mini framework not immediately found, waiting...');
-      setTimeout(() => {
-        if (typeof mini === 'undefined') {
-          console.error('mini framework not found on page after waiting');
-          alert('页面上未找到mini框架，请确保在正确的页面上操作');
-          return 'error: mini framework not found';
+      
+      // 增加等待次数和时间，最多等待10秒
+      let waitCount = 0;
+      const maxWaitCount = 20; // 最多等待20次，每次500ms，总共10秒
+      const checkInterval = 500; // 每500ms检查一次
+      
+      const checkForMini = () => {
+        waitCount++;
+        console.log(`检查mini框架是否存在，第${waitCount}/${maxWaitCount}次`);
+        
+        if (typeof mini !== 'undefined') {
+          console.log('mini框架已找到，开始执行填充逻辑');
+          return executeFillLogic(logData);
+        } else if (waitCount < maxWaitCount) {
+          // 继续等待
+          setTimeout(checkForMini, checkInterval);
+          return 'waiting for mini framework';
         } else {
-          executeFillLogic(logData);
+          // 超时，尝试其他方式
+          console.warn('mini框架未找到，尝试使用备选方案');
+          
+          // 检查是否有其他可能的框架或元素
+          const possibleElements = document.querySelectorAll('[class*="mini"], [id*="mini"], .datagrid, #datagrid, [class*="grid"], form, input, textarea');
+          if (possibleElements.length > 0) {
+            console.log('发现可能相关的元素，尝试直接填充');
+            // 尝试直接填充表单
+            fillFormElements(logData);
+            alert('已尝试将日志数据填充到页面表单中。如果未成功，请检查页面是否完全加载或联系技术支持。');
+            return 'success';
+          } else {
+            console.error('页面上未找到mini框架或相关元素，请确保在正确的页面上操作');
+            alert('页面加载可能尚未完成，请稍等页面完全加载后再试，或确保您在正确的日志填写页面上操作。\n\n如果页面已完全加载但仍出现此提示，请检查页面URL是否符合以下模式之一：\n- 包含missionapply\n- 包含missionapplyadd\n- 包含epointprojectm和mission\n- 包含worklog\n- 包含log和mission或task');
+            return 'error: mini framework not found';
+          }
         }
-      }, 2000);
-      return 'waiting for mini framework';
+      };
+      
+      // 开始检查
+      return checkForMini();
     } else {
+      console.log('mini框架已立即找到，开始执行填充逻辑');
       return executeFillLogic(logData);
     }
 
@@ -1049,12 +1076,15 @@ function injectFillLogScript(logData) {
     
     // 填充表单元素的函数
     function fillFormElements(logData) {
-      console.log('Attempting to fill form elements');
+      console.log('Attempting to fill form elements with data:', logData);
       
-      // 查找可能的表单字段
-      const projectFields = document.querySelectorAll('input[name*="project"], input[name*="mission"], input[id*="project"], input[id*="mission"]');
-      const contentFields = document.querySelectorAll('textarea[name*="content"], textarea[id*="content"], input[name*="content"], input[id*="content"]');
-      const hoursFields = document.querySelectorAll('input[name*="hour"], input[id*="hour"], input[type="number"]');
+      // 查找可能的表单字段，增加更多选择器
+      const projectFields = document.querySelectorAll('input[name*="project"], input[name*="mission"], input[id*="project"], input[id*="mission"], input[placeholder*="项目"], input[placeholder*="任务"]');
+      const contentFields = document.querySelectorAll('textarea[name*="content"], textarea[id*="content"], input[name*="content"], input[id*="content"], textarea[placeholder*="工作内容"], textarea[placeholder*="内容"]');
+      const hoursFields = document.querySelectorAll('input[name*="hour"], input[id*="hour"], input[type="number"], input[name*="time"], input[id*="time"]');
+      const dateFields = document.querySelectorAll('input[type="date"], input[name*="date"], input[id*="date"], input[placeholder*="日期"]');
+      
+      let filledFields = 0;
       
       // 填充项目名称
       if (projectFields.length > 0) {
@@ -1062,6 +1092,9 @@ function injectFillLogScript(logData) {
         // 触发change事件
         const event = new Event('change', { bubbles: true });
         projectFields[0].dispatchEvent(event);
+        projectFields[0].focus(); // 聚焦到字段
+        filledFields++;
+        console.log('Filled project field with:', logData.project);
       }
       
       // 填充工作内容
@@ -1070,6 +1103,8 @@ function injectFillLogScript(logData) {
         // 触发change事件
         const event = new Event('change', { bubbles: true });
         contentFields[0].dispatchEvent(event);
+        filledFields++;
+        console.log('Filled content field with:', logData.content);
       }
       
       // 填充工时
@@ -1078,9 +1113,25 @@ function injectFillLogScript(logData) {
         // 触发change事件
         const event = new Event('change', { bubbles: true });
         hoursFields[0].dispatchEvent(event);
+        filledFields++;
+        console.log('Filled hours field with:', logData.hours);
       }
       
-      alert('日志数据已填充到表单中！');
+      // 填充日期（如果有的话）
+      if (dateFields.length > 0 && logData.date) {
+        dateFields[0].value = logData.date;
+        // 触发change事件
+        const event = new Event('change', { bubbles: true });
+        dateFields[0].dispatchEvent(event);
+        filledFields++;
+        console.log('Filled date field with:', logData.date);
+      }
+      
+      if (filledFields > 0) {
+        alert(`日志数据已填充到表单中！已填充${filledFields}个字段。\n\n请检查数据是否正确，如有需要请手动调整。`);
+      } else {
+        alert('未找到可填充的表单字段。请确保您在正确的日志填写页面上，并且页面已完全加载。');
+      }
     }
   } catch (error) {
     console.error('Error in injected script:', error);

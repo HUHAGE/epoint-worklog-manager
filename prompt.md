@@ -11,3 +11,6 @@
 
 
 点击“提交”按钮，判断当前浏览器是否处于https://oa.epoint.com.cn/epointprojectm/projectmanage/mission/missionapply/missionapplyadd页面，否则提示：请先打开非功能任务申请页面，然后点击提交按钮。missionapplyadd页面打开时会默认加载三条任务数据到datagrid中，点击提交按钮后，请你将对应的任务数据填充到datagrid中，如果datagrid中的行数不够，自动增加新的行。
+
+
+提交按钮的功能实现不正确，没有将数据填充到正确的位置。我们现在有的字段是：任务名称、工作内容、申请工时、任务时间，需要把这些字段的值填充到datagrid中对应的位置。你需要在页面上找到每个字段对应的位置，比如第一行的任务名称字段，它的id是mini-54$1$2$editor$text，工作内容的id是mini-54$1$9$editor$text，申请工时的id是mini-54$1$11$editor$text，任务时间的id是mini-54$1$10$editor$text。第二行任务名称的id是mini-54$2$2$editor$text。大概是这样的。注意：不要修改missionapplyadd页面的代码，这个是页面的源码，你修改没有任何作用，你要实现的是浏览器插件的功能。注意代码的正确性，不要修改之后导致插件无法使用。
