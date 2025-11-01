@@ -5,3 +5,6 @@
 
 
 待填写页面展示紧凑一些，点击添加按钮再显示要填写的字段，工时和日期展示到一行，待填写列表下面增加tab，每个项目对应一个tab；增加一个预设项目按钮来预设可以挑选的项目，新增日志时直接挑选项目
+
+
+接下来，实现提交按钮的功能，点击提交后，将待填写的日志填充到公司的日志页面，对应日志页面地址：https://oa.epoint.com.cn/epointprojectm/projectmanage/mission/missionapply/missionapplyadd。对应的页面代码路径：日志页面\missionapplyadd.html。填充的位置是填充到页面的datagrid中，填充的内容包括：任务名称、工作内容、申请工时，任务时间默认是当前日期。如果datagrid中的行数不够，自动增加新的行。

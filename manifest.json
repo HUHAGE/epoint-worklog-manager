@@ -4,7 +4,13 @@
   "version": "1.0",
   "description": "管理并自动填充工作日志到公司系统",
   "permissions": [
-    "storage"
+    "storage",
+    "activeTab",
+    "tabs",
+    "scripting"
+  ],
+  "host_permissions": [
+    "https://oa.epoint.com.cn/*"
   ],
   "action": {
     "default_popup": "popup.html",

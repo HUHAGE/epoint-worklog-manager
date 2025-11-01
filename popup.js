@@ -443,11 +443,29 @@ function renderPendingLogs() {
 }
 
 // 渲染已填写日志列表
+// 当前活动的已填写项目筛选
+let activeFilledProjectFilter = 'all';
+
+// 修改renderFilledLogs函数
 function renderFilledLogs() {
   // 确保filledLogsList存在
   if (!filledLogsList) return;
   
+  // 更新已填写项目标签
+  updateFilledProjectTabs();
+  
   if (logs.filled.length === 0) {
+    filledLogsList.innerHTML = '<p class="empty-message">暂无已填写日志</p>';
+    return;
+  }
+  
+  // 根据项目筛选过滤日志
+  let filteredLogs = logs.filled;
+  if (activeFilledProjectFilter !== 'all') {
+    filteredLogs = logs.filled.filter(log => log.project === activeFilledProjectFilter);
+  }
+  
+  if (filteredLogs.length === 0) {
     filledLogsList.innerHTML = '<p class="empty-message">暂无已填写日志</p>';
     return;
   }
@@ -456,9 +474,9 @@ function renderFilledLogs() {
   filledLogsList.innerHTML = '';
   
   // 为每个日志创建元素
-  logs.filled.forEach(log => {
+  filteredLogs.forEach(log => {
     const logItem = document.createElement('div');
-    logItem.className = 'log-item filled-log-item';
+    logItem.className = 'log-item';
     logItem.dataset.id = log.id;
     
     logItem.innerHTML = `
@@ -466,6 +484,11 @@ function renderFilledLogs() {
         <div class="log-project">${escapeHtml(log.project)}</div>
         <div class="log-hours">${log.hours}h</div>
         <div class="log-actions">
+          <div class="action-icon restore-btn" title="还原">
+            <svg viewBox="0 0 24 24" width="16" height="16">
+              <path fill="currentColor" d="M13 3c-4.97 0-9 4.03-9 9H1l3.89 3.89.07.14L9 12H6c0-3.87 3.13-7 7-7s7 3.13 7 7-3.13 7-7 7c-1.93 0-3.68-.79-4.94-2.06l-1.42 1.42C8.27 19.99 10.51 21 13 21c4.97 0 9-4.03 9-9s-4.03-9-9-9z"/>
+            </svg>
+          </div>
           <div class="action-icon delete-btn" title="删除">×</div>
         </div>
       </div>
@@ -473,13 +496,97 @@ function renderFilledLogs() {
       <div class="log-content">${escapeHtml(log.content)}</div>
     `;
     
-    // 添加删除按钮事件监听器
+    // 添加事件监听器
+    const restoreBtn = logItem.querySelector('.restore-btn');
     const deleteBtn = logItem.querySelector('.delete-btn');
+    
+    restoreBtn.addEventListener('click', () => restoreLog(log.id));
     deleteBtn.addEventListener('click', () => deleteLog(log.id, 'filled'));
     
     filledLogsList.appendChild(logItem);
   });
 }
+
+// 更新已填写项目标签
+function updateFilledProjectTabs() {
+  const filledProjectTabs = document.getElementById('filled-project-tabs');
+  if (!filledProjectTabs) {
+    // 如果不存在，创建项目标签容器
+    const filledTab = document.getElementById('filled-tab');
+    if (filledTab) {
+      const projectTabs = document.createElement('div');
+      projectTabs.id = 'filled-project-tabs';
+      projectTabs.className = 'project-tabs';
+      filledTab.insertBefore(projectTabs, filledLogsList);
+    }
+    return;
+  }
+
+  // 获取所有唯一的项目名称
+  const projects = [...new Set(logs.filled.map(log => log.project))];
+  
+  // 清空项目标签容器
+  filledProjectTabs.innerHTML = '<button class="project-tab-btn active" data-project="all">全部项目</button>';
+  
+  // 为每个项目创建标签按钮
+  projects.forEach(project => {
+    const button = document.createElement('button');
+    button.className = 'project-tab-btn';
+    button.dataset.project = project;
+    button.textContent = project;
+    if (activeFilledProjectFilter === project) {
+      button.classList.add('active');
+    }
+    filledProjectTabs.appendChild(button);
+  });
+
+  // 添加点击事件监听器
+  filledProjectTabs.addEventListener('click', (e) => {
+    if (e.target.classList.contains('project-tab-btn')) {
+      switchFilledProjectFilter(e.target.dataset.project);
+    }
+  });
+}
+
+// 切换已填写项目筛选
+function switchFilledProjectFilter(projectName) {
+  activeFilledProjectFilter = projectName;
+  
+  // 更新项目标签按钮状态
+  const filledProjectTabs = document.getElementById('filled-project-tabs');
+  if (filledProjectTabs) {
+    filledProjectTabs.querySelectorAll('.project-tab-btn').forEach(button => {
+      if (button.dataset.project === projectName) {
+        button.classList.add('active');
+      } else {
+        button.classList.remove('active');
+      }
+    });
+  }
+  
+  // 重新渲染已填写日志列表
+  renderFilledLogs();
+}
+
+// 添加还原日志功能
+window.restoreLog = function(id) {
+  const logIndex = logs.filled.findIndex(log => log.id === id);
+  if (logIndex === -1) return;
+  
+  // 从已填写列表中移除
+  const log = logs.filled.splice(logIndex, 1)[0];
+  
+  // 添加到待填写列表
+  logs.pending.push(log);
+  
+  // 保存并重新渲染
+  saveLogs();
+  updateProjectTabs();
+  renderLogs();
+  
+  // 显示成功提示
+  showSuccessMessage('日志已还原到待填写列表');
+};
 
 // 将这些函数定义为全局函数
 window.fillLog = function(id) {
@@ -496,11 +603,84 @@ window.fillLog = function(id) {
   saveLogs();
   updateProjectTabs();
   renderLogs();
-  
-  // 这里应该实现实际的填充逻辑，将日志数据发送到公司系统
-  console.log('正在将日志填充到公司系统:', log);
-  // TODO: 实现实际的填充功能
+
+  // 获取当前标签页
+  chrome.tabs.query({active: true, currentWindow: true}, function(tabs) {
+    const currentTab = tabs[0];
+    
+    // 检查是否已经在日志填写页面
+    if (currentTab.url.includes('missionapply/missionapplyadd')) {
+      // 如果已经在日志页面，直接填充数据
+      fillLogToPage(currentTab.id, log);
+    } else {
+      // 如果不在日志页面，先打开日志页面
+      chrome.tabs.create({
+        url: 'https://oa.epoint.com.cn/epointprojectm/projectmanage/mission/missionapply/missionapplyadd',
+        active: true
+      }, function(newTab) {
+        // 等待页面加载完成后填充数据
+        chrome.tabs.onUpdated.addListener(function listener(tabId, info) {
+          if (tabId === newTab.id && info.status === 'complete') {
+            chrome.tabs.onUpdated.removeListener(listener);
+            fillLogToPage(newTab.id, log);
+          }
+        });
+      });
+    }
+  });
 };
+
+// 向日志页面填充数据
+function fillLogToPage(tabId, log) {
+  // 注入填充脚本
+  chrome.scripting.executeScript({
+    target: { tabId: tabId },
+    function: (logData) => {
+      // 等待页面加载完成
+      function waitForElement(selector, callback, maxTries = 10, interval = 1000) {
+        let tries = 0;
+        const checkElement = () => {
+          const element = document.querySelector(selector);
+          if (element) {
+            callback(element);
+          } else if (tries < maxTries) {
+            tries++;
+            setTimeout(checkElement, interval);
+          }
+        };
+        checkElement();
+      }
+
+      // 等待datagrid加载完成
+      waitForElement('#datagrid', (datagrid) => {
+        // 获取mini-datagrid组件实例
+        const grid = mini.get('datagrid');
+        if (!grid) return;
+
+        // 获取当前日期
+        const today = new Date().toISOString().split('T')[0];
+
+        // 创建新行数据
+        const newRow = {
+          MissionName: logData.project, // 任务名称使用项目名称
+          ContentType: '01', // 默认工作类型
+          contentdescription: logData.content, // 工作内容
+          FinishDate: today, // 任务时间默认为当天
+          expectcosted: logData.hours, // 申请工时
+          completepercent: '100', // 完成比例默认100%
+          rowguid: mini.newId() // 生成新的行ID
+        };
+
+        // 添加新行
+        grid.addRow(newRow, 0);
+
+        // 自动调整行高
+        grid.autoHeight();
+      });
+    },
+    args: [log]
+  });
+}
 
 window.deleteLog = function(id, type) {
   if (!confirm('确定要删除这条日志吗？')) return;

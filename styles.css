@@ -353,12 +353,23 @@ body {
   transform: translateY(-1px);
 }
 
+.restore-btn {
+  color: #FF9800;
+  background-color: rgba(255, 152, 0, 0.1);
+}
+
+.restore-btn:hover {
+  background-color: rgba(255, 152, 0, 0.2);
+  transform: translateY(-1px);
+}
+
+/* 移除已填写日志的特殊样式 */
 .filled-log-item {
-  border-left: 4px solid #28a745;
+  /* 移除特殊样式 */
 }
 
 .filled-log-item .log-header {
-  border-bottom: 1px dashed #28a745;
+  /* 移除特殊样式 */
 }
 
 .empty-message {
