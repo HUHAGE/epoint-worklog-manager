@@ -34,8 +34,10 @@ const projectInput = document.getElementById('project');
 const toastContainer = document.getElementById('toast-container');
 const demandTagSelect = document.getElementById('demand-tag-select');
 const workTypeSelect = document.getElementById('work-type-select');
+const closeRemindersCheckbox = document.getElementById('close-reminders-checkbox');
 let presetDemandTag = '';
 let presetWorkType = '';
+let presetCloseReminders = false;
 
 // 初始化
 document.addEventListener('DOMContentLoaded', function() {
@@ -48,10 +50,13 @@ document.addEventListener('DOMContentLoaded', function() {
   loadPresetProjects();
   loadPresetDemandTag();
   loadPresetWorkType();
+  loadPresetCloseReminders();
   // 打开插件时自动填充预设需求标签到OA页面
   autofillDemandTagToStory(presetDemandTag);
   // 打开插件时自动填充预设工作类型到OA页面
   autofillWorkTypeToMission(presetWorkType);
+  // 打开插件时根据预设关闭提醒，自动隐藏帮助信息区域
+  autofillCloseRemindersToPage(presetCloseReminders);
   
   // 绑定事件监听器
   bindEventListeners();
@@ -74,6 +79,15 @@ function bindEventListeners() {
       switchTab(tabName);
     });
   });
+  
+  // 添加问题反馈按钮事件监听器
+  const feedbackBtn = document.getElementById('feedback-btn');
+  if (feedbackBtn) {
+    feedbackBtn.addEventListener('click', () => {
+      // 打开问题反馈页面
+      window.open('https://huhafish.feishu.cn/share/base/form/shrcnCjMxCiAH2xXXWen8Cy2nUb', '_blank');
+    });
+  }
   
   // 添加日志按钮
   if (addLogBtn) {
@@ -1352,6 +1366,13 @@ function createLogElement(log) {
       autofillWorkTypeToMission(presetWorkType);
     });
   }
+  // 关闭提醒勾选后立即保存并尝试隐藏页面帮助信息区域
+  if (closeRemindersCheckbox) {
+    closeRemindersCheckbox.addEventListener('change', () => {
+      savePresetCloseReminders();
+      autofillCloseRemindersToPage(presetCloseReminders);
+    });
+  }
 // 加载预设需求标签
 function loadPresetDemandTag() {
   try {
@@ -1399,6 +1420,34 @@ function savePresetWorkType() {
     showToast('工作类型已保存');
   } catch (error) {
     console.error('保存预设工作类型失败:', error);
+  }
+}
+
+// 加载预设关闭提醒
+function loadPresetCloseReminders() {
+  try {
+    const saved = localStorage.getItem('presetCloseReminders');
+    presetCloseReminders = saved === 'true';
+    if (closeRemindersCheckbox) {
+      closeRemindersCheckbox.checked = presetCloseReminders;
+    }
+  } catch (error) {
+    console.error('加载预设关闭提醒失败:', error);
+    presetCloseReminders = false;
+    if (closeRemindersCheckbox) closeRemindersCheckbox.checked = false;
+  }
+}
+
+// 保存预设关闭提醒
+function savePresetCloseReminders() {
+  try {
+    if (closeRemindersCheckbox) {
+      presetCloseReminders = !!closeRemindersCheckbox.checked;
+    }
+    localStorage.setItem('presetCloseReminders', String(presetCloseReminders));
+    showToast('关闭提醒已保存');
+  } catch (error) {
+    console.error('保存预设关闭提醒失败:', error);
   }
 }
 
@@ -1670,5 +1719,66 @@ function autofillWorkTypeToMission(typeText) {
     });
   } catch (error) {
     console.error('自动填充工作类型失败:', error);
+  }
+}
+
+// 在当前激活的OA页，根据预设隐藏帮助信息区域（fui-notice）
+function autofillCloseRemindersToPage(enabled) {
+  try {
+    if (!enabled) return;
+    if (typeof chrome === 'undefined' || !chrome.tabs || !chrome.scripting) {
+      // 在非扩展预览环境中，跳过
+      return;
+    }
+    chrome.tabs.query({ active: true, currentWindow: true }, function(tabs) {
+      if (!tabs || tabs.length === 0) return;
+      const tab = tabs[0];
+      const url = tab.url || '';
+      // 限制在OA域名页执行
+      if (!url.includes('oa.epoint.com.cn')) return;
+      chrome.scripting.executeScript({
+        target: { tabId: tab.id, allFrames: true },
+        world: 'MAIN',
+        args: [enabled],
+        func: function(flag) {
+          try {
+            (function() {
+              var tries = 5;
+              var delay = 600;
+              function hideHelpArea(doc) {
+                try {
+                  var els = doc.querySelectorAll('.fui-notice');
+                  els && els.forEach(function(el){
+                    el.style.display = 'none';
+                    el.classList.add('hidden');
+                  });
+                } catch (e) {}
+              }
+              function tick() {
+                hideHelpArea(document);
+                var iframes = document.getElementsByTagName('iframe');
+                for (var i = 0; i < iframes.length; i++) {
+                  try {
+                    var doc = iframes[i].contentDocument || (iframes[i].contentWindow && iframes[i].contentWindow.document);
+                    if (doc) hideHelpArea(doc);
+                  } catch (e) {}
+                }
+                // 重复执行以抵御后续脚本重置显示
+                if (tries > 0) { tries--; setTimeout(tick, delay); }
+              }
+              tick();
+            })();
+            return 'ok';
+          } catch (e) {
+            console.error('[CloseReminders] injection error:', e);
+            return 'error';
+          }
+        }
+      }, (results) => {
+        console.log('[CloseReminders] injection results:', results);
+      });
+    });
+  } catch (error) {
+    console.error('自动隐藏帮助信息区域失败:', error);
   }
 }

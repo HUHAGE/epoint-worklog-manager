@@ -1,24 +1,26 @@
 <!DOCTYPE html>
 <html lang="zh-CN">
+
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>工作日志管理器</title>
   <link rel="stylesheet" href="styles.css">
 </head>
+
 <body>
   <div class="container">
     <div class="header">
       <h1>工作日志管理器</h1>
     </div>
-    
+
     <div class="tabs">
-    <button class="tab-button active" data-tab="add">增加日志</button>
-    <button class="tab-button" data-tab="pending">待填写</button>
-    <button class="tab-button" data-tab="filled">已填写</button>
-    <button class="tab-button" data-tab="preset">预设信息</button>
-  </div>
-    
+      <button class="tab-button active" data-tab="add">增加日志</button>
+      <button class="tab-button" data-tab="pending">待填写</button>
+      <button class="tab-button" data-tab="filled">已填写</button>
+      <button class="tab-button" data-tab="preset">配置</button>
+    </div>
+
     <div class="tab-content">
       <!-- 增加日志标签页 -->
       <div id="add-tab" class="tab-pane">
@@ -56,7 +58,7 @@
           </form>
         </div>
       </div>
-      
+
       <!-- 待填写标签页 -->
       <div id="pending-tab" class="tab-pane active">
         <div class="logs-container">
@@ -68,7 +70,7 @@
           </div>
         </div>
       </div>
-      
+
       <!-- 已填写标签页 -->
       <div id="filled-tab" class="tab-pane">
         <div class="logs-container">
@@ -80,8 +82,8 @@
           </div>
         </div>
       </div>
-      
-      <!-- 预设信息标签页 -->
+
+      <!-- 配置标签页 -->
       <div id="preset-tab" class="tab-pane">
         <div class="logs-container">
           <h3>预设项目</h3>
@@ -122,13 +124,28 @@
               <option value="建设工作遗留">建设工作遗留</option>
             </select>
           </div>
+
+          <div class="form-group" style="margin-top: 15px;">
+            <h3>关闭提醒</h3>
+            <label>
+              <input type="checkbox" id="close-reminders-checkbox">
+              自动隐藏页面帮助信息区域
+            </label>
+          </div>
+        </div>
+
+        <!-- 在这里添加问题反馈按钮 -->
+        <div class="feedback-container">
+          <button id="feedback-btn" class="btn-secondary">问题反馈</button>
         </div>
       </div>
     </div>
   </div>
-  
-  
+
+
+
   <div id="toast-container" class="toast-container"></div>
   <script src="popup.js"></script>
 </body>
+
 </html>
