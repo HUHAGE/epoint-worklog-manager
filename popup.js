@@ -35,9 +35,15 @@ const toastContainer = document.getElementById('toast-container');
 const demandTagSelect = document.getElementById('demand-tag-select');
 const workTypeSelect = document.getElementById('work-type-select');
 const closeRemindersCheckbox = document.getElementById('close-reminders-checkbox');
+const captureBlueprintBtn = document.getElementById('capture-blueprint-btn');
+const applyBlueprintBtn = document.getElementById('apply-blueprint-btn');
+const blueprintAutoApplyCheckbox = document.getElementById('blueprint-auto-apply-checkbox');
+const blueprintPresetsList = document.getElementById('blueprint-presets-list');
 let presetDemandTag = '';
 let presetWorkType = '';
 let presetCloseReminders = false;
+let presetBlueprints = {};
+let presetBlueprintAutoApply = true;
 
 // 初始化
 document.addEventListener('DOMContentLoaded', function() {
@@ -51,12 +57,18 @@ document.addEventListener('DOMContentLoaded', function() {
   loadPresetDemandTag();
   loadPresetWorkType();
   loadPresetCloseReminders();
+  loadPresetBlueprints();
+  loadPresetBlueprintAutoApply();
   // 打开插件时自动填充预设需求标签到OA页面
   autofillDemandTagToStory(presetDemandTag);
   // 打开插件时自动填充预设工作类型到OA页面
   autofillWorkTypeToMission(presetWorkType);
   // 打开插件时根据预设关闭提醒，自动隐藏帮助信息区域
   autofillCloseRemindersToPage(presetCloseReminders);
+  // 打开插件时若开启自动应用蓝图，尝试应用蓝图预设到OA页面
+  if (presetBlueprintAutoApply) {
+    applyBlueprintPresetToOA();
+  }
   
   // 显示预设配置成功加载提示
   showToast('预设配置已成功加载！');
@@ -116,6 +128,23 @@ function bindEventListeners() {
   if (presetProjectsBtn) {
     presetProjectsBtn.addEventListener('click', () => {
       switchTab('preset');
+    });
+  }
+
+  // 蓝图预设：捕获与应用按钮
+  if (captureBlueprintBtn) {
+    captureBlueprintBtn.addEventListener('click', () => {
+      captureCurrentBlueprintFromOA();
+    });
+  }
+  if (applyBlueprintBtn) {
+    applyBlueprintBtn.addEventListener('click', () => {
+      applyBlueprintPresetToOA();
+    });
+  }
+  if (blueprintAutoApplyCheckbox) {
+    blueprintAutoApplyCheckbox.addEventListener('change', () => {
+      savePresetBlueprintAutoApply();
     });
   }
   
@@ -1451,6 +1480,272 @@ function savePresetCloseReminders() {
     showToast('关闭提醒已保存');
   } catch (error) {
     console.error('保存预设关闭提醒失败:', error);
+  }
+}
+
+// 加载蓝图预设映射（ProjectGuid -> Blueprint preset）
+function loadPresetBlueprints() {
+  try {
+    const saved = localStorage.getItem('presetBlueprints');
+    presetBlueprints = saved ? JSON.parse(saved) : {};
+    renderBlueprintPresetsList();
+  } catch (error) {
+    console.error('加载蓝图预设失败:', error);
+    presetBlueprints = {};
+    renderBlueprintPresetsList();
+  }
+}
+
+// 保存蓝图预设映射
+function savePresetBlueprints() {
+  try {
+    localStorage.setItem('presetBlueprints', JSON.stringify(presetBlueprints || {}));
+    renderBlueprintPresetsList();
+    showToast('蓝图预设已保存');
+  } catch (error) {
+    console.error('保存蓝图预设失败:', error);
+  }
+}
+
+// 渲染蓝图预设列表
+function renderBlueprintPresetsList() {
+  try {
+    if (!blueprintPresetsList) return;
+    const map = presetBlueprints || {};
+    const keys = Object.keys(map);
+    if (keys.length === 0) {
+      blueprintPresetsList.innerHTML = '<p style="color:#888;">暂无蓝图预设</p>';
+      return;
+    }
+    let html = '<ul class="preset-list">';
+    keys.forEach((projectKey) => {
+      const bp = map[projectKey] || {};
+      const name = bp.BluePrint_Formal || '(未命名蓝图)';
+      const projName = bp.ProjectName || projectKey || '(未命名项目)';
+      html += `<li><span>项目: ${escapeHtml(projName)}</span> <span style="margin-left:8px;">蓝图: ${escapeHtml(name)}</span> <button onclick="window.removeBlueprintPreset('${projectKey}')">删除</button></li>`;
+    });
+    html += '</ul>';
+    blueprintPresetsList.innerHTML = html;
+  } catch (error) {
+    console.error('渲染蓝图预设列表失败:', error);
+  }
+}
+
+// 删除单个蓝图预设
+function removeBlueprintPreset(projectKey) {
+  try {
+    if (!projectKey) return;
+    if (presetBlueprints && presetBlueprints[projectKey]) {
+      delete presetBlueprints[projectKey];
+      savePresetBlueprints();
+      showToast('已删除蓝图预设');
+    }
+  } catch (error) {
+    console.error('删除蓝图预设失败:', error);
+  }
+}
+
+// 暴露到窗口，供列表删除按钮调用
+window.removeBlueprintPreset = function(projectKey) {
+  removeBlueprintPreset(projectKey);
+};
+
+// 加载“自动应用蓝图”设置
+function loadPresetBlueprintAutoApply() {
+  try {
+    const saved = localStorage.getItem('presetBlueprintAutoApply');
+    presetBlueprintAutoApply = saved === null ? true : (saved === 'true');
+    if (blueprintAutoApplyCheckbox) {
+      blueprintAutoApplyCheckbox.checked = !!presetBlueprintAutoApply;
+    }
+  } catch (error) {
+    console.error('加载蓝图自动应用设置失败:', error);
+    presetBlueprintAutoApply = true;
+    if (blueprintAutoApplyCheckbox) blueprintAutoApplyCheckbox.checked = true;
+  }
+}
+
+// 保存“自动应用蓝图”设置
+function savePresetBlueprintAutoApply() {
+  try {
+    presetBlueprintAutoApply = !!(blueprintAutoApplyCheckbox && blueprintAutoApplyCheckbox.checked);
+    localStorage.setItem('presetBlueprintAutoApply', String(presetBlueprintAutoApply));
+    showToast('蓝图自动应用设置已保存');
+  } catch (error) {
+    console.error('保存蓝图自动应用设置失败:', error);
+  }
+}
+
+// 从当前激活的OA页面捕获蓝图信息并保存为预设
+function captureCurrentBlueprintFromOA() {
+  try {
+    if (typeof chrome === 'undefined' || !chrome.tabs || !chrome.scripting) {
+      showToast('请在扩展环境中使用此功能');
+      return;
+    }
+    chrome.tabs.query({ active: true, currentWindow: true }, function(tabs) {
+      if (!tabs || tabs.length === 0) { showToast('未找到活动标签页'); return; }
+      const tab = tabs[0];
+      const url = tab.url || '';
+      if (!url.includes('oa.epoint.com.cn')) { showToast('请在OA页面使用捕获功能'); return; }
+      chrome.scripting.executeScript({
+        target: { tabId: tab.id, allFrames: true },
+        world: 'MAIN',
+        func: function() {
+          try {
+            var w = window; var miniObj = w.mini; var doc = document;
+            function getCtrl(id) { try { return miniObj && miniObj.get && miniObj.get(id); } catch(e) { return null; } }
+            function getValue(id) {
+              var ctrl = getCtrl(id); var el = doc.getElementById(id);
+              var v = '';
+              try {
+                if (ctrl && typeof ctrl.getValue === 'function') v = ctrl.getValue() || '';
+                else if (el) v = (el.value || el.textContent || '').trim();
+              } catch (e) {}
+              return v || '';
+            }
+            function getText(id) {
+              var ctrl = getCtrl(id); var el = doc.getElementById(id);
+              var t = '';
+              try {
+                if (ctrl && typeof ctrl.getText === 'function') t = ctrl.getText() || '';
+                else if (el) t = (el.innerText || el.textContent || '').trim();
+              } catch (e) {}
+              return t || '';
+            }
+            var projectName = getText('lblProjectName') || getValue('ProjectName');
+            var projectGuid = getValue('ProjectGuid');
+            if (!projectGuid) { try { projectGuid = new URL(w.location.href).searchParams.get('ProjectGuid') || ''; } catch (e) {} }
+            var bpGuid = getValue('BluePrint_Formal');
+            var preset = {
+              ProjectName: projectName,
+              ProjectGuid: projectGuid,
+              BluePrint_FormalGuid: bpGuid,
+              BluePrint_Formal: getText('BluePrint_Formal'),
+              BluePrintLevel: getValue('BluePrintLevel'),
+              ContractGuid: getValue('ContractGuid'),
+              IsWYSJSHT: getValue('IsWYSJSHT'),
+              ContractNumber: getValue('contractnumber')
+            };
+            if (!preset.ProjectName) return null;
+            if (!preset.BluePrint_FormalGuid) return null;
+            return preset;
+          } catch (e) {
+            console.error('[CaptureBlueprint] injection error:', e);
+            return null;
+          }
+        }
+      }, (results) => {
+        try {
+          const arr = Array.isArray(results) ? results : [];
+          const found = arr.map(r => r && r.result).find(r => r && r.ProjectName);
+          if (!found) { showToast('未捕获到蓝图，请先在OA页选择蓝图'); return; }
+          const key = found.ProjectName;
+          presetBlueprints[key] = found;
+          savePresetBlueprints();
+          showToast('已捕获并保存蓝图预设');
+        } catch (e) {
+          console.error('处理捕获结果失败:', e);
+          showToast('捕获蓝图失败');
+        }
+      });
+    });
+  } catch (error) {
+    console.error('捕获当前蓝图失败:', error);
+  }
+}
+
+// 在当前激活的OA页应用蓝图预设（根据ProjectGuid自动匹配）
+function applyBlueprintPresetToOA() {
+  try {
+    if (typeof chrome === 'undefined' || !chrome.tabs || !chrome.scripting) {
+      return;
+    }
+    chrome.tabs.query({ active: true, currentWindow: true }, function(tabs) {
+      if (!tabs || tabs.length === 0) return;
+      const tab = tabs[0];
+      const url = tab.url || '';
+      if (!url.includes('oa.epoint.com.cn')) return;
+      chrome.scripting.executeScript({
+        target: { tabId: tab.id, allFrames: true },
+        world: 'MAIN',
+        args: [presetBlueprints || {}],
+        func: function(map) {
+          try {
+            (function(){
+              var tries = 5; var delay = 800;
+              function run(doc){
+                var w = doc.defaultView || window; var miniObj = w.mini;
+                function getCtrl(id){ try { return miniObj && miniObj.get && miniObj.get(id); } catch(e){ return null; } }
+                function getValue(id) {
+                  var ctrl = getCtrl(id); var el = doc.getElementById(id);
+                  var v = '';
+                  try {
+                    if (ctrl && typeof ctrl.getValue === 'function') v = ctrl.getValue() || '';
+                    else if (el) v = (el.value || el.textContent || '').trim();
+                  } catch (e) {}
+                  return v || '';
+                }
+                function getText(id) {
+                  var ctrl = getCtrl(id); var el = doc.getElementById(id);
+                  var t = '';
+                  try {
+                    if (ctrl && typeof ctrl.getText === 'function') t = ctrl.getText() || '';
+                    else if (el) t = (el.innerText || el.textContent || '').trim();
+                  } catch (e) {}
+                  return t || '';
+                }
+                var projectName = getText('lblProjectName') || getValue('ProjectName');
+                var projectGuid = getValue('ProjectGuid');
+                if (!projectGuid) { try { projectGuid = new URL(w.location.href).searchParams.get('ProjectGuid') || ''; } catch (e) {} }
+                // 优先以项目名称匹配，其次兼容旧版本以GUID匹配
+                var preset = (projectName && map && map[projectName]) || (projectGuid && map && map[projectGuid]);
+                if (!preset) return false;
+                try {
+                  var bpCtrl = miniObj && miniObj.get && miniObj.get('BluePrint_Formal');
+                  if (bpCtrl && typeof bpCtrl.setText === 'function') bpCtrl.setText(preset.BluePrint_Formal || '');
+                  if (bpCtrl && typeof bpCtrl.setValue === 'function') bpCtrl.setValue(preset.BluePrint_FormalGuid || '');
+                  var lvlCtrl = miniObj && miniObj.get && miniObj.get('BluePrintLevel');
+                  if (lvlCtrl && typeof lvlCtrl.setValue === 'function') lvlCtrl.setValue(preset.BluePrintLevel || '');
+                  var cgCtrl = miniObj && miniObj.get && miniObj.get('ContractGuid');
+                  if (cgCtrl && typeof cgCtrl.setValue === 'function') cgCtrl.setValue(preset.ContractGuid || '');
+                  var jsCtrl = miniObj && miniObj.get && miniObj.get('IsWYSJSHT');
+                  if (jsCtrl && typeof jsCtrl.setValue === 'function') jsCtrl.setValue(preset.IsWYSJSHT || '');
+                  var numCtrl = miniObj && miniObj.get && miniObj.get('contractnumber');
+                  if (numCtrl && typeof numCtrl.setValue === 'function') numCtrl.setValue(preset.ContractNumber || '');
+                  return true;
+                } catch (e) { return false; }
+              }
+              function tryAll(){
+                var ok = false;
+                try { ok = run(document); } catch (e) {}
+                var iframes = document.getElementsByTagName('iframe');
+                for (var i = 0; i < iframes.length; i++) {
+                  try {
+                    var doc = iframes[i].contentDocument || (iframes[i].contentWindow && iframes[i].contentWindow.document);
+                    if (doc) ok = run(doc) || ok;
+                  } catch (e) {}
+                }
+                return ok;
+              }
+              function runner(){
+                var done = tryAll();
+                if (!done && tries > 0) { tries--; setTimeout(runner, delay); }
+              }
+              runner();
+            })();
+            return 'ok';
+          } catch (e) {
+            console.error('[ApplyBlueprint] injection error:', e);
+            return 'error';
+          }
+        }
+      }, (results) => {
+        console.log('[ApplyBlueprint] injection results:', results);
+      });
+    });
+  } catch (error) {
+    console.error('自动应用蓝图预设失败:', error);
   }
 }
 
