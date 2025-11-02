@@ -664,6 +664,30 @@ body {
   opacity: 1;
 }
 
+/* 配置页面卡片样式 */
+.config-container {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  padding: 15px;
+}
+
+.config-card {
+  background-color: #fff;
+  border-radius: 8px;
+  padding: 20px;
+  box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+  border: 1px solid #eee;
+}
+
+.config-card h3 {
+  margin-top: 0;
+  margin-bottom: 15px;
+  color: #444;
+  font-size: 1.1em;
+  font-weight: 500;
+}
+
 /* 添加问题反馈按钮样式 */
 .feedback-container {
   padding: 10px 15px;
@@ -674,7 +698,7 @@ body {
 
 #feedback-btn {
   width: 100%;
-  padding: 10px;
+  padding: 12px;
   background-color: #f5f7fa;
   color: #667eea;
   border: 1px solid #ddd;

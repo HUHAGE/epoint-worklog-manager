@@ -58,6 +58,9 @@ document.addEventListener('DOMContentLoaded', function() {
   // 打开插件时根据预设关闭提醒，自动隐藏帮助信息区域
   autofillCloseRemindersToPage(presetCloseReminders);
   
+  // 显示预设配置成功加载提示
+  showToast('预设配置已成功加载！');
+  
   // 绑定事件监听器
   bindEventListeners();
   

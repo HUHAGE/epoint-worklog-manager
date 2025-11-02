@@ -85,58 +85,71 @@
 
       <!-- 配置标签页 -->
       <div id="preset-tab" class="tab-pane">
-        <div class="logs-container">
-          <h3>预设项目</h3>
-          <div class="preset-projects-list" id="preset-projects-tab-list">
-            <!-- 预设项目列表将通过JavaScript动态生成 -->
-          </div>
-          <div class="add-preset-project">
-            <input type="text" id="new-preset-project-tab" placeholder="输入新项目名称">
-            <button id="add-preset-project-tab-btn" class="btn-small">添加</button>
+        <div class="config-container">
+          <!-- 预设项目卡片 -->
+          <div class="config-card">
+            <h3>预设项目</h3>
+            <div class="preset-projects-list" id="preset-projects-tab-list">
+              <!-- 预设项目列表将通过JavaScript动态生成 -->
+            </div>
+            <div class="add-preset-project">
+              <input type="text" id="new-preset-project-tab" placeholder="输入新项目名称">
+              <button id="add-preset-project-tab-btn" class="btn-small">添加</button>
+            </div>
           </div>
 
-          <div class="form-group" style="margin-top: 15px;">
+          <!-- 需求标签卡片 -->
+          <div class="config-card">
             <h3>需求标签</h3>
-            <select id="demand-tag-select">
-              <option value="">请选择标签</option>
-              <option value="会议沟通">会议沟通</option>
-              <option value="出差在途">出差在途</option>
-              <option value="文档编写">文档编写</option>
-              <option value="部署调试">部署调试</option>
-              <option value="接口类调试">接口类调试</option>
-              <option value="评审">评审</option>
-              <option value="培训推广">培训推广</option>
-              <option value="配合杂事">配合杂事</option>
-              <option value="日常巡查配合工作">日常巡查配合工作</option>
-              <option value="产品发版运维">产品发版运维</option>
-              <option value="售前支撑">售前支撑</option>
-              <option value="计划管控">计划管控</option>
-            </select>
+            <div class="form-group">
+              <select id="demand-tag-select">
+                <option value="">请选择标签</option>
+                <option value="会议沟通">会议沟通</option>
+                <option value="出差在途">出差在途</option>
+                <option value="文档编写">文档编写</option>
+                <option value="部署调试">部署调试</option>
+                <option value="接口类调试">接口类调试</option>
+                <option value="评审">评审</option>
+                <option value="培训推广">培训推广</option>
+                <option value="配合杂事">配合杂事</option>
+                <option value="日常巡查配合工作">日常巡查配合工作</option>
+                <option value="产品发版运维">产品发版运维</option>
+                <option value="售前支撑">售前支撑</option>
+                <option value="计划管控">计划管控</option>
+              </select>
+            </div>
           </div>
 
-          <div class="form-group" style="margin-top: 15px;">
+          <!-- 工作类型卡片 -->
+          <div class="config-card">
             <h3>工作类型</h3>
-            <select id="work-type-select">
-              <option value="">请选择类型</option>
-              <option value="建设工作">建设工作</option>
-              <option value="维护工作">维护工作</option>
-              <option value="合同外工作">合同外工作</option>
-              <option value="建设工作遗留">建设工作遗留</option>
-            </select>
+            <div class="form-group">
+              <select id="work-type-select">
+                <option value="">请选择类型</option>
+                <option value="建设工作">建设工作</option>
+                <option value="维护工作">维护工作</option>
+                <option value="合同外工作">合同外工作</option>
+                <option value="建设工作遗留">建设工作遗留</option>
+              </select>
+            </div>
           </div>
 
-          <div class="form-group" style="margin-top: 15px;">
+          <!-- 关闭提醒卡片 -->
+          <div class="config-card">
             <h3>关闭提醒</h3>
-            <label>
-              <input type="checkbox" id="close-reminders-checkbox">
-              自动隐藏页面帮助信息区域
-            </label>
+            <div class="form-group">
+              <label class="checkbox-label">
+                <input type="checkbox" id="close-reminders-checkbox">
+                自动隐藏页面帮助信息区域
+              </label>
+            </div>
           </div>
-        </div>
 
-        <!-- 在这里添加问题反馈按钮 -->
-        <div class="feedback-container">
-          <button id="feedback-btn" class="btn-secondary">问题反馈</button>
+          <!-- 问题反馈卡片 -->
+          <div class="config-card">
+            <h3>问题反馈</h3>
+            <button id="feedback-btn" class="btn-secondary">问题反馈</button>
+          </div>
         </div>
       </div>
     </div>
