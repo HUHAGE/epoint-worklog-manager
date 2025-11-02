@@ -39,6 +39,11 @@ const captureBlueprintBtn = document.getElementById('capture-blueprint-btn');
 const applyBlueprintBtn = document.getElementById('apply-blueprint-btn');
 const blueprintAutoApplyCheckbox = document.getElementById('blueprint-auto-apply-checkbox');
 const blueprintPresetsList = document.getElementById('blueprint-presets-list');
+// 任务审核人预设 UI 引用
+const captureTaskReviewerBtn = document.getElementById('capture-taskreviewer-btn');
+const applyTaskReviewerBtn = document.getElementById('apply-taskreviewer-btn');
+const taskReviewerAutoApplyCheckbox = document.getElementById('taskreviewer-auto-apply-checkbox');
+const taskReviewerPresetsList = document.getElementById('taskreviewer-presets-list');
 // 工作场景预设 UI 引用
 const captureStageDemandBtn = document.getElementById('capture-stagedemand-btn');
 const applyStageDemandBtn = document.getElementById('apply-stagedemand-btn');
@@ -51,6 +56,8 @@ let presetBlueprints = {};
 let presetBlueprintAutoApply = true;
 let presetStageDemands = {};
 let presetStageDemandAutoApply = true;
+let presetTaskReviewers = {};
+let presetTaskReviewerAutoApply = true;
 
 // 初始化
 document.addEventListener('DOMContentLoaded', function() {
@@ -68,6 +75,10 @@ document.addEventListener('DOMContentLoaded', function() {
   loadPresetBlueprintAutoApply();
   loadPresetStageDemands();
   loadPresetStageDemandAutoApply();
+  loadPresetTaskReviewers();
+  loadPresetTaskReviewerAutoApply();
+  loadPresetStageDemands();
+  loadPresetStageDemandAutoApply();
   // 打开插件时自动填充预设需求标签到OA页面
   autofillDemandTagToStory(presetDemandTag);
   // 打开插件时自动填充预设工作类型到OA页面
@@ -77,6 +88,12 @@ document.addEventListener('DOMContentLoaded', function() {
   // 打开插件时若开启自动应用蓝图，尝试应用蓝图预设到OA页面
   if (presetBlueprintAutoApply) {
     applyBlueprintPresetToOA();
+  }
+  if (presetStageDemandAutoApply) {
+    applyStageDemandPresetToOA();
+  }
+  if (presetTaskReviewerAutoApply) {
+    applyTaskReviewerPresetToOA();
   }
   // 打开插件时若开启自动应用工作场景，尝试应用工作场景预设到OA页面
   if (presetStageDemandAutoApply) {
@@ -158,6 +175,23 @@ function bindEventListeners() {
   if (blueprintAutoApplyCheckbox) {
     blueprintAutoApplyCheckbox.addEventListener('change', () => {
       savePresetBlueprintAutoApply();
+    });
+  }
+
+  // 任务审核人预设：捕获与应用按钮
+  if (captureTaskReviewerBtn) {
+    captureTaskReviewerBtn.addEventListener('click', () => {
+      captureCurrentTaskReviewerFromOA();
+    });
+  }
+  if (applyTaskReviewerBtn) {
+    applyTaskReviewerBtn.addEventListener('click', () => {
+      applyTaskReviewerPresetToOA();
+    });
+  }
+  if (taskReviewerAutoApplyCheckbox) {
+    taskReviewerAutoApplyCheckbox.addEventListener('change', () => {
+      savePresetTaskReviewerAutoApply();
     });
   }
 
@@ -1603,6 +1637,276 @@ function savePresetBlueprintAutoApply() {
     showToast('蓝图自动应用设置已保存');
   } catch (error) {
     console.error('保存蓝图自动应用设置失败:', error);
+  }
+}
+
+// ===================== 任务审核人预设：存储与渲染 =====================
+function loadPresetTaskReviewers() {
+  try {
+    const saved = localStorage.getItem('presetTaskReviewers');
+    presetTaskReviewers = saved ? JSON.parse(saved) : {};
+    renderTaskReviewerPresetsList();
+  } catch (error) {
+    console.error('加载任务审核人预设失败:', error);
+    presetTaskReviewers = {};
+    renderTaskReviewerPresetsList();
+  }
+}
+
+function savePresetTaskReviewers() {
+  try {
+    localStorage.setItem('presetTaskReviewers', JSON.stringify(presetTaskReviewers || {}));
+    renderTaskReviewerPresetsList();
+    showToast('任务审核人预设已保存');
+  } catch (error) {
+    console.error('保存任务审核人预设失败:', error);
+  }
+}
+
+function renderTaskReviewerPresetsList() {
+  try {
+    if (!taskReviewerPresetsList) return;
+    const map = presetTaskReviewers || {};
+    const keys = Object.keys(map);
+    if (keys.length === 0) {
+      taskReviewerPresetsList.innerHTML = '<p style="color:#888;">暂无任务审核人预设</p>';
+      return;
+    }
+    let html = '<ul class="preset-list">';
+    keys.forEach((projectKey) => {
+      const tr = map[projectKey] || {};
+      const name = tr.TaskReviewerName || '(未命名审核人)';
+      const projName = tr.ProjectName || projectKey || '(未命名项目)';
+      html += `<li><span>项目: ${escapeHtml(projName)}</span> <span style="margin-left:8px;">审核人: ${escapeHtml(name)}</span> <button onclick="window.removeTaskReviewerPreset('${projectKey}')">删除</button></li>`;
+    });
+    html += '</ul>';
+    taskReviewerPresetsList.innerHTML = html;
+  } catch (error) {
+    console.error('渲染任务审核人预设列表失败:', error);
+  }
+}
+
+function removeTaskReviewerPreset(projectKey) {
+  try {
+    if (!projectKey) return;
+    if (presetTaskReviewers && presetTaskReviewers[projectKey]) {
+      delete presetTaskReviewers[projectKey];
+      savePresetTaskReviewers();
+      showToast('已删除任务审核人预设');
+    }
+  } catch (error) {
+    console.error('删除任务审核人预设失败:', error);
+  }
+}
+
+window.removeTaskReviewerPreset = function(projectKey) {
+  removeTaskReviewerPreset(projectKey);
+};
+
+function loadPresetTaskReviewerAutoApply() {
+  try {
+    const saved = localStorage.getItem('presetTaskReviewerAutoApply');
+    presetTaskReviewerAutoApply = saved === null ? true : (saved === 'true');
+    if (taskReviewerAutoApplyCheckbox) {
+      taskReviewerAutoApplyCheckbox.checked = !!presetTaskReviewerAutoApply;
+    }
+  } catch (error) {
+    console.error('加载任务审核人自动应用设置失败:', error);
+    presetTaskReviewerAutoApply = true;
+    if (taskReviewerAutoApplyCheckbox) taskReviewerAutoApplyCheckbox.checked = true;
+  }
+}
+
+function savePresetTaskReviewerAutoApply() {
+  try {
+    presetTaskReviewerAutoApply = !!(taskReviewerAutoApplyCheckbox && taskReviewerAutoApplyCheckbox.checked);
+    localStorage.setItem('presetTaskReviewerAutoApply', String(presetTaskReviewerAutoApply));
+    showToast('任务审核人自动应用设置已保存');
+  } catch (error) {
+    console.error('保存任务审核人自动应用设置失败:', error);
+  }
+}
+
+// ===================== 任务审核人预设：捕获与应用 =====================
+function captureCurrentTaskReviewerFromOA() {
+  try {
+    if (typeof chrome === 'undefined' || !chrome.tabs || !chrome.scripting) {
+      showToast('请在扩展环境中使用此功能');
+      return;
+    }
+    chrome.tabs.query({ active: true, currentWindow: true }, function(tabs) {
+      if (!tabs || tabs.length === 0) { showToast('未找到活动标签页'); return; }
+      const tab = tabs[0];
+      const url = tab.url || '';
+      if (!url.includes('oa.epoint.com.cn')) { showToast('请在OA页面使用捕获功能'); return; }
+      chrome.scripting.executeScript({
+        target: { tabId: tab.id, allFrames: true },
+        world: 'MAIN',
+        func: function() {
+          try {
+            var w = window; var miniObj = w.mini; var doc = document;
+            function getCtrl(id) { try { return miniObj && miniObj.get && miniObj.get(id); } catch(e) { return null; } }
+            function getValue(id) {
+              var ctrl = getCtrl(id); var el = doc.getElementById(id);
+              var v = '';
+              try {
+                if (ctrl && typeof ctrl.getValue === 'function') v = ctrl.getValue() || '';
+                else if (el) v = (el.value || el.textContent || '').trim();
+              } catch (e) {}
+              return v || '';
+            }
+            function getText(id) {
+              var ctrl = getCtrl(id); var el = doc.getElementById(id);
+              var t = '';
+              try {
+                if (ctrl && typeof ctrl.getText === 'function') t = ctrl.getText() || '';
+                else if (el) t = (el.innerText || el.textContent || '').trim();
+              } catch (e) {}
+              return t || '';
+            }
+            var projectName = (getText('lblProjectName') || getValue('ProjectName') || '').trim();
+            var projectGuid = getValue('ProjectGuid');
+            if (!projectGuid) { try { projectGuid = new URL(w.location.href).searchParams.get('ProjectGuid') || ''; } catch (e) {} }
+            // 可能的审核人控件/隐藏域ID集合
+            var nameIds = ['sender','TaskReviewer','MissionReviewer','MissionCheckMan','CheckMan','AuditUser','ShenHeRen','MissionAuditUser'];
+            var guidIds = ['senderguid','TaskReviewerGuid','MissionReviewerGuid','MissionCheckManGuid','CheckManGuid','AuditUserGuid','ShenHeRenGuid','MissionAuditUserGuid'];
+            var altNameIds = ['sender','TaskReviewerName','MissionReviewerName','MissionCheckManName','CheckManName','AuditUserName','ShenHeRenName'];
+            var reviewerGuid = '';
+            var reviewerName = '';
+            // 优先从控件读取值/文本
+            for (var i=0;i<nameIds.length;i++){ var id = nameIds[i]; reviewerName = reviewerName || getText(id) || getValue(id); }
+            for (var j=0;j<guidIds.length;j++){ var gid = guidIds[j]; reviewerGuid = reviewerGuid || getValue(gid); }
+            // 兜底从备用name隐藏域读取
+            for (var k=0;k<altNameIds.length;k++){ var nid = altNameIds[k]; reviewerName = reviewerName || getValue(nid); }
+            // 简单的文本校正（避免取到label文字）
+            reviewerName = (reviewerName || '').replace(/^[^:：]*[:：]\s*/, '').trim();
+            var preset = {
+              ProjectName: projectName,
+              ProjectGuid: projectGuid,
+              TaskReviewerGuid: reviewerGuid,
+              TaskReviewerName: reviewerName
+            };
+            if (!preset.ProjectName) return null;
+            if (!preset.TaskReviewerGuid && !preset.TaskReviewerName) return null;
+            return preset;
+          } catch (e) {
+            console.error('[CaptureTaskReviewer] injection error:', e);
+            return null;
+          }
+        }
+      }, (results) => {
+        try {
+          const arr = Array.isArray(results) ? results : [];
+          const found = arr.map(r => r && r.result).find(r => r && r.ProjectName);
+          if (!found) { showToast('未捕获到任务审核人，请先在OA页选择'); return; }
+          const key = (found.ProjectName || '').trim();
+          if (!key) { showToast('无法识别项目名称'); return; }
+          presetTaskReviewers[key] = found;
+          savePresetTaskReviewers();
+          showToast('已捕获并保存任务审核人预设');
+        } catch (e) {
+          console.error('处理捕获结果失败:', e);
+          showToast('捕获任务审核人失败');
+        }
+      });
+    });
+  } catch (error) {
+    console.error('捕获当前任务审核人失败:', error);
+  }
+}
+
+function applyTaskReviewerPresetToOA() {
+  try {
+    if (typeof chrome === 'undefined' || !chrome.tabs || !chrome.scripting) {
+      return;
+    }
+    chrome.tabs.query({ active: true, currentWindow: true }, function(tabs) {
+      if (!tabs || tabs.length === 0) return;
+      const tab = tabs[0];
+      const url = tab.url || '';
+      if (!url.includes('oa.epoint.com.cn')) return;
+      chrome.scripting.executeScript({
+        target: { tabId: tab.id, allFrames: true },
+        world: 'MAIN',
+        args: [presetTaskReviewers || {}],
+        func: function(map) {
+          try {
+            (function(){
+              var tries = 5; var delay = 800;
+              function run(doc){
+                var w = doc.defaultView || window; var miniObj = w.mini;
+                function getCtrl(id){ try { return miniObj && miniObj.get && miniObj.get(id); } catch(e){ return null; } }
+                function getValue(id) {
+                  var ctrl = getCtrl(id); var el = doc.getElementById(id);
+                  var v = '';
+                  try {
+                    if (ctrl && typeof ctrl.getValue === 'function') v = ctrl.getValue() || '';
+                    else if (el) v = (el.value || el.textContent || '').trim();
+                  } catch (e) {}
+                  return v || '';
+                }
+                function getText(id) {
+                  var ctrl = getCtrl(id); var el = doc.getElementById(id);
+                  var t = '';
+                  try {
+                    if (ctrl && typeof ctrl.getText === 'function') t = ctrl.getText() || '';
+                    else if (el) t = (el.innerText || el.textContent || '').trim();
+                  } catch (e) {}
+                  return t || '';
+                }
+                var projectName = (getText('lblProjectName') || getValue('ProjectName') || '').trim();
+                var projectGuid = getValue('ProjectGuid');
+                if (!projectGuid) { try { projectGuid = new URL(w.location.href).searchParams.get('ProjectGuid') || ''; } catch (e) {} }
+                var preset = (projectName && map && map[projectName]) || (projectGuid && map && map[projectGuid]);
+                if (!preset) return false;
+                try {
+                  var ids = ['sender','TaskReviewer','MissionReviewer','MissionCheckMan','CheckMan','AuditUser','ShenHeRen','MissionAuditUser'];
+                  for (var i=0;i<ids.length;i++){
+                    var ctrl = getCtrl(ids[i]);
+                    if (ctrl && typeof ctrl.setText === 'function') ctrl.setText(preset.TaskReviewerName || '');
+                    if (ctrl && typeof ctrl.setValue === 'function') ctrl.setValue(preset.TaskReviewerGuid || preset.TaskReviewerName || '');
+                  }
+                  var guidIds = ['senderguid','TaskReviewerGuid','MissionReviewerGuid','MissionCheckManGuid','CheckManGuid','AuditUserGuid','ShenHeRenGuid','MissionAuditUserGuid'];
+                  for (var j=0;j<guidIds.length;j++){
+                    var el = doc.getElementById(guidIds[j]); if (el) el.value = preset.TaskReviewerGuid || '';
+                  }
+                  var nameIds = ['TaskReviewerName','MissionReviewerName','MissionCheckManName','CheckManName','AuditUserName','ShenHeRenName'];
+                  for (var k=0;k<nameIds.length;k++){
+                    var el2 = doc.getElementById(nameIds[k]); if (el2) el2.value = preset.TaskReviewerName || '';
+                  }
+                  return true;
+                } catch (e) { return false; }
+              }
+              function tryAll(){
+                var ok = false;
+                try { ok = run(document); } catch (e) {}
+                var iframes = document.getElementsByTagName('iframe');
+                for (var i = 0; i < iframes.length; i++) {
+                  try {
+                    var doc = iframes[i].contentDocument || (iframes[i].contentWindow && iframes[i].contentWindow.document);
+                    if (doc) ok = run(doc) || ok;
+                  } catch (e) {}
+                }
+                return ok;
+              }
+              function runner(){
+                var done = tryAll();
+                if (!done && tries > 0) { tries--; setTimeout(runner, delay); }
+              }
+              runner();
+            })();
+            return 'ok';
+          } catch (e) {
+            console.error('[ApplyTaskReviewer] injection error:', e);
+            return 'error';
+          }
+        }
+      }, (results) => {
+        console.log('[ApplyTaskReviewer] injection results:', results);
+      });
+    });
+  } catch (error) {
+    console.error('自动应用任务审核人预设失败:', error);
   }
 }
 
