@@ -139,7 +139,10 @@
             <h3>关闭提醒</h3>
             <div class="form-group">
               <label class="checkbox-label">
-                <input type="checkbox" id="close-reminders-checkbox">
+                <div class="apple-switch">
+                  <input type="checkbox" id="close-reminders-checkbox">
+                  <span class="slider"></span>
+                </div>
                 自动隐藏页面帮助信息区域
               </label>
             </div>
@@ -149,12 +152,15 @@
           <div class="config-card">
             <h3>蓝图预设</h3>
             <div class="form-group">
-              <button id="capture-blueprint-btn">捕获当前OA页面蓝图为预设</button>
-              <button id="apply-blueprint-btn">应用预设到OA页面</button>
+              <button id="capture-blueprint-btn" class="btn-capture">捕获</button>
+              <button id="apply-blueprint-btn" class="btn-apply">应用</button>
             </div>
             <div class="form-group">
               <label class="checkbox-label">
-                <input type="checkbox" id="blueprint-auto-apply-checkbox" checked>
+                <div class="apple-switch">
+                  <input type="checkbox" id="blueprint-auto-apply-checkbox" checked>
+                  <span class="slider"></span>
+                </div>
                 插件打开时自动应用蓝图预设
               </label>
             </div>
@@ -167,12 +173,15 @@
           <div class="config-card">
             <h3>工作场景预设</h3>
             <div class="form-group">
-              <button id="capture-stagedemand-btn">捕获当前OA页面工作场景为预设</button>
-              <button id="apply-stagedemand-btn">应用工作场景预设到OA页面</button>
+              <button id="capture-stagedemand-btn" class="btn-capture">捕获</button>
+              <button id="apply-stagedemand-btn" class="btn-apply">应用</button>
             </div>
             <div class="form-group">
               <label class="checkbox-label">
-                <input type="checkbox" id="stagedemand-auto-apply-checkbox" checked>
+                <div class="apple-switch">
+                  <input type="checkbox" id="stagedemand-auto-apply-checkbox" checked>
+                  <span class="slider"></span>
+                </div>
                 插件打开时自动应用工作场景预设
               </label>
             </div>
@@ -185,12 +194,15 @@
           <div class="config-card">
             <h3>任务审核人预设</h3>
             <div class="form-group">
-              <button id="capture-taskreviewer-btn">捕获当前OA页面任务审核人为预设</button>
-              <button id="apply-taskreviewer-btn">应用任务审核人预设到OA页面</button>
+              <button id="capture-taskreviewer-btn" class="btn-capture">捕获</button>
+              <button id="apply-taskreviewer-btn" class="btn-apply">应用</button>
             </div>
             <div class="form-group">
               <label class="checkbox-label">
-                <input type="checkbox" id="taskreviewer-auto-apply-checkbox" checked>
+                <div class="apple-switch">
+                  <input type="checkbox" id="taskreviewer-auto-apply-checkbox" checked>
+                  <span class="slider"></span>
+                </div>
                 插件打开时自动应用任务审核人预设
               </label>
             </div>

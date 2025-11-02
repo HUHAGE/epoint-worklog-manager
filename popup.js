@@ -178,6 +178,21 @@ function bindEventListeners() {
     });
   }
 
+  // 蓝图预设列表删除事件委托（兜底）
+  if (blueprintPresetsList) {
+    blueprintPresetsList.addEventListener('click', (e) => {
+      const btn = e.target.closest('button.delete-btn');
+      if (btn) {
+        e.preventDefault();
+        e.stopPropagation();
+        const key = btn.dataset.key;
+        if (key) {
+          removeBlueprintPreset(key);
+        }
+      }
+    });
+  }
+
   // 任务审核人预设：捕获与应用按钮
   if (captureTaskReviewerBtn) {
     captureTaskReviewerBtn.addEventListener('click', () => {
@@ -192,6 +207,21 @@ function bindEventListeners() {
   if (taskReviewerAutoApplyCheckbox) {
     taskReviewerAutoApplyCheckbox.addEventListener('change', () => {
       savePresetTaskReviewerAutoApply();
+    });
+  }
+
+  // 任务审核人预设列表删除事件委托（兜底）
+  if (taskReviewerPresetsList) {
+    taskReviewerPresetsList.addEventListener('click', (e) => {
+      const btn = e.target.closest('button.delete-btn');
+      if (btn) {
+        e.preventDefault();
+        e.stopPropagation();
+        const key = btn.dataset.key;
+        if (key) {
+          removeTaskReviewerPreset(key);
+        }
+      }
     });
   }
 
@@ -211,6 +241,38 @@ function bindEventListeners() {
       savePresetStageDemandAutoApply();
     });
   }
+
+  // 工作场景预设列表删除事件委托（兜底）
+  if (stageDemandPresetsList) {
+    stageDemandPresetsList.addEventListener('click', (e) => {
+      const btn = e.target.closest('button.delete-btn');
+      if (btn) {
+        e.preventDefault();
+        e.stopPropagation();
+        const key = btn.dataset.key;
+        if (key) {
+          removeStageDemandPreset(key);
+        }
+      }
+    });
+  }
+  
+  // 全局兜底：任何 delete-btn 点击都能路由到对应删除函数
+  document.addEventListener('click', (e) => {
+    const btn = e.target.closest('button.delete-btn');
+    if (!btn) return;
+    try { e.preventDefault(); e.stopPropagation(); } catch (err) {}
+    const key = btn.dataset.key;
+    const type = btn.dataset.type;
+    if (!key) return;
+    if (type === 'blueprint') {
+      removeBlueprintPreset(key);
+    } else if (type === 'taskreviewer') {
+      removeTaskReviewerPreset(key);
+    } else if (type === 'stagedemand') {
+      removeStageDemandPreset(key);
+    }
+  });
   
   // 关闭模态框
   if (closeModal) {
@@ -1581,15 +1643,41 @@ function renderBlueprintPresetsList() {
       blueprintPresetsList.innerHTML = '<p style="color:#888;">暂无蓝图预设</p>';
       return;
     }
-    let html = '<ul class="preset-list">';
-    keys.forEach((projectKey) => {
-      const bp = map[projectKey] || {};
-      const name = bp.BluePrint_Formal || '(未命名蓝图)';
-      const projName = bp.ProjectName || projectKey || '(未命名项目)';
-      html += `<li><span>项目: ${escapeHtml(projName)}</span> <span style="margin-left:8px;">蓝图: ${escapeHtml(name)}</span> <button onclick="window.removeBlueprintPreset('${projectKey}')">删除</button></li>`;
+    // 使用DOM构建并绑定事件，避免内联onclick不生效
+  const ul = document.createElement('ul');
+  ul.className = 'preset-list';
+  keys.forEach((projectKey) => {
+    const bp = map[projectKey] || {};
+    const name = bp.BluePrint_Formal || '(未命名蓝图)';
+    const projName = bp.ProjectName || projectKey || '(未命名项目)';
+    const li = document.createElement('li');
+    const info = document.createElement('div');
+    info.className = 'preset-info';
+    const spanProj = document.createElement('span');
+    spanProj.textContent = `项目: ${projName}`;
+    const spanName = document.createElement('span');
+    spanName.textContent = `蓝图: ${name}`;
+    spanName.style.marginLeft = '8px';
+    info.appendChild(spanProj);
+    info.appendChild(spanName);
+    const delBtn = document.createElement('button');
+    delBtn.className = 'delete-btn';
+    delBtn.type = 'button';
+    delBtn.innerHTML = '×';
+    delBtn.title = '删除';
+    delBtn.dataset.key = projectKey;
+    delBtn.dataset.type = 'blueprint';
+    delBtn.addEventListener('click', (ev) => {
+      try { ev.preventDefault(); ev.stopPropagation(); } catch (e) {}
+      showToast('正在删除蓝图预设…');
+      removeBlueprintPreset(projectKey);
     });
-    html += '</ul>';
-    blueprintPresetsList.innerHTML = html;
+    li.appendChild(info);
+    li.appendChild(delBtn);
+    ul.appendChild(li);
+  });
+    blueprintPresetsList.innerHTML = '';
+    blueprintPresetsList.appendChild(ul);
   } catch (error) {
     console.error('渲染蓝图预设列表失败:', error);
   }
@@ -1600,12 +1688,22 @@ function removeBlueprintPreset(projectKey) {
   try {
     if (!projectKey) return;
     if (presetBlueprints && presetBlueprints[projectKey]) {
+      const oldPresets = {...presetBlueprints};
       delete presetBlueprints[projectKey];
-      savePresetBlueprints();
-      showToast('已删除蓝图预设');
+      try {
+        localStorage.setItem('presetBlueprints', JSON.stringify(presetBlueprints));
+        renderBlueprintPresetsList();
+        showToast('已删除蓝图预设');
+      } catch (err) {
+        console.error('删除蓝图预设时保存失败:', err);
+        presetBlueprints = oldPresets; // 还原数据
+        renderBlueprintPresetsList();
+        showToast('删除蓝图预设失败');
+      }
     }
   } catch (error) {
     console.error('删除蓝图预设失败:', error);
+    showToast('删除蓝图预设失败');
   }
 }
 
@@ -1672,15 +1770,40 @@ function renderTaskReviewerPresetsList() {
       taskReviewerPresetsList.innerHTML = '<p style="color:#888;">暂无任务审核人预设</p>';
       return;
     }
-    let html = '<ul class="preset-list">';
-    keys.forEach((projectKey) => {
-      const tr = map[projectKey] || {};
-      const name = tr.TaskReviewerName || '(未命名审核人)';
-      const projName = tr.ProjectName || projectKey || '(未命名项目)';
-      html += `<li><span>项目: ${escapeHtml(projName)}</span> <span style="margin-left:8px;">审核人: ${escapeHtml(name)}</span> <button onclick="window.removeTaskReviewerPreset('${projectKey}')">删除</button></li>`;
+  const ul = document.createElement('ul');
+  ul.className = 'preset-list';
+  keys.forEach((projectKey) => {
+    const tr = map[projectKey] || {};
+    const name = tr.TaskReviewerName || '(未命名审核人)';
+    const projName = tr.ProjectName || projectKey || '(未命名项目)';
+    const li = document.createElement('li');
+    const info = document.createElement('div');
+    info.className = 'preset-info';
+    const spanProj = document.createElement('span');
+    spanProj.textContent = `项目: ${projName}`;
+    const spanName = document.createElement('span');
+    spanName.textContent = `审核人: ${name}`;
+    spanName.style.marginLeft = '8px';
+    info.appendChild(spanProj);
+    info.appendChild(spanName);
+    const delBtn = document.createElement('button');
+    delBtn.className = 'delete-btn';
+    delBtn.type = 'button';
+    delBtn.innerHTML = '×';
+    delBtn.title = '删除';
+    delBtn.dataset.key = projectKey;
+    delBtn.dataset.type = 'taskreviewer';
+    delBtn.addEventListener('click', (ev) => {
+      try { ev.preventDefault(); ev.stopPropagation(); } catch (e) {}
+      showToast('正在删除任务审核人预设…');
+      removeTaskReviewerPreset(projectKey);
     });
-    html += '</ul>';
-    taskReviewerPresetsList.innerHTML = html;
+    li.appendChild(info);
+    li.appendChild(delBtn);
+    ul.appendChild(li);
+  });
+    taskReviewerPresetsList.innerHTML = '';
+    taskReviewerPresetsList.appendChild(ul);
   } catch (error) {
     console.error('渲染任务审核人预设列表失败:', error);
   }
@@ -1690,12 +1813,22 @@ function removeTaskReviewerPreset(projectKey) {
   try {
     if (!projectKey) return;
     if (presetTaskReviewers && presetTaskReviewers[projectKey]) {
+      const oldPresets = {...presetTaskReviewers};
       delete presetTaskReviewers[projectKey];
-      savePresetTaskReviewers();
-      showToast('已删除任务审核人预设');
+      try {
+        localStorage.setItem('presetTaskReviewers', JSON.stringify(presetTaskReviewers));
+        renderTaskReviewerPresetsList();
+        showToast('已删除任务审核人预设');
+      } catch (err) {
+        console.error('删除任务审核人预设时保存失败:', err);
+        presetTaskReviewers = oldPresets; // 还原数据
+        renderTaskReviewerPresetsList();
+        showToast('删除任务审核人预设失败');
+      }
     }
   } catch (error) {
     console.error('删除任务审核人预设失败:', error);
+    showToast('删除任务审核人预设失败');
   }
 }
 
@@ -1971,15 +2104,40 @@ function renderStageDemandPresetsList() {
       stageDemandPresetsList.innerHTML = '<p style="color:#888;">暂无工作场景预设</p>';
       return;
     }
-    let html = '<ul class="preset-list">';
-    keys.forEach((projectKey) => {
-      const sd = map[projectKey] || {};
-      const name = sd.StageDemandName || '(未命名工作场景)';
-      const projName = sd.ProjectName || projectKey || '(未命名项目)';
-      html += `<li><span>项目: ${escapeHtml(projName)}</span> <span style="margin-left:8px;">工作场景: ${escapeHtml(name)}</span> <button onclick="window.removeStageDemandPreset('${projectKey}')">删除</button></li>`;
+  const ul = document.createElement('ul');
+  ul.className = 'preset-list';
+  keys.forEach((projectKey) => {
+    const sd = map[projectKey] || {};
+    const name = sd.StageDemandName || '(未命名工作场景)';
+    const projName = sd.ProjectName || projectKey || '(未命名项目)';
+    const li = document.createElement('li');
+    const info = document.createElement('div');
+    info.className = 'preset-info';
+    const spanProj = document.createElement('span');
+    spanProj.textContent = `项目: ${projName}`;
+    const spanName = document.createElement('span');
+    spanName.textContent = `工作场景: ${name}`;
+    spanName.style.marginLeft = '8px';
+    info.appendChild(spanProj);
+    info.appendChild(spanName);
+    const delBtn = document.createElement('button');
+    delBtn.className = 'delete-btn';
+    delBtn.type = 'button';
+    delBtn.innerHTML = '×';
+    delBtn.title = '删除';
+    delBtn.dataset.key = projectKey;
+    delBtn.dataset.type = 'stagedemand';
+    delBtn.addEventListener('click', (ev) => {
+      try { ev.preventDefault(); ev.stopPropagation(); } catch (e) {}
+      showToast('正在删除工作场景预设…');
+      removeStageDemandPreset(projectKey);
     });
-    html += '</ul>';
-    stageDemandPresetsList.innerHTML = html;
+    li.appendChild(info);
+    li.appendChild(delBtn);
+    ul.appendChild(li);
+  });
+    stageDemandPresetsList.innerHTML = '';
+    stageDemandPresetsList.appendChild(ul);
   } catch (error) {
     console.error('渲染工作场景预设列表失败:', error);
   }
@@ -1990,12 +2148,22 @@ function removeStageDemandPreset(projectKey) {
   try {
     if (!projectKey) return;
     if (presetStageDemands && presetStageDemands[projectKey]) {
+      const oldPresets = {...presetStageDemands};
       delete presetStageDemands[projectKey];
-      savePresetStageDemands();
-      showToast('已删除工作场景预设');
+      try {
+        localStorage.setItem('presetStageDemands', JSON.stringify(presetStageDemands));
+        renderStageDemandPresetsList();
+        showToast('已删除工作场景预设');
+      } catch (err) {
+        console.error('删除工作场景预设时保存失败:', err);
+        presetStageDemands = oldPresets; // 还原数据
+        renderStageDemandPresetsList();
+        showToast('删除工作场景预设失败');
+      }
     }
   } catch (error) {
     console.error('删除工作场景预设失败:', error);
+    showToast('删除工作场景预设失败');
   }
 }
 

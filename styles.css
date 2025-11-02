@@ -159,6 +159,17 @@ body {
   box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
 }
 
+.btn-apply {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  border: none;
+}
+
+.btn-apply:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 2px 8px rgba(102, 126, 234, 0.3);
+}
+
 .btn-secondary {
   background-color: #6c757d;
   color: white;
@@ -175,6 +186,18 @@ body {
   background-color: #5a6268;
 }
 
+.btn-capture {
+  background-color: #6c757d;
+  color: white;
+  border: none;
+}
+
+.btn-capture:hover {
+  background-color: #5a6268;
+  transform: translateY(-1px);
+  box-shadow: 0 2px 8px rgba(108, 117, 125, 0.3);
+}
+
 .btn-small {
   padding: 4px 8px;
   border-radius: 3px;
@@ -185,6 +208,15 @@ body {
   text-transform: uppercase;
   letter-spacing: 0.5px;
   white-space: nowrap;
+}
+
+.btn-capture, .btn-apply {
+  padding: 6px 12px;
+  font-size: 12px;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  font-weight: 500;
 }
 
 .preset-btn {
@@ -518,6 +550,35 @@ body {
   transform: translateY(-1px);
 }
 
+/* 预设列表统一样式（蓝图/工作场景/任务审核人） */
+.preset-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.preset-list li {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background-color: #fff;
+  border: 1px solid #eee;
+  border-radius: 6px;
+  padding: 8px 10px;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+}
+
+.preset-info {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: #444;
+  font-size: 13px;
+}
+
 .add-preset-project {
   display: flex;
   gap: 10px;
@@ -552,6 +613,101 @@ body {
 
 .checkbox-label input {
   margin-right: 8px;
+}
+
+/* 苹果风格开关样式 */
+.switch {
+  position: relative;
+  display: inline-block;
+  width: 40px;
+  height: 24px;
+  margin-right: 10px;
+}
+
+.switch input {
+  opacity: 0;
+  width: 0;
+  height: 0;
+}
+
+.slider {
+  position: absolute;
+  cursor: pointer;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: #ccc;
+  transition: .4s;
+  border-radius: 24px;
+}
+
+.slider:before {
+  position: absolute;
+  content: "";
+  height: 18px;
+  width: 18px;
+  left: 3px;
+  bottom: 3px;
+  background-color: white;
+  transition: .4s;
+  border-radius: 50%;
+}
+
+input:checked + .slider {
+  background-color: #667eea;
+}
+
+input:checked + .slider:before {
+  transform: translateX(16px);
+}
+
+/* 适配现有的复选框样式 */
+.apple-switch {
+  position: relative;
+  display: inline-block;
+  width: 40px;
+  height: 24px;
+  vertical-align: middle;
+  margin-right: 10px;
+}
+
+.apple-switch input {
+  opacity: 0;
+  width: 0;
+  height: 0;
+}
+
+.apple-switch .slider {
+  position: absolute;
+  cursor: pointer;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: #ccc;
+  transition: .4s;
+  border-radius: 24px;
+}
+
+.apple-switch .slider:before {
+  position: absolute;
+  content: "";
+  height: 18px;
+  width: 18px;
+  left: 3px;
+  bottom: 3px;
+  background-color: white;
+  transition: .4s;
+  border-radius: 50%;
+}
+
+.apple-switch input:checked + .slider {
+  background-color: #667eea;
+}
+
+.apple-switch input:checked + .slider:before {
+  transform: translateX(16px);
 }
 
 
