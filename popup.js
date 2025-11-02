@@ -33,7 +33,9 @@ const projectSelect = document.getElementById('project-select');
 const projectInput = document.getElementById('project');
 const toastContainer = document.getElementById('toast-container');
 const demandTagSelect = document.getElementById('demand-tag-select');
+const workTypeSelect = document.getElementById('work-type-select');
 let presetDemandTag = '';
+let presetWorkType = '';
 
 // 初始化
 document.addEventListener('DOMContentLoaded', function() {
@@ -45,8 +47,11 @@ document.addEventListener('DOMContentLoaded', function() {
   loadLogs();
   loadPresetProjects();
   loadPresetDemandTag();
+  loadPresetWorkType();
   // 打开插件时自动填充预设需求标签到OA页面
   autofillDemandTagToStory(presetDemandTag);
+  // 打开插件时自动填充预设工作类型到OA页面
+  autofillWorkTypeToMission(presetWorkType);
   
   // 绑定事件监听器
   bindEventListeners();
@@ -1340,6 +1345,13 @@ function createLogElement(log) {
       autofillDemandTagToStory(presetDemandTag);
     });
   }
+  // 工作类型变更后立即保存并尝试填充到页面
+  if (workTypeSelect) {
+    workTypeSelect.addEventListener('change', () => {
+      savePresetWorkType();
+      autofillWorkTypeToMission(presetWorkType);
+    });
+  }
 // 加载预设需求标签
 function loadPresetDemandTag() {
   try {
@@ -1362,6 +1374,31 @@ function savePresetDemandTag() {
     showToast('需求标签已保存');
   } catch (error) {
     console.error('保存预设需求标签失败:', error);
+  }
+}
+
+// 加载预设工作类型
+function loadPresetWorkType() {
+  try {
+    const saved = localStorage.getItem('presetWorkType');
+    presetWorkType = saved || '';
+    if (workTypeSelect) {
+      workTypeSelect.value = presetWorkType;
+    }
+  } catch (error) {
+    console.error('加载预设工作类型失败:', error);
+    presetWorkType = '';
+  }
+}
+
+// 保存预设工作类型
+function savePresetWorkType() {
+  try {
+    presetWorkType = workTypeSelect ? workTypeSelect.value : '';
+    localStorage.setItem('presetWorkType', presetWorkType);
+    showToast('工作类型已保存');
+  } catch (error) {
+    console.error('保存预设工作类型失败:', error);
   }
 }
 
@@ -1511,5 +1548,127 @@ function autofillDemandTagToStory(tagValue) {
     });
   } catch (error) {
     console.error('自动填充需求标签失败:', error);
+  }
+}
+
+// 在当前激活的OA页，将工作类型填充到id为missionworktype的控件
+function autofillWorkTypeToMission(typeText) {
+  try {
+    if (!typeText) return;
+    if (typeof chrome === 'undefined' || !chrome.tabs || !chrome.scripting) {
+      return;
+    }
+    chrome.tabs.query({ active: true, currentWindow: true }, function(tabs) {
+      if (!tabs || tabs.length === 0) return;
+      const tab = tabs[0];
+      const url = tab.url || '';
+      if (!url.includes('oa.epoint.com.cn')) return;
+      chrome.scripting.executeScript({
+        target: { tabId: tab.id, allFrames: true },
+        world: 'MAIN',
+        args: [typeText],
+        func: function(presetText) {
+          try {
+            (function() {
+              var tries = 5;
+              var delay = 800;
+
+              function tryFill(doc) {
+                var w = doc.defaultView || window;
+                var miniObj = w.mini;
+                var el = doc.getElementById('missionworktype');
+                var ctrl = null;
+                try { ctrl = miniObj && miniObj.get && miniObj.get('missionworktype'); } catch (e) {}
+
+                if (!ctrl && !el) return false;
+
+                // 获取数据源
+                var data = [];
+                try {
+                  if (ctrl && typeof ctrl.getData === 'function') data = ctrl.getData() || [];
+                  else if (ctrl && Array.isArray(ctrl.data)) data = ctrl.data;
+                } catch (e) {}
+
+                function findMatch(list) {
+                  if (!Array.isArray(list)) return null;
+                  var exact = list.find(function(it) {
+                    var t = it.text || it.name || it.label || '';
+                    return t === presetText;
+                  });
+                  if (exact) return exact;
+                  var icase = String(presetText).toLowerCase();
+                  return list.find(function(it) {
+                    var t = String(it.text || it.name || it.label || '').toLowerCase();
+                    return t.indexOf(icase) >= 0;
+                  });
+                }
+
+                var match = findMatch(data);
+
+                // 如数据未加载，尝试等待并重试（外层重试机制处理）
+                if (match) {
+                  try {
+                    var val = match.value || match.id || match.guid || '';
+                    if (ctrl && typeof ctrl.setValue === 'function') {
+                      ctrl.setValue(val);
+                    } else if (el) {
+                      // RadiobuttonList 原生降级不易，尽量通过 ctrl
+                      el.value = val;
+                      el.dispatchEvent(new Event('change', { bubbles: true }));
+                    }
+                    if (typeof w.checkIsHTW === 'function') {
+                      try { w.checkIsHTW(); } catch (e) {}
+                    }
+                    return true;
+                  } catch (e) {}
+                }
+
+                // 兜底：仅设置文本以提示用户（部分控件可能不支持setText）
+                try {
+                  if (ctrl && typeof ctrl.setText === 'function') ctrl.setText(presetText);
+                  if (typeof w.checkIsHTW === 'function') {
+                    try { w.checkIsHTW(); } catch (e) {}
+                  }
+                  return true;
+                } catch (e) {}
+
+                return false;
+              }
+
+              function tryAll() {
+                var ok = false;
+                try { ok = tryFill(document); } catch (e) {}
+                var iframes = document.getElementsByTagName('iframe');
+                for (var i = 0; i < iframes.length; i++) {
+                  try {
+                    var doc = iframes[i].contentDocument || (iframes[i].contentWindow && iframes[i].contentWindow.document);
+                    if (doc) ok = tryFill(doc) || ok;
+                  } catch (e) {}
+                }
+                return ok;
+              }
+
+              function runner() {
+                var done = tryAll();
+                if (!done && tries > 0) {
+                  tries--;
+                  setTimeout(runner, delay);
+                }
+              }
+
+              runner();
+            })();
+            return 'ok';
+          } catch (e) {
+            console.error('[PresetWorkType] injection error:', e);
+            return 'error';
+          }
+        }
+      }, (results) => {
+        console.log('[PresetWorkType] injection results:', results);
+      });
+    });
+  } catch (error) {
+    console.error('自动填充工作类型失败:', error);
   }
 }
