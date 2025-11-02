@@ -1832,65 +1832,92 @@ function applyTaskReviewerPresetToOA() {
         func: function(map) {
           try {
             (function(){
-              var tries = 5; var delay = 800;
+              var tries = 10; var delay = 700;
               function run(doc){
                 var w = doc.defaultView || window; var miniObj = w.mini;
                 function getCtrl(id){ try { return miniObj && miniObj.get && miniObj.get(id); } catch(e){ return null; } }
-                function getValue(id) {
-                  var ctrl = getCtrl(id); var el = doc.getElementById(id);
-                  var v = '';
-                  try {
-                    if (ctrl && typeof ctrl.getValue === 'function') v = ctrl.getValue() || '';
-                    else if (el) v = (el.value || el.textContent || '').trim();
-                  } catch (e) {}
-                  return v || '';
-                }
-                function getText(id) {
-                  var ctrl = getCtrl(id); var el = doc.getElementById(id);
-                  var t = '';
-                  try {
-                    if (ctrl && typeof ctrl.getText === 'function') t = ctrl.getText() || '';
-                    else if (el) t = (el.innerText || el.textContent || '').trim();
-                  } catch (e) {}
-                  return t || '';
-                }
+                function getValue(id) { var ctrl = getCtrl(id); var el = doc.getElementById(id); var v = ''; try { if (ctrl && typeof ctrl.getValue === 'function') v = ctrl.getValue() || ''; else if (el) v = (el.value || el.textContent || '').trim(); } catch (e) {} return v || ''; }
+                function getText(id) { var ctrl = getCtrl(id); var el = doc.getElementById(id); var t = ''; try { if (ctrl && typeof ctrl.getText === 'function') t = ctrl.getText() || ''; else if (el) t = (el.innerText || el.textContent || '').trim(); } catch (e) {} return t || ''; }
                 var projectName = (getText('lblProjectName') || getValue('ProjectName') || '').trim();
                 var projectGuid = getValue('ProjectGuid');
                 if (!projectGuid) { try { projectGuid = new URL(w.location.href).searchParams.get('ProjectGuid') || ''; } catch (e) {} }
                 var preset = (projectName && map && map[projectName]) || (projectGuid && map && map[projectGuid]);
                 if (!preset) return false;
+
+                var beforeFrames = Array.prototype.slice.call(doc.querySelectorAll('iframe'));
+                function findSelectIframe(){
+                  var frames = doc.querySelectorAll('iframe');
+                  for (var i = frames.length - 1; i >= 0; i--) {
+                    var f = frames[i];
+                    try {
+                      var p = f.parentNode;
+                      var src = f.src || '';
+                      var isDialog = p && p.className && p.className.indexOf('mini-window') >= 0;
+                      var looksNew = beforeFrames.indexOf(f) === -1;
+                      var isUserSel = /(sender|user|person|employee|selectuser|selectperson)/i.test(src);
+                      if (isDialog || looksNew || isUserSel) return f;
+                    } catch(e) {}
+                  }
+                  return null;
+                }
+                function makePresetData(){
+                  return {
+                    sender: preset.TaskReviewerName || '',
+                    senderguid: preset.TaskReviewerGuid || '',
+                    TaskReviewerName: preset.TaskReviewerName || '',
+                    TaskReviewerGuid: preset.TaskReviewerGuid || ''
+                  };
+                }
+                function patchChildAndConfirm(child){
+                  try {
+                    var cw = child.contentWindow; var cd = child.contentDocument;
+                    if (!cw || !cd) return false;
+                    var data = makePresetData();
+                    try { cw.GetData = function(){ return data; }; } catch(e) {}
+                    if (typeof cw.CloseOwnerWindow === 'function') { cw.CloseOwnerWindow(data); return true; }
+                    var btns = cd.querySelectorAll('button,input[type=button],a');
+                    for (var i = 0; i < btns.length; i++) {
+                      var txt = (btns[i].innerText || btns[i].value || btns[i].textContent || '').trim();
+                      if (/^(确定|选择|选中|OK|Ok)$/i.test(txt)) { try { btns[i].click(); return true; } catch(e) {} }
+                    }
+                    return false;
+                  } catch(e) { return false; }
+                }
+
+                var child = findSelectIframe();
+                if (child && patchChildAndConfirm(child)) { return true; }
+
+                // 回调兜底
+                try { if (typeof w.CallBack_SelSender === 'function') { w.CallBack_SelSender(makePresetData()); return true; } } catch(e) {}
+
+                // 最后兜底：直接设置控件与隐藏域，并触发change
                 try {
                   var ids = ['sender','TaskReviewer','MissionReviewer','MissionCheckMan','CheckMan','AuditUser','ShenHeRen','MissionAuditUser'];
                   for (var i=0;i<ids.length;i++){
                     var ctrl = getCtrl(ids[i]);
                     if (ctrl && typeof ctrl.setText === 'function') ctrl.setText(preset.TaskReviewerName || '');
                     if (ctrl && typeof ctrl.setValue === 'function') ctrl.setValue(preset.TaskReviewerGuid || preset.TaskReviewerName || '');
+                    var el = doc.getElementById(ids[i]); if (el) { try { el.dispatchEvent(new Event('change', { bubbles: true })); } catch(e) {} }
                   }
                   var guidIds = ['senderguid','TaskReviewerGuid','MissionReviewerGuid','MissionCheckManGuid','CheckManGuid','AuditUserGuid','ShenHeRenGuid','MissionAuditUserGuid'];
-                  for (var j=0;j<guidIds.length;j++){
-                    var el = doc.getElementById(guidIds[j]); if (el) el.value = preset.TaskReviewerGuid || '';
-                  }
+                  for (var j=0;j<guidIds.length;j++){ var elg = doc.getElementById(guidIds[j]); if (elg) elg.value = preset.TaskReviewerGuid || ''; }
                   var nameIds = ['TaskReviewerName','MissionReviewerName','MissionCheckManName','CheckManName','AuditUserName','ShenHeRenName'];
-                  for (var k=0;k<nameIds.length;k++){
-                    var el2 = doc.getElementById(nameIds[k]); if (el2) el2.value = preset.TaskReviewerName || '';
-                  }
+                  for (var k=0;k<nameIds.length;k++){ var eln = doc.getElementById(nameIds[k]); if (eln) eln.value = preset.TaskReviewerName || ''; }
                   return true;
                 } catch (e) { return false; }
               }
-              function tryAll(){
-                var ok = false;
-                try { ok = run(document); } catch (e) {}
-                var iframes = document.getElementsByTagName('iframe');
-                for (var i = 0; i < iframes.length; i++) {
-                  try {
-                    var doc = iframes[i].contentDocument || (iframes[i].contentWindow && iframes[i].contentWindow.document);
-                    if (doc) ok = run(doc) || ok;
-                  } catch (e) {}
-                }
-                return ok;
-              }
               function runner(){
-                var done = tryAll();
+                var done = false;
+                try { done = run(document); } catch (e) {}
+                if (!done) {
+                  var iframes = document.getElementsByTagName('iframe');
+                  for (var i = 0; i < iframes.length && !done; i++) {
+                    try {
+                      var doc = iframes[i].contentDocument || (iframes[i].contentWindow && iframes[i].contentWindow.document);
+                      if (doc) done = run(doc) || done;
+                    } catch (e) {}
+                  }
+                }
                 if (!done && tries > 0) { tries--; setTimeout(runner, delay); }
               }
               runner();
@@ -2097,7 +2124,7 @@ function applyStageDemandPresetToOA() {
         func: function(map) {
           try {
             (function(){
-              var tries = 5; var delay = 800;
+              var tries = 10; var delay = 700;
               function run(doc){
                 var w = doc.defaultView || window; var miniObj = w.mini;
                 function getCtrl(id){ try { return miniObj && miniObj.get && miniObj.get(id); } catch(e){ return null; } }
@@ -2124,31 +2151,83 @@ function applyStageDemandPresetToOA() {
                 if (!projectGuid) { try { projectGuid = new URL(w.location.href).searchParams.get('ProjectGuid') || ''; } catch (e) {} }
                 var preset = (projectName && map && map[projectName]) || (projectGuid && map && map[projectGuid]);
                 if (!preset) return false;
+
+                var beforeFrames = Array.prototype.slice.call(doc.querySelectorAll('iframe'));
+                function findSelectIframe(){
+                  var frames = doc.querySelectorAll('iframe');
+                  for (var i = frames.length - 1; i >= 0; i--) {
+                    var f = frames[i];
+                    try {
+                      var p = f.parentNode;
+                      var src = f.src || '';
+                      var isDialog = p && p.className && p.className.indexOf('mini-window') >= 0;
+                      var looksNew = beforeFrames.indexOf(f) === -1;
+                      var isSD = /(stage|demand|stagedemand)/i.test(src);
+                      if (isDialog || looksNew || isSD) return f;
+                    } catch(e) {}
+                  }
+                  return null;
+                }
+                function makePresetData(){
+                  // 兼容 epoint.openDialog 回调的 rtnValue.title / rtnValue.rowguid
+                  return {
+                    // 标准字段
+                    Guid: preset.StageDemandGuid || '',
+                    StageDemandGuid: preset.StageDemandGuid || '',
+                    Name: preset.StageDemandName || '',
+                    StageDemandName: preset.StageDemandName || '',
+                    // epoint.openDialog 期望字段
+                    title: preset.StageDemandName || '',
+                    rowguid: preset.StageDemandGuid || ''
+                  };
+                }
+                function patchChildAndConfirm(child){
+                  try {
+                    var cw = child.contentWindow; var cd = child.contentDocument;
+                    if (!cw || !cd) return false;
+                    var data = makePresetData();
+                    try { cw.GetData = function(){ return data; }; } catch(e) {}
+                    if (typeof cw.CloseOwnerWindow === 'function') { cw.CloseOwnerWindow(data); return true; }
+                    var btns = cd.querySelectorAll('button,input[type=button],a');
+                    for (var i = 0; i < btns.length; i++) {
+                      var txt = (btns[i].innerText || btns[i].value || btns[i].textContent || '').trim();
+                      if (/^(确定|选择|选中|OK|Ok)$/i.test(txt)) { try { btns[i].click(); return true; } catch(e) {} }
+                    }
+                    return false;
+                  } catch(e) { return false; }
+                }
+
+                var child = findSelectIframe();
+                if (child && patchChildAndConfirm(child)) { return true; }
+
+                // 兜底：直接调用父页可能存在的工作场景回调
+                try { if (typeof w.CallBack_SelStageDemand === 'function') { w.CallBack_SelStageDemand(makePresetData()); return true; } } catch(e) {}
+
+                // 最后兜底：直接设置控件值与隐藏域，并触发change，且触发 changedListInfo(4)
                 try {
                   var sdCtrl = miniObj && miniObj.get && miniObj.get('stagedemand');
                   if (sdCtrl && typeof sdCtrl.setText === 'function') sdCtrl.setText(preset.StageDemandName || '');
                   if (sdCtrl && typeof sdCtrl.setValue === 'function') sdCtrl.setValue(preset.StageDemandGuid || '');
-                  var sdGuidEl = doc.getElementById('stagedemandguid');
-                  if (sdGuidEl) sdGuidEl.value = preset.StageDemandGuid || '';
-                  var sdNameEl = doc.getElementById('stagedemandname');
-                  if (sdNameEl) sdNameEl.value = preset.StageDemandName || '';
+                  var sdGuidEl = doc.getElementById('stagedemandguid'); if (sdGuidEl) sdGuidEl.value = preset.StageDemandGuid || '';
+                  var sdNameEl = doc.getElementById('stagedemandname'); if (sdNameEl) sdNameEl.value = preset.StageDemandName || '';
+                  var el = doc.getElementById('stagedemand'); if (el) { try { el.dispatchEvent(new Event('change', { bubbles: true })); } catch(e) {} }
+                  // 根据页面逻辑触发联动更新
+                  try { if (typeof w.changedListInfo === 'function') w.changedListInfo(4); } catch(e) {}
                   return true;
                 } catch (e) { return false; }
               }
-              function tryAll(){
-                var ok = false;
-                try { ok = run(document); } catch (e) {}
-                var iframes = document.getElementsByTagName('iframe');
-                for (var i = 0; i < iframes.length; i++) {
-                  try {
-                    var doc = iframes[i].contentDocument || (iframes[i].contentWindow && iframes[i].contentWindow.document);
-                    if (doc) ok = run(doc) || ok;
-                  } catch (e) {}
-                }
-                return ok;
-              }
               function runner(){
-                var done = tryAll();
+                var done = false;
+                try { done = run(document); } catch (e) {}
+                if (!done) {
+                  var iframes = document.getElementsByTagName('iframe');
+                  for (var i = 0; i < iframes.length && !done; i++) {
+                    try {
+                      var doc = iframes[i].contentDocument || (iframes[i].contentWindow && iframes[i].contentWindow.document);
+                      if (doc) done = run(doc) || done;
+                    } catch (e) {}
+                  }
+                }
                 if (!done && tries > 0) { tries--; setTimeout(runner, delay); }
               }
               runner();
