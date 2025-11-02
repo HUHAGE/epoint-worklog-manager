@@ -45,6 +45,8 @@ document.addEventListener('DOMContentLoaded', function() {
   loadLogs();
   loadPresetProjects();
   loadPresetDemandTag();
+  // 打开插件时自动填充预设需求标签到OA页面
+  autofillDemandTagToStory(presetDemandTag);
   
   // 绑定事件监听器
   bindEventListeners();
@@ -1330,8 +1332,7 @@ function createLogElement(log) {
   
   return logItem;
 }
-  // 打开插件时，尝试将预设的需求标签写入当前OA页面的story控件
-  autofillDemandTagToStory(presetDemandTag);
+  // 初始自动填充已在 DOMContentLoaded 中触发
   // 需求标签变更后立即保存并尝试填充到页面
   if (demandTagSelect) {
     demandTagSelect.addEventListener('change', () => {
