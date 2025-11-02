@@ -1484,9 +1484,15 @@ function renderPresetProjectsList() {
     // 添加修改事件监听
     projectInput.addEventListener('change', (e) => {
       const index = parseInt(e.target.dataset.index);
+      const oldValue = presetProjects[index];
       const newValue = e.target.value.trim();
       if (newValue && !presetProjects.includes(newValue)) {
+        // 更新预设项目列表
         presetProjects[index] = newValue;
+        
+        // 同步更新任务列表中的项目名称
+        syncProjectNameInLogs(oldValue, newValue);
+        
         // 修改预设项目后自动保存
         savePresetProjects();
       } else {
@@ -1518,6 +1524,36 @@ function savePresetProjects() {
   } catch (error) {
     console.error('保存预设项目失败:', error);
   }
+}
+
+// 同步更新任务列表中的项目名称
+function syncProjectNameInLogs(oldName, newName) {
+  // 更新待填写日志中的项目名称
+  logs.pending.forEach(log => {
+    if (log.project === oldName) {
+      log.project = newName;
+    }
+  });
+  
+  // 更新已填写日志中的项目名称
+  logs.filled.forEach(log => {
+    if (log.project === oldName) {
+      log.project = newName;
+    }
+  });
+  
+  // 保存更新后的日志
+  saveLogs();
+  
+  // 重新渲染日志列表和项目标签
+  renderLogs();
+  updateProjectTabs();
+  
+  // 更新已填写项目标签
+  updateFilledProjectTabs();
+  
+  // 更新项目选择下拉框
+  updateProjectSelect();
 }
 
 // 保存日志到localStorage
