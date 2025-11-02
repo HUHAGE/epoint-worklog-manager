@@ -790,7 +790,9 @@ function fillLogToPage(tabId, log) {
   // 注入填充脚本
   try {
     chrome.scripting.executeScript({
-      target: { tabId: tabId },
+      target: { tabId: tabId, allFrames: true },
+      // 在页面主世界执行，确保可访问 window.mini 和 HandleRowAdd
+      world: 'MAIN',
       func: injectFillLogScript,
       args: [log]
     }, (results) => {
@@ -815,31 +817,287 @@ function injectFillLogScript(logData) {
   console.log('Injected script running with data:', logData);
   try {
     // 填充数据到datagrid
-    function fillDataIntoGrid(log) {
-      // 假设我们要填充第一行
-      const rowIndex = 1; 
+    async function fillDataIntoGrid(log) {
+      // 获取所有可访问文档上下文（包含同源 iframe）
+      function getAllContexts() {
+        const contexts = [{ win: window, doc: document }];
+        const iframes = document.querySelectorAll('iframe');
+        for (const iframe of iframes) {
+          try {
+            if (iframe.contentWindow && iframe.contentDocument) {
+              contexts.push({ win: iframe.contentWindow, doc: iframe.contentDocument });
+            }
+          } catch (err) {
+            console.log('Skip cross-origin iframe:', err);
+          }
+        }
+        return contexts;
+      }
 
-      // 构建ID
-      const taskNameId = `mini-54$${rowIndex}$2$editor$text`;
-      const contentId = `mini-54$${rowIndex}$9$editor$text`;
-      const hoursId = `mini-54$${rowIndex}$11$editor$text`;
-      const dateId = `mini-54$${rowIndex}$10$editor$text`;
+      function findDatagridContext() {
+        const contexts = getAllContexts();
+        for (const ctx of contexts) {
+          try {
+            if (ctx.win.mini && typeof ctx.win.mini.get === 'function') {
+              const dg = ctx.win.mini.get('datagrid');
+              if (dg) return { dg, ctx };
+            }
+            // 放宽判断：只要能找到 #datagrid 元素，就视为该 frame 是目标上下文
+            const el = ctx.doc.getElementById('datagrid');
+            if (el) {
+              let dg = null;
+              try {
+                if (ctx.win.mini && typeof ctx.win.mini.get === 'function') {
+                  dg = ctx.win.mini.get('datagrid') || null;
+                }
+              } catch (e2) { /* ignore */ }
+              return { dg, ctx };
+            }
+          } catch (e) { /* ignore */ }
+        }
+        return null;
+      }
 
-      // 填充数据
-      const taskNameEl = document.getElementById(taskNameId);
-      if (taskNameEl) taskNameEl.value = log.project;
+      // 锁定到正确的 datagrid 上下文，如果没有则直接跳过当前 frame
+      const dgCtx = findDatagridContext();
+      if (!dgCtx) {
+        console.log('No datagrid element found in this frame, skipping.');
+        return; // 不抛错，避免错误 frame 影响整体结果
+      }
 
-      const contentEl = document.getElementById(contentId);
-      if (contentEl) contentEl.value = log.content;
+      // 查找可用的行索引
+       function findAvailableRowIndex() {
+         // 优先使用 mini datagrid API
+         if (dgCtx && dgCtx.dg) {
+           const data = dgCtx.dg.getData ? dgCtx.dg.getData() : [];
+           console.log('Datagrid current rows:', data.length);
+           for (let i = 0; i < data.length; i++) {
+             const row = data[i];
+             const mission = (row && row.MissionName) ? String(row.MissionName).trim() : '';
+             if (!mission) {
+               console.log(`Found empty row via datagrid at index ${i + 1}`);
+               return { rowIndex: i + 1, needsNewRow: false, dgCtx };
+             }
+           }
+           console.log(`All ${data.length} rows occupied; need to create new row at ${data.length + 1}`);
+           return { rowIndex: data.length + 1, needsNewRow: true, dgCtx };
+         }
 
-      const hoursEl = document.getElementById(hoursId);
-      if (hoursEl) hoursEl.value = log.hours;
+         // 退回到原有 DOM 探测（编辑器元素）
+         let rowIndex = 1;
+         let maxAttempts = 50;
+         while (rowIndex <= maxAttempts) {
+           const taskNameId = `mini-54$${rowIndex}$2$editor$text`;
+           const taskNameEl = document.getElementById(taskNameId);
+           if (!taskNameEl) {
+             console.log(`Row ${rowIndex} does not exist, need to add new row`);
+             return { rowIndex: rowIndex, needsNewRow: true, dgCtx: null };
+           }
+           if (!taskNameEl.value || taskNameEl.value.trim() === '') {
+             console.log(`Found empty row at index ${rowIndex}`);
+             return { rowIndex: rowIndex, needsNewRow: false, dgCtx: null };
+           }
+           console.log(`Row ${rowIndex} is occupied with value: ${taskNameEl.value}`);
+           rowIndex++;
+         }
+         console.log(`All rows up to ${maxAttempts} are occupied, need to create new row at ${rowIndex}`);
+         return { rowIndex: rowIndex, needsNewRow: true, dgCtx: null };
+       }
+      
+      // 添加新行的函数
+       function addNewRowIfNeeded(targetRowIndex) {
+         console.log(`Attempting to add new row at index ${targetRowIndex}`);
+         // 仅在锁定的 datagrid 上下文中执行新增
+         try {
+           const doc = dgCtx.ctx.doc;
+           const win = dgCtx.ctx.win;
+           // 方法1：点击该上下文中的新增按钮
+           const btns = doc.querySelectorAll('span[type="action"][icon="icon-add"][onclick="HandleRowAdd"], span[onclick="HandleRowAdd"]');
+           if (btns.length > 0) {
+             console.log('Clicking add button in datagrid frame');
+             btns[0].click();
+             return true;
+           }
+           // 方法2：直接调用该上下文中的 HandleRowAdd
+           if (typeof win.HandleRowAdd === 'function') {
+             console.log('Invoking HandleRowAdd in datagrid frame');
+             win.HandleRowAdd();
+             return true;
+           }
+           // 方法3：mini datagrid API 添加新行
+           if (dgCtx.dg && typeof dgCtx.dg.addRow === 'function') {
+             const newRowData = {
+               rowguid: 'temp_' + Date.now(),
+               MissionName: '',
+               ContentType: '',
+               GZDWorkTypeName: '',
+               themetagname: '',
+               contentdescription: '',
+               expectcosted: 0,
+               completepercent: '0%',
+               FinishDate: new Date().toISOString().split('T')[0]
+             };
+             dgCtx.dg.addRow(newRowData);
+             console.log('Successfully added new row using mini API in datagrid frame');
+             return true;
+           }
+         } catch (err) {
+           console.log('Failed to add row in datagrid frame:', err);
+         }
 
-      const dateEl = document.getElementById(dateId);
-      if (dateEl) dateEl.value = log.date;
+         console.error('All methods to add new row failed');
+         return false;
+       }
+      
+      // 获取可用的行索引
+       const rowInfo = findAvailableRowIndex();
+       
+       // 统一处理行填充逻辑
+       const processRowFilling = async (targetRowIndex, needsNewRow) => {
+         if (needsNewRow) {
+           console.log(`All existing rows are occupied, attempting to add new row`);
+           const addSuccess = addNewRowIfNeeded(targetRowIndex);
+           
+           if (!addSuccess) {
+             console.error('Failed to add new row, cannot proceed with filling');
+             throw new Error('无法添加新行，请手动添加行后重试');
+           }
+           
+           // 等待新行创建完成
+           const actualRowIndex = await waitForNewRowCreation(dgCtx);
+           fillRowData(actualRowIndex, log, dgCtx);
+         } else {
+           // 如果找到了空行，直接填充
+           console.log(`Using existing empty row at index ${targetRowIndex}`);
+           fillRowData(targetRowIndex, log, dgCtx);
+         }
+       };
+       
+       // 等待新行创建的统一函数
+       const waitForNewRowCreation = (dgCtx) => {
+         return new Promise((resolve, reject) => {
+           let retryCount = 0;
+           const maxRetries = 5;
+           const tryCheck = () => {
+             retryCount++;
+             console.log(`Checking for new row via datagrid, attempt ${retryCount}/${maxRetries}`);
+             try {
+               if (dgCtx && dgCtx.dg && typeof dgCtx.dg.getData === 'function') {
+                 const data = dgCtx.dg.getData();
+                 // 寻找第一条任务名称为空的行
+                 for (let i = 0; i < data.length; i++) {
+                   const mission = (data[i] && data[i].MissionName) ? String(data[i].MissionName).trim() : '';
+                   if (!mission) {
+                     console.log(`Found new empty row at index ${i + 1}`);
+                     resolve(i + 1);
+                     return;
+                   }
+                 }
+                 // 若没有空行但增加了数据长度，则返回末尾行索引
+                 console.log('No empty mission row detected yet');
+               } else {
+                 // 退回 DOM 探测
+                 for (let i = 1; i <= 50; i++) {
+                   const testId = `mini-54$${i}$2$editor$text`;
+                   const testEl = document.getElementById(testId);
+                   if (testEl && (!testEl.value || testEl.value.trim() === '')) {
+                     console.log(`Found available row at index ${i} via DOM after addition`);
+                     resolve(i);
+                     return;
+                   }
+                 }
+               }
+             } catch (e) { /* ignore and retry */ }
+             if (retryCount < maxRetries) {
+               setTimeout(tryCheck, 600);
+             } else {
+               reject(new Error('新行未出现'));
+             }
+           };
+           setTimeout(tryCheck, 500);
+         });
+       };
+       
+       // 执行填充处理
+       try {
+         await processRowFilling(rowInfo.rowIndex, rowInfo.needsNewRow);
+       } catch (error) {
+         console.error('Failed to process row filling:', error);
+         throw error;
+       }
+      
+      function fillRowData(index, logData, dgCtx) {
+        console.log(`Filling data into row ${index}`);
+        
+        // 优先使用 mini datagrid API 更新行数据
+        try {
+          if (dgCtx && dgCtx.dg) {
+            const dg = dgCtx.dg;
+            const data = dg.getData ? dg.getData() : [];
+            const row = data[index - 1];
+            if (row && typeof dg.updateRow === 'function') {
+              const rowUpdate = {
+                MissionName: logData.project || '',
+                contentdescription: logData.content || '',
+                expectcosted: logData.hours || 0,
+                FinishDate: logData.date || new Date().toISOString().split('T')[0]
+              };
+              dg.updateRow(row, rowUpdate);
+              console.log('Row updated via datagrid API:', rowUpdate);
+              return;
+            }
+          }
+        } catch (e) {
+          console.log('Failed to update via datagrid API, falling back to DOM editors:', e);
+        }
+
+        // Fallback：通过 DOM 编辑器元素填充
+        const taskNameId = `mini-54$${index}$2$editor$text`;
+        const contentId = `mini-54$${index}$9$editor$text`;
+        const hoursId = `mini-54$${index}$11$editor$text`;
+        const dateId = `mini-54$${index}$10$editor$text`;
+
+        const taskNameEl = document.getElementById(taskNameId);
+        const contentEl = document.getElementById(contentId);
+        const hoursEl = document.getElementById(hoursId);
+        const dateEl = document.getElementById(dateId);
+
+        if (taskNameEl) {
+          taskNameEl.value = logData.project;
+          console.log(`Set task name: ${logData.project}`);
+        } else {
+          console.warn(`Task name element not found: ${taskNameId}`);
+        }
+        if (contentEl) {
+          contentEl.value = logData.content;
+          console.log(`Set content: ${logData.content}`);
+        } else {
+          console.warn(`Content element not found: ${contentId}`);
+        }
+        if (hoursEl) {
+          hoursEl.value = logData.hours;
+          console.log(`Set hours: ${logData.hours}`);
+        } else {
+          console.warn(`Hours element not found: ${hoursId}`);
+        }
+        if (dateEl) {
+          dateEl.value = logData.date;
+          console.log(`Set date: ${logData.date}`);
+        } else {
+          console.warn(`Date element not found: ${dateId}`);
+        }
+        [taskNameEl, contentEl, hoursEl, dateEl].forEach(el => {
+          if (el) {
+            const event = new Event('change', { bubbles: true });
+            el.dispatchEvent(event);
+          }
+        });
+      }
     }
 
-    fillDataIntoGrid(logData);
+    fillDataIntoGrid(logData).catch(error => {
+      console.error('Error filling data into grid:', error);
+    });
 
     return 'success';
   } catch (error) {
