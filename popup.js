@@ -452,6 +452,18 @@ function switchTab(tabName) {
     activePane.classList.add('active');
   }
   
+  // 控制状态指示器的显示/隐藏
+  const statusIndicator = document.querySelector('.status-indicator');
+  if (statusIndicator) {
+    if (tabName === 'preset') {
+      // 在配置标签页隐藏状态指示器
+      statusIndicator.style.display = 'none';
+    } else {
+      // 在其他标签页显示状态指示器
+      statusIndicator.style.display = 'flex';
+    }
+  }
+  
   // 渲染对应标签页的内容
   renderLogs();
 }
