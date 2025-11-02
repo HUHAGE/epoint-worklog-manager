@@ -39,11 +39,18 @@ const captureBlueprintBtn = document.getElementById('capture-blueprint-btn');
 const applyBlueprintBtn = document.getElementById('apply-blueprint-btn');
 const blueprintAutoApplyCheckbox = document.getElementById('blueprint-auto-apply-checkbox');
 const blueprintPresetsList = document.getElementById('blueprint-presets-list');
+// 工作场景预设 UI 引用
+const captureStageDemandBtn = document.getElementById('capture-stagedemand-btn');
+const applyStageDemandBtn = document.getElementById('apply-stagedemand-btn');
+const stageDemandAutoApplyCheckbox = document.getElementById('stagedemand-auto-apply-checkbox');
+const stageDemandPresetsList = document.getElementById('stagedemand-presets-list');
 let presetDemandTag = '';
 let presetWorkType = '';
 let presetCloseReminders = false;
 let presetBlueprints = {};
 let presetBlueprintAutoApply = true;
+let presetStageDemands = {};
+let presetStageDemandAutoApply = true;
 
 // 初始化
 document.addEventListener('DOMContentLoaded', function() {
@@ -59,6 +66,8 @@ document.addEventListener('DOMContentLoaded', function() {
   loadPresetCloseReminders();
   loadPresetBlueprints();
   loadPresetBlueprintAutoApply();
+  loadPresetStageDemands();
+  loadPresetStageDemandAutoApply();
   // 打开插件时自动填充预设需求标签到OA页面
   autofillDemandTagToStory(presetDemandTag);
   // 打开插件时自动填充预设工作类型到OA页面
@@ -68,6 +77,10 @@ document.addEventListener('DOMContentLoaded', function() {
   // 打开插件时若开启自动应用蓝图，尝试应用蓝图预设到OA页面
   if (presetBlueprintAutoApply) {
     applyBlueprintPresetToOA();
+  }
+  // 打开插件时若开启自动应用工作场景，尝试应用工作场景预设到OA页面
+  if (presetStageDemandAutoApply) {
+    applyStageDemandPresetToOA();
   }
   
   // 显示预设配置成功加载提示
@@ -145,6 +158,23 @@ function bindEventListeners() {
   if (blueprintAutoApplyCheckbox) {
     blueprintAutoApplyCheckbox.addEventListener('change', () => {
       savePresetBlueprintAutoApply();
+    });
+  }
+
+  // 工作场景预设：捕获与应用按钮
+  if (captureStageDemandBtn) {
+    captureStageDemandBtn.addEventListener('click', () => {
+      captureCurrentStageDemandFromOA();
+    });
+  }
+  if (applyStageDemandBtn) {
+    applyStageDemandBtn.addEventListener('click', () => {
+      applyStageDemandPresetToOA();
+    });
+  }
+  if (stageDemandAutoApplyCheckbox) {
+    stageDemandAutoApplyCheckbox.addEventListener('change', () => {
+      savePresetStageDemandAutoApply();
     });
   }
   
@@ -1573,6 +1603,264 @@ function savePresetBlueprintAutoApply() {
     showToast('蓝图自动应用设置已保存');
   } catch (error) {
     console.error('保存蓝图自动应用设置失败:', error);
+  }
+}
+
+// 加载工作场景预设映射（ProjectName -> StageDemand preset）
+function loadPresetStageDemands() {
+  try {
+    const saved = localStorage.getItem('presetStageDemands');
+    presetStageDemands = saved ? JSON.parse(saved) : {};
+    renderStageDemandPresetsList();
+  } catch (error) {
+    console.error('加载工作场景预设失败:', error);
+    presetStageDemands = {};
+    renderStageDemandPresetsList();
+  }
+}
+
+// 保存工作场景预设映射
+function savePresetStageDemands() {
+  try {
+    localStorage.setItem('presetStageDemands', JSON.stringify(presetStageDemands || {}));
+    renderStageDemandPresetsList();
+    showToast('工作场景预设已保存');
+  } catch (error) {
+    console.error('保存工作场景预设失败:', error);
+  }
+}
+
+// 渲染工作场景预设列表
+function renderStageDemandPresetsList() {
+  try {
+    if (!stageDemandPresetsList) return;
+    const map = presetStageDemands || {};
+    const keys = Object.keys(map);
+    if (keys.length === 0) {
+      stageDemandPresetsList.innerHTML = '<p style="color:#888;">暂无工作场景预设</p>';
+      return;
+    }
+    let html = '<ul class="preset-list">';
+    keys.forEach((projectKey) => {
+      const sd = map[projectKey] || {};
+      const name = sd.StageDemandName || '(未命名工作场景)';
+      const projName = sd.ProjectName || projectKey || '(未命名项目)';
+      html += `<li><span>项目: ${escapeHtml(projName)}</span> <span style="margin-left:8px;">工作场景: ${escapeHtml(name)}</span> <button onclick="window.removeStageDemandPreset('${projectKey}')">删除</button></li>`;
+    });
+    html += '</ul>';
+    stageDemandPresetsList.innerHTML = html;
+  } catch (error) {
+    console.error('渲染工作场景预设列表失败:', error);
+  }
+}
+
+// 删除单个工作场景预设
+function removeStageDemandPreset(projectKey) {
+  try {
+    if (!projectKey) return;
+    if (presetStageDemands && presetStageDemands[projectKey]) {
+      delete presetStageDemands[projectKey];
+      savePresetStageDemands();
+      showToast('已删除工作场景预设');
+    }
+  } catch (error) {
+    console.error('删除工作场景预设失败:', error);
+  }
+}
+
+// 暴露到窗口，供列表删除按钮调用
+window.removeStageDemandPreset = function(projectKey) {
+  removeStageDemandPreset(projectKey);
+};
+
+// 加载“自动应用工作场景”设置
+function loadPresetStageDemandAutoApply() {
+  try {
+    const saved = localStorage.getItem('presetStageDemandAutoApply');
+    presetStageDemandAutoApply = saved === null ? true : (saved === 'true');
+    if (stageDemandAutoApplyCheckbox) {
+      stageDemandAutoApplyCheckbox.checked = !!presetStageDemandAutoApply;
+    }
+  } catch (error) {
+    console.error('加载工作场景自动应用设置失败:', error);
+    presetStageDemandAutoApply = true;
+    if (stageDemandAutoApplyCheckbox) stageDemandAutoApplyCheckbox.checked = true;
+  }
+}
+
+// 保存“自动应用工作场景”设置
+function savePresetStageDemandAutoApply() {
+  try {
+    presetStageDemandAutoApply = !!(stageDemandAutoApplyCheckbox && stageDemandAutoApplyCheckbox.checked);
+    localStorage.setItem('presetStageDemandAutoApply', String(presetStageDemandAutoApply));
+    showToast('工作场景自动应用设置已保存');
+  } catch (error) {
+    console.error('保存工作场景自动应用设置失败:', error);
+  }
+}
+
+// 从当前激活的OA页面捕获工作场景信息并保存为预设
+function captureCurrentStageDemandFromOA() {
+  try {
+    if (typeof chrome === 'undefined' || !chrome.tabs || !chrome.scripting) {
+      showToast('请在扩展环境中使用此功能');
+      return;
+    }
+    chrome.tabs.query({ active: true, currentWindow: true }, function(tabs) {
+      if (!tabs || tabs.length === 0) { showToast('未找到活动标签页'); return; }
+      const tab = tabs[0];
+      const url = tab.url || '';
+      if (!url.includes('oa.epoint.com.cn')) { showToast('请在OA页面使用捕获功能'); return; }
+      chrome.scripting.executeScript({
+        target: { tabId: tab.id, allFrames: true },
+        world: 'MAIN',
+        func: function() {
+          try {
+            var w = window; var miniObj = w.mini; var doc = document;
+            function getCtrl(id) { try { return miniObj && miniObj.get && miniObj.get(id); } catch(e) { return null; } }
+            function getValue(id) {
+              var ctrl = getCtrl(id); var el = doc.getElementById(id);
+              var v = '';
+              try {
+                if (ctrl && typeof ctrl.getValue === 'function') v = ctrl.getValue() || '';
+                else if (el) v = (el.value || el.textContent || '').trim();
+              } catch (e) {}
+              return v || '';
+            }
+            function getText(id) {
+              var ctrl = getCtrl(id); var el = doc.getElementById(id);
+              var t = '';
+              try {
+                if (ctrl && typeof ctrl.getText === 'function') t = ctrl.getText() || '';
+                else if (el) t = (el.innerText || el.textContent || '').trim();
+              } catch (e) {}
+              return t || '';
+            }
+            var projectName = getText('lblProjectName') || getValue('ProjectName');
+            var projectGuid = getValue('ProjectGuid');
+            if (!projectGuid) { try { projectGuid = new URL(w.location.href).searchParams.get('ProjectGuid') || ''; } catch (e) {} }
+            var sdGuid = getValue('stagedemand') || getValue('stagedemandguid');
+            var sdName = getText('stagedemand') || getValue('stagedemandname');
+            var preset = {
+              ProjectName: projectName,
+              ProjectGuid: projectGuid,
+              StageDemandGuid: sdGuid,
+              StageDemandName: sdName
+            };
+            if (!preset.ProjectName) return null;
+            if (!preset.StageDemandGuid) return null;
+            return preset;
+          } catch (e) {
+            console.error('[CaptureStageDemand] injection error:', e);
+            return null;
+          }
+        }
+      }, (results) => {
+        try {
+          const arr = Array.isArray(results) ? results : [];
+          const found = arr.map(r => r && r.result).find(r => r && r.ProjectName);
+          if (!found) { showToast('未捕获到工作场景，请先在OA页选择工作场景'); return; }
+          const key = found.ProjectName;
+          presetStageDemands[key] = found;
+          savePresetStageDemands();
+          showToast('已捕获并保存工作场景预设');
+        } catch (e) {
+          console.error('处理捕获结果失败:', e);
+          showToast('捕获工作场景失败');
+        }
+      });
+    });
+  } catch (error) {
+    console.error('捕获当前工作场景失败:', error);
+  }
+}
+
+// 在当前激活的OA页应用工作场景预设（根据项目名称优先匹配，兼容GUID）
+function applyStageDemandPresetToOA() {
+  try {
+    if (typeof chrome === 'undefined' || !chrome.tabs || !chrome.scripting) {
+      return;
+    }
+    chrome.tabs.query({ active: true, currentWindow: true }, function(tabs) {
+      if (!tabs || tabs.length === 0) return;
+      const tab = tabs[0];
+      const url = tab.url || '';
+      if (!url.includes('oa.epoint.com.cn')) return;
+      chrome.scripting.executeScript({
+        target: { tabId: tab.id, allFrames: true },
+        world: 'MAIN',
+        args: [presetStageDemands || {}],
+        func: function(map) {
+          try {
+            (function(){
+              var tries = 5; var delay = 800;
+              function run(doc){
+                var w = doc.defaultView || window; var miniObj = w.mini;
+                function getCtrl(id){ try { return miniObj && miniObj.get && miniObj.get(id); } catch(e){ return null; } }
+                function getValue(id) {
+                  var ctrl = getCtrl(id); var el = doc.getElementById(id);
+                  var v = '';
+                  try {
+                    if (ctrl && typeof ctrl.getValue === 'function') v = ctrl.getValue() || '';
+                    else if (el) v = (el.value || el.textContent || '').trim();
+                  } catch (e) {}
+                  return v || '';
+                }
+                function getText(id) {
+                  var ctrl = getCtrl(id); var el = doc.getElementById(id);
+                  var t = '';
+                  try {
+                    if (ctrl && typeof ctrl.getText === 'function') t = ctrl.getText() || '';
+                    else if (el) t = (el.innerText || el.textContent || '').trim();
+                  } catch (e) {}
+                  return t || '';
+                }
+                var projectName = getText('lblProjectName') || getValue('ProjectName');
+                var projectGuid = getValue('ProjectGuid');
+                if (!projectGuid) { try { projectGuid = new URL(w.location.href).searchParams.get('ProjectGuid') || ''; } catch (e) {} }
+                var preset = (projectName && map && map[projectName]) || (projectGuid && map && map[projectGuid]);
+                if (!preset) return false;
+                try {
+                  var sdCtrl = miniObj && miniObj.get && miniObj.get('stagedemand');
+                  if (sdCtrl && typeof sdCtrl.setText === 'function') sdCtrl.setText(preset.StageDemandName || '');
+                  if (sdCtrl && typeof sdCtrl.setValue === 'function') sdCtrl.setValue(preset.StageDemandGuid || '');
+                  var sdGuidEl = doc.getElementById('stagedemandguid');
+                  if (sdGuidEl) sdGuidEl.value = preset.StageDemandGuid || '';
+                  var sdNameEl = doc.getElementById('stagedemandname');
+                  if (sdNameEl) sdNameEl.value = preset.StageDemandName || '';
+                  return true;
+                } catch (e) { return false; }
+              }
+              function tryAll(){
+                var ok = false;
+                try { ok = run(document); } catch (e) {}
+                var iframes = document.getElementsByTagName('iframe');
+                for (var i = 0; i < iframes.length; i++) {
+                  try {
+                    var doc = iframes[i].contentDocument || (iframes[i].contentWindow && iframes[i].contentWindow.document);
+                    if (doc) ok = run(doc) || ok;
+                  } catch (e) {}
+                }
+                return ok;
+              }
+              function runner(){
+                var done = tryAll();
+                if (!done && tries > 0) { tries--; setTimeout(runner, delay); }
+              }
+              runner();
+            })();
+            return 'ok';
+          } catch (e) {
+            console.error('[ApplyStageDemand] injection error:', e);
+            return 'error';
+          }
+        }
+      }, (results) => {
+        console.log('[ApplyStageDemand] injection results:', results);
+      });
+    });
+  } catch (error) {
+    console.error('自动应用工作场景预设失败:', error);
   }
 }
 
