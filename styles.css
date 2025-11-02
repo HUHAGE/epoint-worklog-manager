@@ -216,40 +216,44 @@ body {
   display: none;
 }
 
+#project {
+  display: none;
+}
+
 .logs-container {
   background-color: #fff;
   border-radius: 8px;
-  padding: 20px;
+  padding: 15px; /* 减小内边距 */
   box-shadow: 0 2px 10px rgba(0,0,0,0.05);
 }
 
 .logs-container h2 {
   font-size: 1.2em;
-  margin-bottom: 15px;
+  margin-bottom: 10px; /* 减小底部边距 */
   color: #444;
 }
 
 .project-tabs {
   display: flex;
   flex-wrap: wrap;
-  gap: 5px;
-  margin-bottom: 15px;
+  gap: 3px; /* 减小间距使分类更紧凑 */
+  margin-bottom: 8px; /* 减小底部边距 */
   border-bottom: 1px solid #eee;
-  padding: 10px;
+  padding: 5px; /* 减小内边距 */
   position: sticky;
   top: 0;
   background-color: #fff;
   z-index: 100;
-  box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+  box-shadow: 0 1px 3px rgba(0,0,0,0.1); /* 减小阴影 */
 }
 
 .project-tab-btn {
-  padding: 6px 12px;
+  padding: 4px 10px; /* 减小内边距使按钮更紧凑 */
   border: 1px solid #ddd;
   background-color: #f8f9fa;
-  border-radius: 15px;
+  border-radius: 12px; /* 减小圆角 */
   cursor: pointer;
-  font-size: 12px;
+  font-size: 11px; /* 减小字体 */
   transition: all 0.3s;
 }
 
@@ -266,21 +270,26 @@ body {
 .logs-list {
   display: flex;
   flex-direction: column;
-  gap: 10px;
+  gap: 6px; /* 减小列表项间距 */
 }
 
 .log-item {
   background-color: #fff;
   border-radius: 6px;
   box-shadow: 0 1px 3px rgba(0,0,0,0.1);
-  padding: 12px;
-  margin-bottom: 10px;
+  padding: 10px; /* 调整内边距 */
+  margin-bottom: 6px; /* 调整外边距 */
+  min-height: 70px; /* 略微提高高度，保证一行内容完整显示 */
+  height: auto; /* 根据内容自适应高度 */
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
 }
 
 .log-item-header {
   display: flex;
   align-items: center;
-  margin-bottom: 8px;
+  margin-bottom: 2px; /* 调整底部边距 */
 }
 
 .log-project {
@@ -290,26 +299,34 @@ body {
   overflow: hidden;
   text-overflow: ellipsis;
   color: #444;
-  margin-right: 15px;
+  margin-right: 12px; /* 调整右边距 */
+  font-size: 13px; /* 调整字体大小 */
+}
+
+.log-date {
+  margin-right: 18px; /* 调整日期与工时之间的间距 */
+  white-space: nowrap;
+  font-size: 11px; /* 调整字体大小 */
 }
 
 .log-hours {
   color: #667eea;
   font-weight: 500;
-  margin-right: 15px;
+  margin-right: 12px; /* 调整右边距 */
   white-space: nowrap;
+  font-size: 11px; /* 调整字体大小 */
 }
 
 .log-actions {
   display: flex;
-  gap: 8px;
+  gap: 6px; /* 调整按钮间距 */
   margin-left: auto;
 }
 
 .action-icon {
-  width: 28px;
-  height: 28px;
-  padding: 6px;
+  width: 26px; /* 调整按钮宽度 */
+  height: 26px; /* 调整按钮高度 */
+  padding: 5px; /* 调整内边距 */
   border-radius: 4px;
   cursor: pointer;
   transition: all 0.2s ease;
@@ -319,8 +336,8 @@ body {
 }
 
 .action-icon svg {
-  width: 16px;
-  height: 16px;
+  width: 15px; /* 调整SVG图标大小 */
+  height: 15px; /* 调整SVG图标大小 */
 }
 
 .edit-btn {
@@ -343,12 +360,12 @@ body {
   transform: translateY(-1px);
 }
 
-.delete-btn {
+.log-item .delete-btn {
   color: #F44336;
   background-color: rgba(244, 67, 54, 0.1);
 }
 
-.delete-btn:hover {
+.log-item .delete-btn:hover {
   background-color: rgba(244, 67, 54, 0.2);
   transform: translateY(-1px);
 }
@@ -361,6 +378,18 @@ body {
 .restore-btn:hover {
   background-color: rgba(255, 152, 0, 0.2);
   transform: translateY(-1px);
+}
+
+/* 任务内容样式 */
+.log-content {
+  font-size: 12px; /* 调整字体大小 */
+  color: #555;
+  overflow: hidden;
+  white-space: nowrap; /* 只显示一行 */
+  text-overflow: ellipsis; /* 超出部分显示省略号 */
+  flex-grow: 1;
+  line-height: 1.3; /* 调整行高 */
+  margin-top: 0; /* 移除顶部边距 */
 }
 
 /* 移除已填写日志的特殊样式 */
@@ -428,21 +457,27 @@ body {
 }
 
 .preset-projects-list {
-  max-height: 200px;
+  max-height: 300px;
   overflow-y: auto;
   margin-bottom: 15px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  width: 100%;
 }
 
 /* 预设项目列表样式 */
 .preset-project-item {
-  display: flex;
-  align-items: center;
-  gap: 10px;
+  width: calc(50% - 5px);
   margin-bottom: 10px;
   padding: 8px;
   background-color: #fff;
   border-radius: 4px;
   box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+  box-sizing: border-box;
+  display: flex;
+  align-items: center;
+  gap: 10px;
 }
 
 .preset-project-input {
@@ -451,6 +486,7 @@ body {
   border: 1px solid #ddd;
   border-radius: 4px;
   font-size: 14px;
+  min-width: 0; /* 允许输入框收缩以适应容器 */
 }
 
 .preset-project-input:focus {
@@ -460,18 +496,26 @@ body {
 }
 
 .delete-btn {
-  background-color: #ea8685;
-  color: white;
-  font-size: 14px;
-  font-weight: bold;
-  display: flex;
+  color: #F44336;
+  background-color: rgba(244, 67, 54, 0.1);
+  width: 28px;
+  height: 28px;
+  padding: 6px;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  display: inline-flex;
   align-items: center;
   justify-content: center;
   line-height: 1;
+  border: none;
+  font-size: 16px;
+  font-weight: normal;
 }
 
 .delete-btn:hover {
-  background-color: #e66767;
+  background-color: rgba(244, 67, 54, 0.2);
+  transform: translateY(-1px);
 }
 
 .add-preset-project {
@@ -510,15 +554,7 @@ body {
   margin-right: 8px;
 }
 
-/* 预设项目输入框样式 */
-.preset-project-input {
-  flex: 1;
-  padding: 8px;
-  border: 1px solid #ddd;
-  border-radius: 4px;
-  font-family: inherit;
-  font-size: 14px;
-}
+
 
 /* 自定义对话框样式 */
 .custom-dialog {

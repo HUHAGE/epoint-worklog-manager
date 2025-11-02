@@ -29,7 +29,6 @@ const closeModal = document.querySelector('.close-modal');
 const presetProjectsList = document.getElementById('preset-projects-list');
 const newPresetProject = document.getElementById('new-preset-project');
 const addPresetProjectBtn = document.getElementById('add-preset-project-btn');
-const savePresetProjectsBtn = document.getElementById('save-preset-projects-btn');
 const projectSelect = document.getElementById('project-select');
 const projectInput = document.getElementById('project');
 const toastContainer = document.getElementById('toast-container');
@@ -110,10 +109,7 @@ function bindEventListeners() {
     addPresetProjectBtn.addEventListener('click', addNewPresetProject);
   }
   
-  // 保存预设项目
-  if (savePresetProjectsBtn) {
-    savePresetProjectsBtn.addEventListener('click', savePresetProjects);
-  }
+  // 移除了模态框中的保存预设项目按钮，因为添加预设项目后会自动保存
   
   // 项目选择变化
   if (projectSelect) {
@@ -146,11 +142,7 @@ function bindEventListeners() {
     });
   }
   
-  // 预设标签页中的保存按钮
-  const savePresetProjectsTabBtn = document.getElementById('save-preset-projects-tab-btn');
-  if (savePresetProjectsTabBtn) {
-    savePresetProjectsTabBtn.addEventListener('click', savePresetProjects);
-  }
+  // 移除了保存预设项目按钮，因为添加预设项目后会自动保存
 }
 
 function showToast(message, duration = 3000) {
@@ -246,9 +238,7 @@ function handleFormSubmit(event) {
   
   // 获取表单数据
   let project = projectSelect.value;
-  if (!project) {
-    project = projectInput.value;
-  }
+  // 移除了与"其他"选项相关的处理逻辑
   
   const taskName = document.getElementById('task-name').value;
   const content = document.getElementById('content').value;
@@ -335,10 +325,10 @@ window.editLog = function(id) {
     projectSelect.classList.remove('hidden');
     projectInput.classList.add('hidden');
   } else {
-    projectSelect.value = 'other';
-    projectInput.value = log.project;
+    // 如果项目不在预设项目中，直接使用项目名称
+    projectSelect.value = log.project;
     projectSelect.classList.remove('hidden');
-    projectInput.classList.remove('hidden');
+    projectInput.classList.add('hidden');
   }
   
   document.getElementById('content').value = log.content;
@@ -349,11 +339,7 @@ window.editLog = function(id) {
 
 // 处理项目选择变化
 function handleProjectSelectChange() {
-  if (projectSelect.value === 'other') {
-    projectSelect.classList.add('hidden');
-    projectInput.classList.remove('hidden');
-    projectInput.focus();
-  }
+  // 移除了与"其他"选项相关的处理逻辑
 }
 
 // 更新项目选择下拉框
@@ -370,11 +356,7 @@ function updateProjectSelect() {
     projectSelect.appendChild(option);
   });
   
-  // 添加"其他"选项
-  const otherOption = document.createElement('option');
-  otherOption.value = 'other';
-  otherOption.textContent = '其他（手动输入）';
-  projectSelect.appendChild(otherOption);
+  // 移除了"其他"选项，只使用预设项目
 }
 
 // 更新项目标签
@@ -431,7 +413,6 @@ function renderPendingLogs() {
     const logItem = document.createElement('div');
     logItem.className = 'log-item';
     logItem.dataset.id = log.id;
-    const taskLine = log.taskName ? `<div class="log-task">任务名称：${escapeHtml(log.taskName)}</div>` : '';
     
     logItem.innerHTML = `
       <div class="log-item-header">
@@ -442,13 +423,12 @@ function renderPendingLogs() {
           <div class="action-icon edit-btn" title="编辑">
             <svg viewBox="0 0 24 24" width="16" height="16"><path fill="currentColor" d="M3 17.25V21h3.75L17.81 9.94l-3.75-3.75L3 17.25zM20.71 7.04c.39-.39.39-1.02 0-1.41l-2.34-2.34c-.39-.39-1.02-.39-1.41 0l-1.83 1.83 3.75 3.75 1.83-1.83z"/></svg>
           </div>
+          <div class="action-icon delete-btn" title="删除">×</div>
           <div class="action-icon fill-btn" title="提交">
             <svg viewBox="0 0 24 24" width="16" height="16"><path fill="currentColor" d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z"/></svg>
           </div>
-          <div class="action-icon delete-btn" title="删除">×</div>
         </div>
       </div>
-      ${taskLine}
       <div class="log-content">${escapeHtml(log.content)}</div>
     `;
     
@@ -507,7 +487,6 @@ function renderFilledLogs() {
     const logItem = document.createElement('div');
     logItem.className = 'log-item';
     logItem.dataset.id = log.id;
-    const taskLine = log.taskName ? `<div class="log-task">任务名称：${escapeHtml(log.taskName)}</div>` : '';
     
     logItem.innerHTML = `
       <div class="log-item-header">
@@ -523,7 +502,6 @@ function renderFilledLogs() {
           <div class="action-icon delete-btn" title="删除">×</div>
         </div>
       </div>
-      ${taskLine}
       <div class="log-content">${escapeHtml(log.content)}</div>
     `;
     
@@ -1161,9 +1139,10 @@ function renderPresetProjectsList() {
     projectInput.dataset.index = index;
     
     const deleteBtn = document.createElement('button');
-    deleteBtn.className = 'btn-small delete-btn';
-    deleteBtn.textContent = '删除';
+    deleteBtn.className = 'delete-btn';
+    deleteBtn.innerHTML = '×';
     deleteBtn.dataset.index = index;
+    deleteBtn.title = '删除';
     
     projectItem.appendChild(projectInput);
     projectItem.appendChild(deleteBtn);
@@ -1175,6 +1154,8 @@ function renderPresetProjectsList() {
       const newValue = e.target.value.trim();
       if (newValue && !presetProjects.includes(newValue)) {
         presetProjects[index] = newValue;
+        // 修改预设项目后自动保存
+        savePresetProjects();
       } else {
         e.target.value = presetProjects[index];
         if (presetProjects.includes(newValue)) {
@@ -1188,6 +1169,8 @@ function renderPresetProjectsList() {
       const index = parseInt(e.target.dataset.index);
       presetProjects.splice(index, 1);
       renderPresetProjectsList();
+      // 删除预设项目后自动保存
+      savePresetProjects();
     });
   });
 }
@@ -1247,6 +1230,8 @@ function loadPresetProjects() {
 function removePresetProject(index) {
   presetProjects.splice(index, 1);
   renderPresetProjectsList();
+  // 删除预设项目后自动保存
+  savePresetProjects();
 }
 
 // 辅助函数：转义HTML特殊字符
