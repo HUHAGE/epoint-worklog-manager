@@ -250,6 +250,7 @@ function handleFormSubmit(event) {
     project = projectInput.value;
   }
   
+  const taskName = document.getElementById('task-name').value;
   const content = document.getElementById('content').value;
   const hours = parseFloat(document.getElementById('hours').value);
   const date = document.getElementById('date').value;
@@ -266,6 +267,7 @@ function handleFormSubmit(event) {
   const newLog = {
     id: editingLogId ? parseInt(editingLogId) : Date.now(), // 如果是编辑模式，使用原来的ID
     project,
+    taskName,
     content,
     hours,
     date,
@@ -342,6 +344,7 @@ window.editLog = function(id) {
   document.getElementById('content').value = log.content;
   document.getElementById('hours').value = log.hours;
   document.getElementById('date').value = log.date;
+  document.getElementById('task-name').value = log.taskName || '';
 };
 
 // 处理项目选择变化
@@ -428,10 +431,12 @@ function renderPendingLogs() {
     const logItem = document.createElement('div');
     logItem.className = 'log-item';
     logItem.dataset.id = log.id;
+    const taskLine = log.taskName ? `<div class="log-task">任务名称：${escapeHtml(log.taskName)}</div>` : '';
     
     logItem.innerHTML = `
       <div class="log-item-header">
         <div class="log-project">${escapeHtml(log.project)}</div>
+        <div class="log-date">${formatDate(log.date)}</div>
         <div class="log-hours">${log.hours}h</div>
         <div class="log-actions">
           <div class="action-icon edit-btn" title="编辑">
@@ -443,7 +448,7 @@ function renderPendingLogs() {
           <div class="action-icon delete-btn" title="删除">×</div>
         </div>
       </div>
-      <div class="log-date">${formatDate(log.date)}</div>
+      ${taskLine}
       <div class="log-content">${escapeHtml(log.content)}</div>
     `;
     
@@ -502,10 +507,12 @@ function renderFilledLogs() {
     const logItem = document.createElement('div');
     logItem.className = 'log-item';
     logItem.dataset.id = log.id;
+    const taskLine = log.taskName ? `<div class="log-task">任务名称：${escapeHtml(log.taskName)}</div>` : '';
     
     logItem.innerHTML = `
       <div class="log-item-header">
         <div class="log-project">${escapeHtml(log.project)}</div>
+        <div class="log-date">${formatDate(log.date)}</div>
         <div class="log-hours">${log.hours}h</div>
         <div class="log-actions">
           <div class="action-icon restore-btn" title="还原">
@@ -516,7 +523,7 @@ function renderFilledLogs() {
           <div class="action-icon delete-btn" title="删除">×</div>
         </div>
       </div>
-      <div class="log-date">${formatDate(log.date)}</div>
+      ${taskLine}
       <div class="log-content">${escapeHtml(log.content)}</div>
     `;
     
@@ -1037,7 +1044,7 @@ function injectFillLogScript(logData) {
             const row = data[index - 1];
             if (row && typeof dg.updateRow === 'function') {
               const rowUpdate = {
-                MissionName: logData.project || '',
+                MissionName: (logData.taskName || logData.project || ''),
                 contentdescription: logData.content || '',
                 expectcosted: logData.hours || 0,
                 FinishDate: logData.date || new Date().toISOString().split('T')[0]
@@ -1063,8 +1070,8 @@ function injectFillLogScript(logData) {
         const dateEl = document.getElementById(dateId);
 
         if (taskNameEl) {
-          taskNameEl.value = logData.project;
-          console.log(`Set task name: ${logData.project}`);
+          taskNameEl.value = (logData.taskName || logData.project || '');
+          console.log(`Set task name: ${logData.taskName || logData.project || ''}`);
         } else {
           console.warn(`Task name element not found: ${taskNameId}`);
         }
