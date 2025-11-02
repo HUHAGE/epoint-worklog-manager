@@ -2209,6 +2209,9 @@ function captureCurrentBlueprintFromOA() {
             var projectGuid = getValue('ProjectGuid');
             if (!projectGuid) { try { projectGuid = new URL(w.location.href).searchParams.get('ProjectGuid') || ''; } catch (e) {} }
             var bpGuid = getValue('BluePrint_Formal');
+            var ylgzmoney = getValue('ylgzmoney');
+            var hasYLGZRaw = getValue('HasYLGZ');
+            var hasYLGZ = hasYLGZRaw || (((parseFloat(ylgzmoney) || 0) > 0) ? '1' : '0');
             var preset = {
               ProjectName: projectName,
               ProjectGuid: projectGuid,
@@ -2217,7 +2220,9 @@ function captureCurrentBlueprintFromOA() {
               BluePrintLevel: getValue('BluePrintLevel'),
               ContractGuid: getValue('ContractGuid'),
               IsWYSJSHT: getValue('IsWYSJSHT'),
-              ContractNumber: getValue('contractnumber')
+              ContractNumber: getValue('contractnumber'),
+              YLGZMoney: ylgzmoney,
+              HasYLGZ: hasYLGZ
             };
             if (!preset.ProjectName) return null;
             if (!preset.BluePrint_FormalGuid) return null;
@@ -2265,7 +2270,8 @@ function applyBlueprintPresetToOA() {
         func: function(map) {
           try {
             (function(){
-              var tries = 5; var delay = 800;
+              var tries = 10; var delay = 700; var attemptedFallback = false;
+
               function run(doc){
                 var w = doc.defaultView || window; var miniObj = w.mini;
                 function getCtrl(id){ try { return miniObj && miniObj.get && miniObj.get(id); } catch(e){ return null; } }
@@ -2289,39 +2295,120 @@ function applyBlueprintPresetToOA() {
                 }
                 var projectName = getText('lblProjectName') || getValue('ProjectName');
                 var projectGuid = getValue('ProjectGuid');
-                if (!projectGuid) { try { projectGuid = new URL(w.location.href).searchParams.get('ProjectGuid') || ''; } catch (e) {} }
-                // 优先以项目名称匹配，其次兼容旧版本以GUID匹配
+                if (!projectGuid) {
+                  try { projectGuid = new URL(w.location.href).searchParams.get('ProjectGuid') || ''; } catch (e) {}
+                }
                 var preset = (projectName && map && map[projectName]) || (projectGuid && map && map[projectGuid]);
                 if (!preset) return false;
+
+                var beforeFrames = Array.prototype.slice.call(doc.querySelectorAll('iframe'));
+
+                function findSelectIframe(){
+                  var frames = doc.querySelectorAll('iframe');
+                  for (var i = frames.length - 1; i >= 0; i--) {
+                    var f = frames[i];
+                    try {
+                      var p = f.parentNode;
+                      var src = f.src || '';
+                      var isDialog = p && p.className && p.className.indexOf('mini-window') >= 0;
+                      var looksNew = beforeFrames.indexOf(f) === -1;
+                      var isBp = /blueprint/i.test(src);
+                      if (isDialog || looksNew || isBp) return f;
+                    } catch(e) {}
+                  }
+                  return null;
+                }
+
+                function makePresetData(){
+                  var data = {
+                    Guid: preset.BluePrint_FormalGuid || preset.BluePrintGuid || '',
+                    BluePrintGuid: preset.BluePrint_FormalGuid || '',
+                    BluePrint_FormalGuid: preset.BluePrint_FormalGuid || '',
+                    Name: preset.BluePrint_Formal || '',
+                    BluePrintName: preset.BluePrint_Formal || '',
+                    BluePrint_Formal: preset.BluePrint_Formal || '',
+                    Level: preset.BluePrintLevel || '',
+                    BluePrintLevel: preset.BluePrintLevel || '',
+                    ContractGuid: preset.ContractGuid || '',
+                    IsWYSJSHT: preset.IsWYSJSHT || '',
+                    ContractNumber: preset.ContractNumber || ''
+                  };
+                  // 兼容遗留工作字段
+                  if (typeof preset.YLGZMoney !== 'undefined') { data.YLGZMoney = preset.YLGZMoney; }
+                  if (typeof preset.HasYLGZ !== 'undefined') { data.HasYLGZ = preset.HasYLGZ; }
+                  return data;
+                }
+
+                function patchChildAndConfirm(child){
+                  try {
+                    var cw = child.contentWindow; var cd = child.contentDocument;
+                    if (!cw || !cd) return false;
+                    var data = makePresetData();
+                    try { cw.GetData = function(){ return data; }; } catch(e) {}
+
+                    // 将数据对象作为参数关闭窗口，父页的回调将直接拿到对象
+                    if (typeof cw.CloseOwnerWindow === 'function') { cw.CloseOwnerWindow(data); return true; }
+
+                    var btns = cd.querySelectorAll('button,input[type=button],a');
+                    for (var i = 0; i < btns.length; i++) {
+                      var txt = (btns[i].innerText || btns[i].value || btns[i].textContent || '').trim();
+                      if (/^(确定|选择|选中|OK|Ok)$/i.test(txt)) { try { btns[i].click(); return true; } catch(e) {} }
+                    }
+                    return false;
+                  } catch(e) { return false; }
+                }
+
+                // 若用户已手动打开选择窗口，直接在子窗体中注入并确认
+                var child = findSelectIframe();
+                if (child && patchChildAndConfirm(child)) { return true; }
+
+                // 第二兜底：直接调用父页回调，绕过弹窗
                 try {
-                  var bpCtrl = miniObj && miniObj.get && miniObj.get('BluePrint_Formal');
+                  if (typeof w.CallBack_SelBluePrint === 'function') { w.CallBack_SelBluePrint(makePresetData()); return true; }
+                } catch(e) {}
+
+                // 最后兜底：直接设置控件值并触发相关事件，避免完全失败
+                try {
+                  var bpCtrl = getCtrl('BluePrint_Formal');
                   if (bpCtrl && typeof bpCtrl.setText === 'function') bpCtrl.setText(preset.BluePrint_Formal || '');
                   if (bpCtrl && typeof bpCtrl.setValue === 'function') bpCtrl.setValue(preset.BluePrint_FormalGuid || '');
-                  var lvlCtrl = miniObj && miniObj.get && miniObj.get('BluePrintLevel');
+                  var lvlCtrl = getCtrl('BluePrintLevel');
                   if (lvlCtrl && typeof lvlCtrl.setValue === 'function') lvlCtrl.setValue(preset.BluePrintLevel || '');
-                  var cgCtrl = miniObj && miniObj.get && miniObj.get('ContractGuid');
+                  var oldContractGuid = getValue('ContractGuid');
+                  var cgCtrl = getCtrl('ContractGuid');
                   if (cgCtrl && typeof cgCtrl.setValue === 'function') cgCtrl.setValue(preset.ContractGuid || '');
-                  var jsCtrl = miniObj && miniObj.get && miniObj.get('IsWYSJSHT');
+                  var jsCtrl = getCtrl('IsWYSJSHT');
                   if (jsCtrl && typeof jsCtrl.setValue === 'function') jsCtrl.setValue(preset.IsWYSJSHT || '');
-                  var numCtrl = miniObj && miniObj.get && miniObj.get('contractnumber');
+                  var numCtrl = getCtrl('contractnumber');
                   if (numCtrl && typeof numCtrl.setValue === 'function') numCtrl.setValue(preset.ContractNumber || '');
+                  if (oldContractGuid && oldContractGuid !== (preset.ContractGuid || '')) {
+                    var senderCtrl = getCtrl('sender');
+                    if (senderCtrl && typeof senderCtrl.setText === 'function') senderCtrl.setText('');
+                    if (senderCtrl && typeof senderCtrl.setValue === 'function') senderCtrl.setValue('');
+                    var sendersmCtrl = getCtrl('sendersm');
+                    if (sendersmCtrl && typeof sendersmCtrl.setValue === 'function') sendersmCtrl.setValue('');
+                  }
+
+                  var el = doc.getElementById('BluePrint_Formal');
+                  if (el) { try { el.dispatchEvent(new Event('change', { bubbles: true })); } catch(e) {} }
+                  attemptedFallback = true;
                   return true;
                 } catch (e) { return false; }
               }
-              function tryAll(){
-                var ok = false;
-                try { ok = run(document); } catch (e) {}
-                var iframes = document.getElementsByTagName('iframe');
-                for (var i = 0; i < iframes.length; i++) {
-                  try {
-                    var doc = iframes[i].contentDocument || (iframes[i].contentWindow && iframes[i].contentWindow.document);
-                    if (doc) ok = run(doc) || ok;
-                  } catch (e) {}
-                }
-                return ok;
-              }
+
               function runner(){
-                var done = tryAll();
+                var done = false;
+                try { done = run(document); } catch (e) {}
+                // 跨iframe尝试（通常主页面即可）
+                if (!done) {
+                  var iframes = document.getElementsByTagName('iframe');
+                  for (var i = 0; i < iframes.length && !done; i++) {
+                    try {
+                      var doc = iframes[i].contentDocument || (iframes[i].contentWindow && iframes[i].contentWindow.document);
+                      if (doc) done = run(doc) || done;
+                    } catch (e) {}
+                  }
+                }
                 if (!done && tries > 0) { tries--; setTimeout(runner, delay); }
               }
               runner();
