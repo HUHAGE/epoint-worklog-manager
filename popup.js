@@ -1842,8 +1842,14 @@ function removeBlueprintPreset(projectKey) {
       const oldPresets = {...presetBlueprints};
       delete presetBlueprints[projectKey];
       try {
-        localStorage.setItem('presetBlueprints', JSON.stringify(presetBlueprints));
-        renderBlueprintPresetsList();
+        // 如果删除后对象为空，则完全删除localStorage中的键
+        if (Object.keys(presetBlueprints).length === 0) {
+          localStorage.removeItem('presetBlueprints');
+        } else {
+          localStorage.setItem('presetBlueprints', JSON.stringify(presetBlueprints));
+        }
+        // 重新从localStorage加载以确保数据一致性
+        loadPresetBlueprints();
         showToast('已删除蓝图预设');
       } catch (err) {
         console.error('删除蓝图预设时保存失败:', err);
@@ -1859,9 +1865,7 @@ function removeBlueprintPreset(projectKey) {
 }
 
 // 暴露到窗口，供列表删除按钮调用
-window.removeBlueprintPreset = function(projectKey) {
-  removeBlueprintPreset(projectKey);
-};
+window.removeBlueprintPreset = removeBlueprintPreset;
 
 // 加载“自动应用蓝图”设置
 function loadPresetBlueprintAutoApply() {
@@ -1967,8 +1971,14 @@ function removeTaskReviewerPreset(projectKey) {
       const oldPresets = {...presetTaskReviewers};
       delete presetTaskReviewers[projectKey];
       try {
-        localStorage.setItem('presetTaskReviewers', JSON.stringify(presetTaskReviewers));
-        renderTaskReviewerPresetsList();
+        // 如果删除后对象为空，则完全删除localStorage中的键
+        if (Object.keys(presetTaskReviewers).length === 0) {
+          localStorage.removeItem('presetTaskReviewers');
+        } else {
+          localStorage.setItem('presetTaskReviewers', JSON.stringify(presetTaskReviewers));
+        }
+        // 重新从localStorage加载以确保数据一致性
+        loadPresetTaskReviewers();
         showToast('已删除任务审核人预设');
       } catch (err) {
         console.error('删除任务审核人预设时保存失败:', err);
@@ -1983,9 +1993,7 @@ function removeTaskReviewerPreset(projectKey) {
   }
 }
 
-window.removeTaskReviewerPreset = function(projectKey) {
-  removeTaskReviewerPreset(projectKey);
-};
+window.removeTaskReviewerPreset = removeTaskReviewerPreset;
 
 function loadPresetTaskReviewerAutoApply() {
   try {
@@ -2302,8 +2310,14 @@ function removeStageDemandPreset(projectKey) {
       const oldPresets = {...presetStageDemands};
       delete presetStageDemands[projectKey];
       try {
-        localStorage.setItem('presetStageDemands', JSON.stringify(presetStageDemands));
-        renderStageDemandPresetsList();
+        // 如果删除后对象为空，则完全删除localStorage中的键
+        if (Object.keys(presetStageDemands).length === 0) {
+          localStorage.removeItem('presetStageDemands');
+        } else {
+          localStorage.setItem('presetStageDemands', JSON.stringify(presetStageDemands));
+        }
+        // 重新从localStorage加载以确保数据一致性
+        loadPresetStageDemands();
         showToast('已删除工作场景预设');
       } catch (err) {
         console.error('删除工作场景预设时保存失败:', err);
@@ -2319,9 +2333,7 @@ function removeStageDemandPreset(projectKey) {
 }
 
 // 暴露到窗口，供列表删除按钮调用
-window.removeStageDemandPreset = function(projectKey) {
-  removeStageDemandPreset(projectKey);
-};
+window.removeStageDemandPreset = removeStageDemandPreset;
 
 // 加载“自动应用工作场景”设置
 function loadPresetStageDemandAutoApply() {
