@@ -60,7 +60,63 @@ let presetTaskReviewers = {};
 let presetTaskReviewerAutoApply = true;
 
 // 初始化
+// 计算工时总和的函数
+function calculateTotalHours(logsList, projectFilter = 'all') {
+  return logsList.reduce((total, log) => {
+    if (projectFilter === 'all' || log.project === projectFilter) {
+      return total + (parseFloat(log.hours) || 0);
+    }
+    return total;
+  }, 0);
+}
+
+// 更新状态指示器的函数
+function updateStatusIndicator(isLogPage) {
+  const statusIcon = document.querySelector('.status-icon');
+  const statusText = document.querySelector('.status-text');
+  const hoursValue = document.querySelector('.hours-value');
+  const statusHours = document.querySelector('.status-hours');
+
+  if (isLogPage) {
+    statusIcon.classList.remove('non-log');
+    statusIcon.classList.add('normal');
+    statusText.textContent = '正常';
+    
+    // 计算并显示工时
+    const totalHours = calculateTotalHours(logs.pending, activeProjectFilter);
+    hoursValue.textContent = totalHours.toFixed(1);
+    statusHours.style.display = 'flex';
+  } else {
+    statusIcon.classList.remove('normal');
+    statusIcon.classList.add('non-log');
+    statusText.textContent = '非日志页面';
+    statusHours.style.display = 'none';
+  }
+}
+
+// 检查当前标签页和所有打开的标签页
+function checkLogPages() {
+  chrome.tabs.query({}, function(tabs) {
+    const hasLogPage = tabs.some(tab => tab.url && tab.url.includes('missionapplyadd'));
+    updateStatusIndicator(hasLogPage);
+  });
+}
+
+// 监听标签页更新事件
+chrome.tabs.onUpdated.addListener(function(tabId, changeInfo, tab) {
+  if (changeInfo.status === 'complete') {
+    checkLogPages();
+  }
+});
+
+// 监听标签页关闭事件
+chrome.tabs.onRemoved.addListener(function(tabId, removeInfo) {
+  checkLogPages();
+});
+
 document.addEventListener('DOMContentLoaded', function() {
+  // 初始检查页面状态
+  checkLogPages();
   // 设置默认日期为今天
   const today = new Date().toISOString().split('T')[0];
   document.getElementById('date').value = today;
@@ -100,8 +156,23 @@ document.addEventListener('DOMContentLoaded', function() {
     applyStageDemandPresetToOA();
   }
   
-  // 显示预设配置成功加载提示
-  showToast('预设配置已成功加载！');
+  // 检查当前页面是否为missionapplyadd页面
+  chrome.tabs.query({ active: true, currentWindow: true }, function(tabs) {
+    if (!tabs || tabs.length === 0) return;
+    const tab = tabs[0];
+    const url = tab.url || '';
+    const normalizedUrl = url.toLowerCase();
+    if (normalizedUrl.includes('missionapplyadd')) {
+      showToast('预设配置已成功加载！');
+      // 在工具标题右侧添加绿色勾图标
+      const toolTitle = document.querySelector('.form-container h2');
+      if (toolTitle) {
+        const checkIcon = document.createElement('span');
+        checkIcon.className = 'preset-loaded-icon';
+        toolTitle.appendChild(checkIcon);
+      }
+    }
+  });
   
   // 绑定事件监听器
   bindEventListeners();
@@ -400,6 +471,16 @@ function switchProjectFilter(projectName) {
   
   // 重新渲染待填写日志列表
   renderPendingLogs();
+  
+  // 更新工时统计
+  chrome.tabs.query({}, function(tabs) {
+    const hasLogPage = tabs.some(tab => tab.url && tab.url.includes('missionapplyadd'));
+    if (hasLogPage) {
+      const hoursValue = document.querySelector('.hours-value');
+      const totalHours = calculateTotalHours(logs.pending, activeProjectFilter);
+      hoursValue.textContent = totalHours.toFixed(1);
+    }
+  });
 }
 
 // 显示日志表单
@@ -578,6 +659,16 @@ function updateProjectTabs() {
 function renderLogs() {
   renderPendingLogs();
   renderFilledLogs();
+  
+  // 更新工时统计
+  chrome.tabs.query({}, function(tabs) {
+    const hasLogPage = tabs.some(tab => tab.url && tab.url.includes('missionapplyadd'));
+    if (hasLogPage) {
+      const hoursValue = document.querySelector('.hours-value');
+      const totalHours = calculateTotalHours(logs.pending, activeProjectFilter);
+      hoursValue.textContent = totalHours.toFixed(1);
+    }
+  });
 }
 
 // 渲染待填写日志列表

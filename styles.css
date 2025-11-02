@@ -807,7 +807,7 @@ input:checked + .slider:before {
 }
 
 .toast-message {
-  background-color: rgba(0, 0, 0, 0.7);
+  background-color: #4CAF50;
   color: #fff;
   padding: 10px 20px;
   border-radius: 5px;
@@ -818,6 +818,105 @@ input:checked + .slider:before {
 
 .toast-message.show {
   opacity: 1;
+}
+
+.preset-loaded-icon {
+  display: inline-block;
+  width: 16px;
+  height: 16px;
+  margin-left: 8px;
+  vertical-align: middle;
+  background-image: url('images/check.svg');
+  background-size: contain;
+  background-repeat: no-repeat;
+}
+
+.status-indicator {
+  position: fixed;
+  bottom: 20px;
+  left: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: 8px 12px;
+  background-color: rgba(255, 255, 255, 0.1);
+  backdrop-filter: blur(12px);
+  border-radius: 20px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  font-size: 12px;
+  z-index: 1000;
+  transition: all 0.3s ease;
+}
+
+.status-indicator:hover {
+  background-color: rgba(255, 255, 255, 0.15);
+}
+
+.status-main {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.status-hours {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 11px;
+  color: #666;
+  padding-top: 2px;
+  border-top: 1px solid #eee;
+}
+
+.hours-value {
+  font-weight: 600;
+  color: #4CAF50;
+}
+
+.status-icon {
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.status-icon.normal {
+  background-color: #4CAF50;
+  position: relative;
+}
+
+.status-icon.normal::after {
+  content: '';
+  position: absolute;
+  width: 8px;
+  height: 4px;
+  border-left: 2px solid white;
+  border-bottom: 2px solid white;
+  transform: rotate(-45deg);
+  top: 5px;
+  left: 4px;
+}
+
+.status-icon.non-log {
+  background-color: #FFC107;
+  position: relative;
+}
+
+.status-icon.non-log::after {
+  content: '';
+  position: absolute;
+  width: 8px;
+  height: 2px;
+  background-color: white;
+  top: 7px;
+  left: 4px;
+}
+
+.status-text {
+  color: #333;
+  font-weight: 500;
 }
 
 /* 配置页面卡片样式 */
