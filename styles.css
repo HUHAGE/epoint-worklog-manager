@@ -459,33 +459,33 @@ body {
 .preset-projects-list {
   max-height: 300px;
   overflow-y: auto;
-  margin-bottom: 15px;
+  margin-bottom: 10px;
   display: flex;
   flex-wrap: wrap;
-  gap: 10px;
+  gap: 6px; /* 缩小行/列间距，更加紧凑 */
   width: 100%;
 }
 
 /* 预设项目列表样式 */
 .preset-project-item {
   width: calc(50% - 5px);
-  margin-bottom: 10px;
-  padding: 8px;
+  margin-bottom: 6px; /* 缩小列表项垂直外边距 */
+  padding: 6px; /* 缩小内边距，整体更紧凑 */
   background-color: #fff;
   border-radius: 4px;
   box-shadow: 0 1px 3px rgba(0,0,0,0.1);
   box-sizing: border-box;
   display: flex;
   align-items: center;
-  gap: 10px;
+  gap: 6px; /* 缩小内部元素间距 */
 }
 
 .preset-project-input {
   flex: 1;
-  padding: 8px;
+  padding: 6px; /* 缩小输入内边距 */
   border: 1px solid #ddd;
   border-radius: 4px;
-  font-size: 14px;
+  font-size: 13px; /* 略微减小字体，配合紧凑样式 */
   min-width: 0; /* 允许输入框收缩以适应容器 */
 }
 
@@ -498,9 +498,9 @@ body {
 .delete-btn {
   color: #F44336;
   background-color: rgba(244, 67, 54, 0.1);
-  width: 28px;
-  height: 28px;
-  padding: 6px;
+  width: 24px; /* 缩小删除按钮尺寸 */
+  height: 24px;
+  padding: 5px;
   border-radius: 4px;
   cursor: pointer;
   transition: all 0.2s ease;
@@ -509,7 +509,7 @@ body {
   justify-content: center;
   line-height: 1;
   border: none;
-  font-size: 16px;
+  font-size: 14px; /* 缩小图标/文本大小 */
   font-weight: normal;
 }
 
