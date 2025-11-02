@@ -1,8 +1,8 @@
 {
   "manifest_version": 3,
-  "name": "Epoint工作日志管理器",
+  "name": "Epoint非公快申",
   "version": "1.0",
-  "description": "管理并自动填充工作日志到公司系统",
+  "description": "管理并自动填充非功能工作日志到公司系统，实现快速申请",
   "permissions": [
     "storage",
     "activeTab",
@@ -18,7 +18,7 @@
   ],
   "action": {
     "default_popup": "popup.html",
-    "default_title": "Epoint工作日志管理器"
+    "default_title": "Epoint非公快申"
   },
   "icons": {
     "16": "icons/icon16.png",
