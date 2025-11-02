@@ -867,7 +867,20 @@ input:checked + .slider:before {
   color: #666;
 }
 
+.status-filled-hours {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 11px;
+  color: #666;
+}
+
 .hours-value {
+  font-weight: 600;
+  color: #4CAF50;
+}
+
+.filled-hours-value {
   font-weight: 600;
   color: #4CAF50;
 }

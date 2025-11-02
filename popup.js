@@ -76,29 +76,51 @@ function updateStatusIndicator(isLogPage) {
   const statusText = document.querySelector('.status-text');
   const hoursValue = document.querySelector('.hours-value');
   const statusHours = document.querySelector('.status-hours');
+  const statusFilledHours = document.querySelector('.status-filled-hours');
+  const filledHoursValue = document.querySelector('.filled-hours-value');
 
   if (isLogPage) {
     statusIcon.classList.remove('non-log');
     statusIcon.classList.add('normal');
     statusText.textContent = '正常';
     
-    // 计算并显示工时
-    const totalHours = calculateTotalHours(logs.pending, activeProjectFilter);
-    hoursValue.textContent = totalHours.toFixed(1);
-    statusHours.style.display = 'flex';
+    // 根据当前标签页显示不同的工时信息
+    if (activeTab === 'filled') {
+      // 在已填写标签页显示已填工时
+      const filledHours = calculateTotalHours(logs.filled, activeProjectFilter);
+      filledHoursValue.textContent = filledHours.toFixed(1);
+      statusHours.style.display = 'none';
+      statusFilledHours.style.display = 'flex';
+    } else {
+        // 在其他标签页显示待填工时
+        const pendingHours = calculateTotalHours(logs.pending, activeProjectFilter);
+        hoursValue.textContent = pendingHours.toFixed(1);
+        statusHours.style.display = 'flex';
+        statusFilledHours.style.display = 'none';
+    }
   } else {
     statusIcon.classList.remove('normal');
     statusIcon.classList.add('non-log');
     statusText.textContent = '非日志页面';
     statusHours.style.display = 'none';
+    statusFilledHours.style.display = 'none';
   }
 }
 
-// 检查当前标签页和所有打开的标签页
+// 检查当前窗口中的标签页
 function checkLogPages() {
-  chrome.tabs.query({}, function(tabs) {
-    const hasLogPage = tabs.some(tab => tab.url && tab.url.includes('missionapplyadd'));
-    updateStatusIndicator(hasLogPage);
+  // 首先检查当前窗口中的标签页
+  chrome.windows.getCurrent({ populate: true }, function(window) {
+    if (window && window.tabs) {
+      const hasLogPageInCurrentWindow = window.tabs.some(tab => tab.url && tab.url.includes('missionapplyadd'));
+      updateStatusIndicator(hasLogPageInCurrentWindow);
+    } else {
+      // 如果无法获取当前窗口信息，回退到检查所有标签页
+      chrome.tabs.query({}, function(tabs) {
+        const hasLogPage = tabs.some(tab => tab.url && tab.url.includes('missionapplyadd'));
+        updateStatusIndicator(hasLogPage);
+      });
+    }
   });
 }
 
@@ -488,9 +510,15 @@ function switchProjectFilter(projectName) {
   chrome.tabs.query({}, function(tabs) {
     const hasLogPage = tabs.some(tab => tab.url && tab.url.includes('missionapplyadd'));
     if (hasLogPage) {
-      const hoursValue = document.querySelector('.hours-value');
-      const totalHours = calculateTotalHours(logs.pending, activeProjectFilter);
-      hoursValue.textContent = totalHours.toFixed(1);
+      if (activeTab === 'filled') {
+        const filledHoursValue = document.querySelector('.filled-hours-value');
+        const filledHours = calculateTotalHours(logs.filled, activeProjectFilter);
+        filledHoursValue.textContent = filledHours.toFixed(1);
+      } else {
+        const hoursValue = document.querySelector('.hours-value');
+        const pendingHours = calculateTotalHours(logs.pending, activeProjectFilter);
+        hoursValue.textContent = pendingHours.toFixed(1);
+      }
     }
   });
 }
@@ -676,9 +704,20 @@ function renderLogs() {
   chrome.tabs.query({}, function(tabs) {
     const hasLogPage = tabs.some(tab => tab.url && tab.url.includes('missionapplyadd'));
     if (hasLogPage) {
-      const hoursValue = document.querySelector('.hours-value');
-      const totalHours = calculateTotalHours(logs.pending, activeProjectFilter);
-      hoursValue.textContent = totalHours.toFixed(1);
+      // 根据当前标签页更新工时显示
+      if (activeTab === 'filled') {
+        const filledHoursValue = document.querySelector('.filled-hours-value');
+        const filledHours = calculateTotalHours(logs.filled, activeProjectFilter);
+        filledHoursValue.textContent = filledHours.toFixed(1);
+        document.querySelector('.status-hours').style.display = 'none';
+        document.querySelector('.status-filled-hours').style.display = 'flex';
+      } else {
+        const hoursValue = document.querySelector('.hours-value');
+        const pendingHours = calculateTotalHours(logs.pending, activeProjectFilter);
+        hoursValue.textContent = pendingHours.toFixed(1);
+        document.querySelector('.status-hours').style.display = 'flex';
+        document.querySelector('.status-filled-hours').style.display = 'none';
+      }
     }
   });
 }
@@ -1044,7 +1083,7 @@ window.fillLog = function(id) {
           saveLogs();
           updateProjectTabs();
           renderLogs();
-          showToast('操作已取消，日志已移回待填写列表');
+          showToast('操作已取消');
         }
       }
     }
