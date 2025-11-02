@@ -84,13 +84,32 @@
       <!-- 预设信息标签页 -->
       <div id="preset-tab" class="tab-pane">
         <div class="logs-container">
-          <h2>预设项目管理</h2>
+          <label for="demand-tag-select">预设项目</label>
           <div class="preset-projects-list" id="preset-projects-tab-list">
             <!-- 预设项目列表将通过JavaScript动态生成 -->
           </div>
           <div class="add-preset-project">
             <input type="text" id="new-preset-project-tab" placeholder="输入新项目名称">
             <button id="add-preset-project-tab-btn" class="btn-small">添加</button>
+          </div>
+
+          <div class="form-group" style="margin-top: 15px;">
+            <label for="demand-tag-select">需求标签</label>
+            <select id="demand-tag-select">
+              <option value="">请选择标签</option>
+              <option value="会议沟通">会议沟通</option>
+              <option value="出差在途">出差在途</option>
+              <option value="文档编写">文档编写</option>
+              <option value="部署调试">部署调试</option>
+              <option value="接口类调试">接口类调试</option>
+              <option value="评审">评审</option>
+              <option value="培训推广">培训推广</option>
+              <option value="配合杂事">配合杂事</option>
+              <option value="日常巡查配合工作">日常巡查配合工作</option>
+              <option value="产品发版运维">产品发版运维</option>
+              <option value="售前支撑">售前支撑</option>
+              <option value="计划管控">计划管控</option>
+            </select>
           </div>
         </div>
       </div>

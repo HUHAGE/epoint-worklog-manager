@@ -32,6 +32,8 @@ const addPresetProjectBtn = document.getElementById('add-preset-project-btn');
 const projectSelect = document.getElementById('project-select');
 const projectInput = document.getElementById('project');
 const toastContainer = document.getElementById('toast-container');
+const demandTagSelect = document.getElementById('demand-tag-select');
+let presetDemandTag = '';
 
 // 初始化
 document.addEventListener('DOMContentLoaded', function() {
@@ -42,6 +44,7 @@ document.addEventListener('DOMContentLoaded', function() {
   // 加载存储的日志数据和预设项目
   loadLogs();
   loadPresetProjects();
+  loadPresetDemandTag();
   
   // 绑定事件监听器
   bindEventListeners();
@@ -1326,4 +1329,186 @@ function createLogElement(log) {
   });
   
   return logItem;
+}
+  // 打开插件时，尝试将预设的需求标签写入当前OA页面的story控件
+  autofillDemandTagToStory(presetDemandTag);
+  // 需求标签变更后立即保存并尝试填充到页面
+  if (demandTagSelect) {
+    demandTagSelect.addEventListener('change', () => {
+      savePresetDemandTag();
+      autofillDemandTagToStory(presetDemandTag);
+    });
+  }
+// 加载预设需求标签
+function loadPresetDemandTag() {
+  try {
+    const saved = localStorage.getItem('presetDemandTag');
+    presetDemandTag = saved || '';
+    if (demandTagSelect) {
+      demandTagSelect.value = presetDemandTag;
+    }
+  } catch (error) {
+    console.error('加载预设需求标签失败:', error);
+    presetDemandTag = '';
+  }
+}
+
+// 保存预设需求标签
+function savePresetDemandTag() {
+  try {
+    presetDemandTag = demandTagSelect ? demandTagSelect.value : '';
+    localStorage.setItem('presetDemandTag', presetDemandTag);
+    showToast('需求标签已保存');
+  } catch (error) {
+    console.error('保存预设需求标签失败:', error);
+  }
+}
+
+// 在当前激活的OA页，将需求标签填充到id为story的控件
+function autofillDemandTagToStory(tagValue) {
+  try {
+    if (!tagValue) return;
+    if (typeof chrome === 'undefined' || !chrome.tabs || !chrome.scripting) {
+      // 在非扩展预览环境中，跳过
+      return;
+    }
+    chrome.tabs.query({ active: true, currentWindow: true }, function(tabs) {
+      if (!tabs || tabs.length === 0) return;
+      const tab = tabs[0];
+      const url = tab.url || '';
+      // 限制在OA域名页执行
+      if (!url.includes('oa.epoint.com.cn')) return;
+      chrome.scripting.executeScript({
+        target: { tabId: tab.id, allFrames: true },
+        world: 'MAIN',
+        args: [tagValue],
+        func: function(presetText) {
+          try {
+            (function() {
+              var tries = 5;
+              var delay = 800; // 等待页面/数据初始化
+
+              function tryFill(doc) {
+                var w = doc.defaultView || window;
+                // 优先使用 MiniUI 控件
+                var miniObj = w.mini;
+                var storyEl = doc.getElementById('story');
+                var combo = null;
+                try { combo = miniObj && miniObj.get && miniObj.get('story'); } catch (e) {}
+
+                // 如果 MiniUI 未就绪但原生元素存在，做降级填充
+                if (!combo && storyEl) {
+                  try {
+                    storyEl.value = presetText;
+                    storyEl.dispatchEvent(new Event('change', { bubbles: true }));
+                    if (typeof w.changedListInfo === 'function') {
+                      try { w.changedListInfo(1); } catch (e) {}
+                    }
+                    return true;
+                  } catch (e) {}
+                }
+                if (!combo) return false;
+
+                // 获取数据源
+                var data = [];
+                try {
+                  if (typeof combo.getData === 'function') data = combo.getData() || [];
+                  else if (Array.isArray(combo.data)) data = combo.data;
+                } catch (e) {}
+
+                function findMatch(list) {
+                  if (!Array.isArray(list)) return null;
+                  var exact = list.find(function(it) {
+                    var t = it.text || it.name || it.label || '';
+                    return t === presetText;
+                  });
+                  if (exact) return exact;
+                  var icase = String(presetText).toLowerCase();
+                  return list.find(function(it) {
+                    var t = String(it.text || it.name || it.label || '').toLowerCase();
+                    return t.indexOf(icase) >= 0;
+                  });
+                }
+
+                var match = findMatch(data);
+
+                // 若本地数据未加载，尝试调用页面方法或使用全局列表
+                if (!match) {
+                  var tips = w.storyTipsList;
+                  if (!tips && typeof w.getStoryTips === 'function') {
+                    try { tips = w.getStoryTips(); } catch (e) {}
+                  }
+                  if (Array.isArray(tips) && tips.length) {
+                    try {
+                      if (typeof combo.setData === 'function') combo.setData(tips);
+                    } catch (e) {}
+                    match = findMatch(tips);
+                  }
+                }
+
+                if (match) {
+                  try {
+                    var val = match.value || match.id || match.guid || '';
+                    if (typeof combo.setValue === 'function') {
+                      combo.setValue(val);
+                    } else if (storyEl) {
+                      storyEl.value = val;
+                      storyEl.dispatchEvent(new Event('change', { bubbles: true }));
+                    }
+                    if (typeof w.changedListInfo === 'function') {
+                      try { w.changedListInfo(1); } catch (e) {}
+                    }
+                    return true;
+                  } catch (e) {}
+                }
+
+                // 兜底：仅设置文本，供用户确认
+                try {
+                  if (typeof combo.setText === 'function') combo.setText(presetText);
+                  if (typeof w.changedListInfo === 'function') {
+                    try { w.changedListInfo(1); } catch (e) {}
+                  }
+                  return true;
+                } catch (e) {}
+
+                return false;
+              }
+
+              function tryAll() {
+                var ok = false;
+                try { ok = tryFill(document); } catch (e) {}
+                var iframes = document.getElementsByTagName('iframe');
+                for (var i = 0; i < iframes.length; i++) {
+                  try {
+                    var doc = iframes[i].contentDocument || (iframes[i].contentWindow && iframes[i].contentWindow.document);
+                    if (doc) ok = tryFill(doc) || ok;
+                  } catch (e) {}
+                }
+                return ok;
+              }
+
+              function runner() {
+                var done = tryAll();
+                if (!done && tries > 0) {
+                  tries--;
+                  setTimeout(runner, delay);
+                }
+              }
+
+              runner();
+            })();
+            return 'ok';
+          } catch (e) {
+            console.error('[PresetDemandTag] injection error:', e);
+            return 'error';
+          }
+        }
+      }, (results) => {
+        // 可选：根据结果记录日志，不打扰用户
+        console.log('[PresetDemandTag] injection results:', results);
+      });
+    });
+  } catch (error) {
+    console.error('自动填充需求标签失败:', error);
+  }
 }
