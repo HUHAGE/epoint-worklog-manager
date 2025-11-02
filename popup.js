@@ -134,6 +134,15 @@ function bindEventListeners() {
     });
   }
   
+  // 添加申请非公按钮事件监听器
+  const applyNonPublicBtn = document.getElementById('apply-non-public-btn');
+  if (applyNonPublicBtn) {
+    applyNonPublicBtn.addEventListener('click', () => {
+      // 打开申请非公页面
+      window.open('https://oa.epoint.com.cn/epointprojectm/projectmanage/mission/missionapply/projectselect', '_blank');
+    });
+  }
+  
   // 添加日志按钮
   if (addLogBtn) {
     addLogBtn.addEventListener('click', showLogForm);

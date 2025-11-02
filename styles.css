@@ -868,3 +868,28 @@ input:checked + .slider:before {
   background-color: #e9ecef;
   border-color: #667eea;
 }
+
+/* 申请非公按钮样式 */
+.apply-non-public-container {
+  position: fixed;
+  bottom: 20px;
+  right: 20px;
+  z-index: 1000;
+}
+
+.btn-apply-non-public {
+  padding: 8px 16px;
+  font-size: 14px;
+  border-radius: 20px;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  border: none;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  box-shadow: 0 2px 10px rgba(0,0,0,0.2);
+}
+
+.btn-apply-non-public:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);
+}

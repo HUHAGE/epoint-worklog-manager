@@ -22,4 +22,14 @@
 很好，有进步了，但是还存在一个问题，我司的日志填写页面默认会加载三条数据到datagrid，现在当这三条都填充完了之后，又会去覆盖第一条，我希望的是，三条都填充完毕后，再点击提交按钮要自动创建新行进行填充，创建新行可以调用页面上的HandleRowAdd方法。现在一直没发实现新行的创建，请你帮我实现。
 
 
-很好，你的实现逻辑是正确的，但是因为每个项目的蓝图都不一样，我们需要为每个预设项目来单独设置蓝图，请你重新设计一下捕获蓝图的逻辑，可以为每个项目设置不同的蓝图；插件加载时，先获取页面id是lblProjectName的项目名称，然后再填充对应项目的蓝图
+接下来需要完成一个很关键的任务，需要在插件加载时，自动填充一个“蓝图目标”，蓝图选择是跳转到新页面（https://oa.epoint.com.cn/epointprojectm/projectmanage/mission/missionapply/selectblueprint?ProjectGuid=34fa4c60-0eb8-4d8b-8c43-ce71557530f2&ContractGuid=&_dialogId_=EEE5C95E-4348-4F51-888C-4D75B17D17D7&_t=558159&_winid=w1971）来选择的，每个项目都有不同的蓝图目标，选择后会执行下面这段代码的操作： var BluePrintLevel = rtnValue.BluePrintLevel;
+        var oldContractGuid=mini.get("ContractGuid").getValue();
+        mini.get("BluePrint_Formal").setText(rtnValue.BluePrint_Formal);
+        mini.get("BluePrint_Formal").setValue(rtnValue.BluePrint_FormalGuid);
+        mini.get("BluePrintLevel").setValue(BluePrintLevel);
+        mini.get("ContractGuid").setValue(rtnValue.ContractGuid);
+        mini.get("IsWYSJSHT").setValue(rtnValue.IsWYSJSHT);
+        mini.get("contractnumber").setValue(rtnValue.ContractNumber);你来分析下，我应该如何进行一个预设配置，才能实现自动挑选蓝图
+
+
+如果当前页面不是missionapplyadd页面，则不要显示预设配置已加载的提示；如果预设正常加载，在工具标题右边显示一个精美的绿色的勾的图标；成功的taost提示改为绿色背景色
