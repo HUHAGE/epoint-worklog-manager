@@ -79,6 +79,11 @@ function updateStatusIndicator(isLogPage) {
   const statusFilledHours = document.querySelector('.status-filled-hours');
   const filledHoursValue = document.querySelector('.filled-hours-value');
 
+  // 计算待填写和已填写的工时总和
+  const pendingHours = calculateTotalHours(logs.pending, activeProjectFilter);
+  const filledHours = calculateTotalHours(logs.filled, activeProjectFilter);
+  const totalHours = pendingHours + filledHours;
+
   if (isLogPage) {
     statusIcon.classList.remove('non-log');
     statusIcon.classList.add('normal');
@@ -87,23 +92,32 @@ function updateStatusIndicator(isLogPage) {
     // 根据当前标签页显示不同的工时信息
     if (activeTab === 'filled') {
       // 在已填写标签页显示已填工时
-      const filledHours = calculateTotalHours(logs.filled, activeProjectFilter);
       filledHoursValue.textContent = filledHours.toFixed(1);
       statusHours.style.display = 'none';
       statusFilledHours.style.display = 'flex';
     } else {
-        // 在其他标签页显示待填工时
-        const pendingHours = calculateTotalHours(logs.pending, activeProjectFilter);
-        hoursValue.textContent = pendingHours.toFixed(1);
-        statusHours.style.display = 'flex';
-        statusFilledHours.style.display = 'none';
+      // 在其他标签页显示待填工时
+      hoursValue.textContent = pendingHours.toFixed(1);
+      statusHours.style.display = 'flex';
+      statusFilledHours.style.display = 'none';
     }
   } else {
     statusIcon.classList.remove('normal');
     statusIcon.classList.add('non-log');
     statusText.textContent = '非日志页面';
-    statusHours.style.display = 'none';
-    statusFilledHours.style.display = 'none';
+    
+    // 即使在非日志页面也显示工时统计
+    if (activeTab === 'filled') {
+      // 在已填写标签页显示已填工时
+      filledHoursValue.textContent = filledHours.toFixed(1);
+      statusHours.style.display = 'none';
+      statusFilledHours.style.display = 'flex';
+    } else {
+      // 在其他标签页显示待填工时
+      hoursValue.textContent = pendingHours.toFixed(1);
+      statusHours.style.display = 'flex';
+      statusFilledHours.style.display = 'none';
+    }
   }
 }
 
@@ -506,21 +520,16 @@ function switchProjectFilter(projectName) {
   // 重新渲染待填写日志列表
   renderPendingLogs();
   
-  // 更新工时统计
-  chrome.tabs.query({}, function(tabs) {
-    const hasLogPage = tabs.some(tab => tab.url && tab.url.includes('missionapplyadd'));
-    if (hasLogPage) {
-      if (activeTab === 'filled') {
-        const filledHoursValue = document.querySelector('.filled-hours-value');
-        const filledHours = calculateTotalHours(logs.filled, activeProjectFilter);
-        filledHoursValue.textContent = filledHours.toFixed(1);
-      } else {
-        const hoursValue = document.querySelector('.hours-value');
-        const pendingHours = calculateTotalHours(logs.pending, activeProjectFilter);
-        hoursValue.textContent = pendingHours.toFixed(1);
-      }
-    }
-  });
+  // 更新工时统计（无论是否在日志页面都显示工时）
+  if (activeTab === 'filled') {
+    const filledHoursValue = document.querySelector('.filled-hours-value');
+    const filledHours = calculateTotalHours(logs.filled, activeProjectFilter);
+    filledHoursValue.textContent = filledHours.toFixed(1);
+  } else {
+    const hoursValue = document.querySelector('.hours-value');
+    const pendingHours = calculateTotalHours(logs.pending, activeProjectFilter);
+    hoursValue.textContent = pendingHours.toFixed(1);
+  }
 }
 
 // 显示日志表单
@@ -700,26 +709,21 @@ function renderLogs() {
   renderPendingLogs();
   renderFilledLogs();
   
-  // 更新工时统计
-  chrome.tabs.query({}, function(tabs) {
-    const hasLogPage = tabs.some(tab => tab.url && tab.url.includes('missionapplyadd'));
-    if (hasLogPage) {
-      // 根据当前标签页更新工时显示
-      if (activeTab === 'filled') {
-        const filledHoursValue = document.querySelector('.filled-hours-value');
-        const filledHours = calculateTotalHours(logs.filled, activeProjectFilter);
-        filledHoursValue.textContent = filledHours.toFixed(1);
-        document.querySelector('.status-hours').style.display = 'none';
-        document.querySelector('.status-filled-hours').style.display = 'flex';
-      } else {
-        const hoursValue = document.querySelector('.hours-value');
-        const pendingHours = calculateTotalHours(logs.pending, activeProjectFilter);
-        hoursValue.textContent = pendingHours.toFixed(1);
-        document.querySelector('.status-hours').style.display = 'flex';
-        document.querySelector('.status-filled-hours').style.display = 'none';
-      }
-    }
-  });
+  // 更新工时统计（无论是否在日志页面都显示工时）
+  // 根据当前标签页更新工时显示
+  if (activeTab === 'filled') {
+    const filledHoursValue = document.querySelector('.filled-hours-value');
+    const filledHours = calculateTotalHours(logs.filled, activeProjectFilter);
+    filledHoursValue.textContent = filledHours.toFixed(1);
+    document.querySelector('.status-hours').style.display = 'none';
+    document.querySelector('.status-filled-hours').style.display = 'flex';
+  } else {
+    const hoursValue = document.querySelector('.hours-value');
+    const pendingHours = calculateTotalHours(logs.pending, activeProjectFilter);
+    hoursValue.textContent = pendingHours.toFixed(1);
+    document.querySelector('.status-hours').style.display = 'flex';
+    document.querySelector('.status-filled-hours').style.display = 'none';
+  }
 }
 
 // 渲染待填写日志列表
