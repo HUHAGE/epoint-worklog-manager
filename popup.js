@@ -126,12 +126,38 @@ function checkLogPages() {
   // 首先检查当前窗口中的标签页
   chrome.windows.getCurrent({ populate: true }, function(window) {
     if (window && window.tabs) {
-      const hasLogPageInCurrentWindow = window.tabs.some(tab => tab.url && tab.url.includes('missionapplyadd'));
+      const hasLogPageInCurrentWindow = window.tabs.some(tab => {
+        if (!tab.url) return false;
+        const normalizedUrl = tab.url.toLowerCase();
+        return (
+          /missionapply/i.test(tab.url) || 
+          /missionapplyadd/i.test(tab.url) ||
+          (/epointprojectm/i.test(tab.url) && /mission/i.test(tab.url)) ||
+          normalizedUrl.includes('missionapply') ||
+          normalizedUrl.includes('missionapplyadd') ||
+          normalizedUrl.includes('mission') && normalizedUrl.includes('apply') ||
+          normalizedUrl.includes('worklog') ||
+          normalizedUrl.includes('log') && (normalizedUrl.includes('mission') || normalizedUrl.includes('task'))
+        );
+      });
       updateStatusIndicator(hasLogPageInCurrentWindow);
     } else {
       // 如果无法获取当前窗口信息，回退到检查所有标签页
       chrome.tabs.query({}, function(tabs) {
-        const hasLogPage = tabs.some(tab => tab.url && tab.url.includes('missionapplyadd'));
+        const hasLogPage = tabs.some(tab => {
+          if (!tab.url) return false;
+          const normalizedUrl = tab.url.toLowerCase();
+          return (
+            /missionapply/i.test(tab.url) || 
+            /missionapplyadd/i.test(tab.url) ||
+            (/epointprojectm/i.test(tab.url) && /mission/i.test(tab.url)) ||
+            normalizedUrl.includes('missionapply') ||
+            normalizedUrl.includes('missionapplyadd') ||
+            normalizedUrl.includes('mission') && normalizedUrl.includes('apply') ||
+            normalizedUrl.includes('worklog') ||
+            normalizedUrl.includes('log') && (normalizedUrl.includes('mission') || normalizedUrl.includes('task'))
+          );
+        });
         updateStatusIndicator(hasLogPage);
       });
     }
