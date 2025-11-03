@@ -2112,11 +2112,23 @@ function captureCurrentTaskReviewerFromOA() {
             var altNameIds = ['sender','TaskReviewerName','MissionReviewerName','MissionCheckManName','CheckManName','AuditUserName','ShenHeRenName'];
             var reviewerGuid = '';
             var reviewerName = '';
-            // 优先从控件读取值/文本
-            for (var i=0;i<nameIds.length;i++){ var id = nameIds[i]; reviewerName = reviewerName || getText(id) || getValue(id); }
-            for (var j=0;j<guidIds.length;j++){ var gid = guidIds[j]; reviewerGuid = reviewerGuid || getValue(gid); }
-            // 兜底从备用name隐藏域读取
-            for (var k=0;k<altNameIds.length;k++){ var nid = altNameIds[k]; reviewerName = reviewerName || getValue(nid); }
+            // 从控件优先读取：文本用于姓名，值用于GUID（若看起来像GUID）
+            for (var i=0;i<nameIds.length;i++){
+              var id = nameIds[i];
+              if (!reviewerName) {
+                var t = getText(id);
+                if (t) reviewerName = t;
+              }
+              if (!reviewerGuid) {
+                var v = getValue(id);
+                // 简单判断是否为GUID（包含连字符或较长的十六进制串）
+                if (v && (/^[0-9a-fA-F-]{8,}$/.test(v))) reviewerGuid = v;
+              }
+            }
+            // 再尝试从常见隐藏域读取GUID
+            for (var j=0;j<guidIds.length;j++){ var gid = guidIds[j]; var gv = getValue(gid); if (!reviewerGuid && gv) reviewerGuid = gv; }
+            // 兜底从备用name隐藏域读取姓名
+            for (var k=0;k<altNameIds.length;k++){ var nid = altNameIds[k]; if (!reviewerName) { var nv = getValue(nid); if (nv) reviewerName = nv; } }
             // 简单的文本校正（避免取到label文字）
             reviewerName = (reviewerName || '').replace(/^[^:：]*[:：]\s*/, '').trim();
             var preset = {
@@ -2200,11 +2212,23 @@ function applyTaskReviewerPresetToOA() {
                   return null;
                 }
                 function makePresetData(){
+                  // 与蓝图、工作场景保持一致，提供通用字段名称以兼容父页回调
+                  var guid = preset.TaskReviewerGuid || '';
+                  var name = preset.TaskReviewerName || '';
                   return {
-                    sender: preset.TaskReviewerName || '',
-                    senderguid: preset.TaskReviewerGuid || '',
-                    TaskReviewerName: preset.TaskReviewerName || '',
-                    TaskReviewerGuid: preset.TaskReviewerGuid || ''
+                    // 通用字段
+                    Guid: guid,
+                    Name: name,
+                    // 选择窗口常见字段
+                    value: guid,
+                    text: name,
+                    title: name,
+                    rowguid: guid,
+                    // 兼容页面自定义字段
+                    sender: name,
+                    senderguid: guid,
+                    TaskReviewerName: name,
+                    TaskReviewerGuid: guid
                   };
                 }
                 function patchChildAndConfirm(child){
@@ -2227,7 +2251,9 @@ function applyTaskReviewerPresetToOA() {
                 if (child && patchChildAndConfirm(child)) { return true; }
 
                 // 回调兜底
-                try { if (typeof w.CallBack_SelSender === 'function') { w.CallBack_SelSender(makePresetData()); return true; } } catch(e) {}
+                try {
+                  if (typeof w.CallBack_SelSender === 'function') { w.CallBack_SelSender(makePresetData()); return true; }
+                } catch(e) {}
 
                 // 最后兜底：直接设置控件与隐藏域，并触发change
                 try {
@@ -2235,13 +2261,17 @@ function applyTaskReviewerPresetToOA() {
                   for (var i=0;i<ids.length;i++){
                     var ctrl = getCtrl(ids[i]);
                     if (ctrl && typeof ctrl.setText === 'function') ctrl.setText(preset.TaskReviewerName || '');
-                    if (ctrl && typeof ctrl.setValue === 'function') ctrl.setValue(preset.TaskReviewerGuid || preset.TaskReviewerName || '');
+                    // 严格只在有GUID时设置值，避免把姓名写入value导致提交流程错误
+                    if (ctrl && typeof ctrl.setValue === 'function') ctrl.setValue(preset.TaskReviewerGuid || '');
                     var el = doc.getElementById(ids[i]); if (el) { try { el.dispatchEvent(new Event('change', { bubbles: true })); } catch(e) {} }
                   }
                   var guidIds = ['senderguid','TaskReviewerGuid','MissionReviewerGuid','MissionCheckManGuid','CheckManGuid','AuditUserGuid','ShenHeRenGuid','MissionAuditUserGuid'];
                   for (var j=0;j<guidIds.length;j++){ var elg = doc.getElementById(guidIds[j]); if (elg) elg.value = preset.TaskReviewerGuid || ''; }
                   var nameIds = ['TaskReviewerName','MissionReviewerName','MissionCheckManName','CheckManName','AuditUserName','ShenHeRenName'];
                   for (var k=0;k<nameIds.length;k++){ var eln = doc.getElementById(nameIds[k]); if (eln) eln.value = preset.TaskReviewerName || ''; }
+                  // 输出提示控件（若存在），显示当前选择的审核人
+                  var sendersmCtrl = getCtrl('sendersm');
+                  if (sendersmCtrl && typeof sendersmCtrl.setValue === 'function') sendersmCtrl.setValue(preset.TaskReviewerName || '');
                   return true;
                 } catch (e) { return false; }
               }
