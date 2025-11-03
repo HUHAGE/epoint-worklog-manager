@@ -283,6 +283,15 @@ function bindEventListeners() {
     });
   }
   
+  // 添加发放非功按钮事件监听器
+  const distributeNonPublicBtn = document.getElementById('distribute-non-public-btn');
+  if (distributeNonPublicBtn) {
+    distributeNonPublicBtn.addEventListener('click', () => {
+      // 打开发放非功页面
+      window.open('https://oa.epoint.com.cn/epointprojectm/projectmanage/mission/missionapply/missionapplysplitv2', '_blank');
+    });
+  }
+  
   // 添加日志按钮
   if (addLogBtn) {
     addLogBtn.addEventListener('click', showLogForm);
