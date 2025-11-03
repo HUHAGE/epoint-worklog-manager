@@ -5,6 +5,14 @@
   box-sizing: border-box;
 }
 
+/* 标签页图标样式 */
+.tab-icon {
+  width: 16px;
+  height: 16px;
+  vertical-align: middle;
+  transition: all 0.3s ease;
+}
+
 body {
   width: 500px;
   height: 600px;
@@ -48,15 +56,29 @@ body {
   color: #666;
   transition: all 0.3s ease;
   position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
 }
 
 .tab-button:hover {
   background-color: #f5f7fa;
 }
 
+.tab-button:hover .tab-icon {
+  color: #667eea;
+  fill: #667eea;
+}
+
 .tab-button.active {
   color: #667eea;
   font-weight: 500;
+}
+
+.tab-button.active .tab-icon {
+  color: #667eea;
+  fill: #667eea;
 }
 
 .tab-button.active::after {
@@ -494,22 +516,22 @@ body {
   margin-bottom: 10px;
   display: flex;
   flex-wrap: wrap;
-  gap: 6px; /* 缩小行/列间距，更加紧凑 */
+  gap: 3px; /* 进一步缩小行/列间距，更加紧凑 */
   width: 100%;
 }
 
 /* 预设项目列表样式 */
 .preset-project-item {
-  width: calc(50% - 5px);
-  margin-bottom: 6px; /* 缩小列表项垂直外边距 */
-  padding: 6px; /* 缩小内边距，整体更紧凑 */
+  width: calc(50% - 3px);
+  margin-bottom: 3px; /* 进一步缩小列表项垂直外边距 */
+  padding: 4px; /* 进一步缩小内边距，整体更紧凑 */
   background-color: #fff;
   border-radius: 4px;
   box-shadow: 0 1px 3px rgba(0,0,0,0.1);
   box-sizing: border-box;
   display: flex;
   align-items: center;
-  gap: 6px; /* 缩小内部元素间距 */
+  gap: 4px; /* 进一步缩小内部元素间距 */
 }
 
 .preset-project-input {
