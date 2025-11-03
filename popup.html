@@ -87,6 +87,11 @@
               </select>
               <input type="date" id="pending-date-filter" class="filter-date" placeholder="选择日期">
               <button type="button" id="pending-today-btn" class="btn-small filter-today-btn">今日</button>
+              <div class="filter-actions">
+                <button type="button" id="pending-select-mode-btn" class="btn-small">选择</button>
+                <button type="button" id="pending-select-all-btn" class="btn-small hidden">全选</button>
+                <button type="button" id="pending-delete-selected-btn" class="btn-small hidden">删除</button>
+              </div>
             </div>
           </div>
           <div id="pending-logs-list" class="logs-list">
@@ -105,6 +110,11 @@
               </select>
               <input type="date" id="filled-date-filter" class="filter-date" placeholder="选择日期">
               <button type="button" id="filled-today-btn" class="btn-small filter-today-btn">当日任务</button>
+              <div class="filter-actions">
+                <button type="button" id="filled-select-mode-btn" class="btn-small">选择</button>
+                <button type="button" id="filled-select-all-btn" class="btn-small hidden">全选</button>
+                <button type="button" id="filled-delete-selected-btn" class="btn-small hidden">删除</button>
+              </div>
             </div>
           </div>
           <div id="filled-logs-list" class="logs-list">

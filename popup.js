@@ -44,10 +44,20 @@ const blueprintPresetsList = document.getElementById('blueprint-presets-list');
 // 筛选栏元素引用（与popup.html一致）
 const pendingProjectDropdown = document.getElementById('pending-project-filter');
 const pendingDateFilter = document.getElementById('pending-date-filter');
-const pendingTodayBtn = document.getElementById('pending-today-btn');
-const filledProjectDropdown = document.getElementById('filled-project-filter');
-const filledDateFilter = document.getElementById('filled-date-filter');
-const filledTodayBtn = document.getElementById('filled-today-btn');
+  const pendingTodayBtn = document.getElementById('pending-today-btn');
+  const filledProjectDropdown = document.getElementById('filled-project-filter');
+  const filledDateFilter = document.getElementById('filled-date-filter');
+  const filledTodayBtn = document.getElementById('filled-today-btn');
+// 选择模式与批量操作控件
+const pendingSelectModeBtn = document.getElementById('pending-select-mode-btn');
+const pendingSelectAllBtn = document.getElementById('pending-select-all-btn');
+const pendingDeleteSelectedBtn = document.getElementById('pending-delete-selected-btn');
+const filledSelectModeBtn = document.getElementById('filled-select-mode-btn');
+  const filledSelectAllBtn = document.getElementById('filled-select-all-btn');
+  const filledDeleteSelectedBtn = document.getElementById('filled-delete-selected-btn');
+  // 可选：清除全部按钮（如果未在HTML中提供，则为null）
+  const pendingClearAllBtn = document.getElementById('pending-clear-all-btn');
+  const filledClearAllBtn = document.getElementById('filled-clear-all-btn');
 // 任务审核人预设 UI 引用
 const captureTaskReviewerBtn = document.getElementById('capture-taskreviewer-btn');
 const applyTaskReviewerBtn = document.getElementById('apply-taskreviewer-btn');
@@ -69,6 +79,12 @@ let presetTaskReviewers = {};
 let presetTaskReviewerAutoApply = true;
 // 已申请日期筛选状态
 let activeFilledDateFilter = '';
+
+// 选择模式状态与选中集合
+let pendingSelectionMode = false;
+let filledSelectionMode = false;
+const pendingSelectedIds = new Set();
+const filledSelectedIds = new Set();
 
 // 初始化
 // 计算工时总和的函数
@@ -565,6 +581,148 @@ function bindEventListeners() {
       updateHoursStatistics();
     });
   }
+  // 待申请：选择模式切换
+  if (pendingSelectModeBtn) {
+    pendingSelectModeBtn.addEventListener('click', () => {
+      pendingSelectionMode = !pendingSelectionMode;
+      if (pendingSelectAllBtn) pendingSelectAllBtn.classList.toggle('hidden', !pendingSelectionMode);
+      if (pendingDeleteSelectedBtn) pendingDeleteSelectedBtn.classList.toggle('hidden', !pendingSelectionMode);
+      if (!pendingSelectionMode) {
+        pendingSelectedIds.clear();
+      }
+      renderPendingLogs();
+    });
+  }
+  // 待申请：全选
+  if (pendingSelectAllBtn) {
+    pendingSelectAllBtn.addEventListener('click', () => {
+      if (!pendingSelectionMode) return;
+      let filteredLogs = logs.pending;
+      if (activeProjectFilter !== 'all') {
+        filteredLogs = filteredLogs.filter(log => log.project === activeProjectFilter);
+      }
+      if (activePendingDateFilter) {
+        filteredLogs = filteredLogs.filter(log => log.date === activePendingDateFilter);
+      }
+      filteredLogs.forEach(log => pendingSelectedIds.add(log.id));
+      renderPendingLogs();
+    });
+  }
+  // 待申请：批量删除
+  if (pendingDeleteSelectedBtn) {
+    pendingDeleteSelectedBtn.addEventListener('click', () => {
+      if (!pendingSelectionMode) return;
+      const count = pendingSelectedIds.size;
+      if (count === 0) {
+        showToast('请先选择要删除的日志');
+        return;
+      }
+      if (!confirm(`确定删除选中的 ${count} 条待填写日志吗？此操作不可恢复！`)) return;
+      logs.pending = logs.pending.filter(log => !pendingSelectedIds.has(log.id));
+      pendingSelectedIds.clear();
+      saveLogs();
+      updateProjectTabs();
+      renderPendingLogs();
+      updateHoursStatistics();
+      showToast(`已删除选中的 ${count} 条待填写日志`);
+    });
+  }
+  // 已申请：选择模式切换
+  if (filledSelectModeBtn) {
+    filledSelectModeBtn.addEventListener('click', () => {
+      filledSelectionMode = !filledSelectionMode;
+      if (filledSelectAllBtn) filledSelectAllBtn.classList.toggle('hidden', !filledSelectionMode);
+      if (filledDeleteSelectedBtn) filledDeleteSelectedBtn.classList.toggle('hidden', !filledSelectionMode);
+      if (!filledSelectionMode) {
+        filledSelectedIds.clear();
+      }
+      renderFilledLogs();
+    });
+  }
+  // 已申请：全选
+  if (filledSelectAllBtn) {
+    filledSelectAllBtn.addEventListener('click', () => {
+      if (!filledSelectionMode) return;
+      let filteredLogs = logs.filled;
+      if (typeof activeFilledProjectFilter !== 'undefined' && activeFilledProjectFilter !== 'all') {
+        filteredLogs = filteredLogs.filter(log => log.project === activeFilledProjectFilter);
+      }
+      if (activeFilledDateFilter) {
+        filteredLogs = filteredLogs.filter(log => log.date === activeFilledDateFilter);
+      }
+      filteredLogs.forEach(log => filledSelectedIds.add(log.id));
+      renderFilledLogs();
+    });
+  }
+  // 已申请：批量删除
+  if (filledDeleteSelectedBtn) {
+    filledDeleteSelectedBtn.addEventListener('click', () => {
+      if (!filledSelectionMode) return;
+      const count = filledSelectedIds.size;
+      if (count === 0) {
+        showToast('请先选择要删除的日志');
+        return;
+      }
+      if (!confirm(`确定删除选中的 ${count} 条已填写日志吗？此操作不可恢复！`)) return;
+      logs.filled = logs.filled.filter(log => !filledSelectedIds.has(log.id));
+      filledSelectedIds.clear();
+      saveLogs();
+      updateFilledProjectTabs();
+      renderFilledLogs();
+      updateHoursStatistics();
+      showToast(`已删除选中的 ${count} 条已填写日志`);
+    });
+  }
+  
+  // 待申请：清除全部按钮
+  if (pendingClearAllBtn) {
+    pendingClearAllBtn.addEventListener('click', () => {
+      clearAllPendingLogs();
+    });
+  }
+  
+  // 已申请：清除全部按钮
+  if (filledClearAllBtn) {
+    filledClearAllBtn.addEventListener('click', () => {
+      clearAllFilledLogs();
+    });
+  }
+}
+
+// 清除所有待填写日志
+function clearAllPendingLogs() {
+  if (logs.pending.length === 0) {
+    showToast('暂无待填写日志可清除');
+    return;
+  }
+  
+  // 确认对话框
+  if (confirm('确定要清除所有待填写日志吗？此操作不可恢复！')) {
+    logs.pending = [];
+    saveLogs();
+    renderPendingLogs();
+    updateProjectTabs();
+    updateHoursStatistics();
+    showToast('已清除所有待填写日志');
+  }
+}
+
+// 清除所有已填写日志
+function clearAllFilledLogs() {
+  if (logs.filled.length === 0) {
+    showToast('暂无已填写日志可清除');
+    return;
+  }
+  
+  // 确认对话框
+  if (confirm('确定要清除所有已填写日志吗？此操作不可恢复！')) {
+    logs.filled = [];
+    saveLogs();
+    renderFilledLogs();
+    updateFilledProjectTabs();
+    updateHoursStatistics();
+    showToast('已清除所有已填写日志');
+  }
 }
 
 function showToast(message, duration = 3000) {
@@ -924,6 +1082,7 @@ function renderPendingLogs() {
     
     logItem.innerHTML = `
       <div class="log-item-header">
+        ${pendingSelectionMode ? `<input type="checkbox" class="log-select-checkbox" data-id="${log.id}" ${pendingSelectedIds.has(log.id) ? 'checked' : ''}>` : ''}
         <div class="log-project">${escapeHtml(log.project)}</div>
         <div class="log-date">${formatDate(log.date)}</div>
         <div class="log-hours">${log.hours}h</div>
@@ -944,6 +1103,7 @@ function renderPendingLogs() {
     const editBtn = logItem.querySelector('.edit-btn');
     const fillBtn = logItem.querySelector('.fill-btn');
     const deleteBtn = logItem.querySelector('.delete-btn');
+    const selectCheckbox = logItem.querySelector('.log-select-checkbox');
     
     editBtn.addEventListener('click', () => editLog(log.id));
     
@@ -954,6 +1114,18 @@ function renderPendingLogs() {
     });
     
     deleteBtn.addEventListener('click', () => deleteLog(log.id, 'pending'));
+
+    // 选择复选框事件
+    if (selectCheckbox) {
+      selectCheckbox.addEventListener('change', (e) => {
+        const id = log.id;
+        if (e.target.checked) {
+          pendingSelectedIds.add(id);
+        } else {
+          pendingSelectedIds.delete(id);
+        }
+      });
+    }
     
     pendingLogsList.appendChild(logItem);
   });
@@ -1002,6 +1174,7 @@ function renderFilledLogs() {
     
     logItem.innerHTML = `
       <div class="log-item-header">
+        ${filledSelectionMode ? `<input type="checkbox" class="log-select-checkbox" data-id="${log.id}" ${filledSelectedIds.has(log.id) ? 'checked' : ''}>` : ''}
         <div class="log-project">${escapeHtml(log.project)}</div>
         <div class="log-date">${formatDate(log.date)}</div>
         <div class="log-hours">${log.hours}h</div>
@@ -1020,9 +1193,22 @@ function renderFilledLogs() {
     // 添加事件监听器
     const restoreBtn = logItem.querySelector('.restore-btn');
     const deleteBtn = logItem.querySelector('.delete-btn');
+    const selectCheckbox = logItem.querySelector('.log-select-checkbox');
     
     restoreBtn.addEventListener('click', () => restoreLog(log.id));
     deleteBtn.addEventListener('click', () => deleteLog(log.id, 'filled'));
+
+    // 选择复选框事件
+    if (selectCheckbox) {
+      selectCheckbox.addEventListener('change', (e) => {
+        const id = log.id;
+        if (e.target.checked) {
+          filledSelectedIds.add(id);
+        } else {
+          filledSelectedIds.delete(id);
+        }
+      });
+    }
     
     filledLogsList.appendChild(logItem);
   });
