@@ -1066,11 +1066,13 @@ function renderPendingLogs() {
         <div class="log-hours">${log.hours}h</div>
         <div class="log-actions">
           <div class="action-icon edit-btn" title="编辑">
-            <svg viewBox="0 0 24 24" width="16" height="16"><path fill="currentColor" d="M3 17.25V21h3.75L17.81 9.94l-3.75-3.75L3 17.25zM20.71 7.04c.39-.39.39-1.02 0-1.41l-2.34-2.34c-.39-.39-1.02-.39-1.41 0l-1.83 1.83 3.75 3.75 1.83-1.83z"/></svg>
+            <img src="images/表格-修改.png" width="16" height="16" alt="编辑">
           </div>
-          <div class="action-icon delete-btn" title="删除">×</div>
+          <div class="action-icon delete-btn" title="删除">
+            <img src="images/表格-删除.png" width="16" height="16" alt="删除">
+          </div>
           <div class="action-icon fill-btn" title="填充">
-            <svg viewBox="0 0 24 24" width="16" height="16"><path fill="currentColor" d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z"/></svg>
+            <img src="images/表格-提交.png" width="16" height="16" alt="填充">
           </div>
         </div>
       </div>
@@ -1158,11 +1160,14 @@ function renderFilledLogs() {
         <div class="log-hours">${log.hours}h</div>
         <div class="log-actions">
           <div class="action-icon restore-btn" title="还原">
-            <svg viewBox="0 0 24 24" width="16" height="16">
-              <path fill="currentColor" d="M13 3c-4.97 0-9 4.03-9 9H1l3.89 3.89.07.14L9 12H6c0-3.87 3.13-7 7-7s7 3.13 7 7-3.13 7-7 7c-1.93 0-3.68-.79-4.94-2.06l-1.42 1.42C8.27 19.99 10.51 21 13 21c4.97 0 9-4.03 9-9s-4.03-9-9-9z"/>
-            </svg>
+            <img src="images/表格-撤回.png" width="16" height="16" alt="还原">
           </div>
-          <div class="action-icon delete-btn" title="删除">×</div>
+          <div class="action-icon delete-btn" title="删除">
+            <img src="images/表格-删除.png" width="16" height="16" alt="删除">
+          </div>
+          <div class="action-icon fill-btn" title="填充">
+            <img src="images/表格-提交.png" width="16" height="16" alt="填充">
+          </div>
         </div>
       </div>
       <div class="log-content">${escapeHtml(log.content)}</div>
@@ -1171,10 +1176,12 @@ function renderFilledLogs() {
     // 添加事件监听器
     const restoreBtn = logItem.querySelector('.restore-btn');
     const deleteBtn = logItem.querySelector('.delete-btn');
+    const fillBtn = logItem.querySelector('.fill-btn');
     const selectCheckbox = logItem.querySelector('.log-select-checkbox');
     
     restoreBtn.addEventListener('click', () => restoreLog(log.id));
     deleteBtn.addEventListener('click', () => deleteLog(log.id, 'filled'));
+    fillBtn.addEventListener('click', () => fillLog(log.id));
 
     // 选择复选框事件
     if (selectCheckbox) {
@@ -1787,7 +1794,7 @@ function renderPresetProjectsList() {
     
     const deleteBtn = document.createElement('button');
     deleteBtn.className = 'delete-btn';
-    deleteBtn.innerHTML = '×';
+    deleteBtn.innerHTML = '<img src="images/表格-删除.png" width="16" height="16" alt="删除">';
     deleteBtn.dataset.index = index;
     deleteBtn.title = '删除';
     
@@ -1958,19 +1965,19 @@ function createLogElement(log) {
   // 编辑图标
   const editIcon = document.createElement('div');
   editIcon.className = 'action-icon';
-  editIcon.innerHTML = '<svg viewBox="0 0 24 24" width="16" height="16"><path fill="currentColor" d="M3 17.25V21h3.75L17.81 9.94l-3.75-3.75L3 17.25zM20.71 7.04c.39-.39.39-1.02 0-1.41l-2.34-2.34c-.39-.39-1.02-.39-1.41 0l-1.83 1.83 3.75 3.75 1.83-1.83z"/></svg>';
+  editIcon.innerHTML = '<img src="images/表格-修改.png" width="16" height="16" alt="编辑">';
   editIcon.title = '编辑';
   
   // 填充图标
   const submitIcon = document.createElement('div');
   submitIcon.className = 'action-icon';
-  submitIcon.innerHTML = '<svg viewBox="0 0 24 24" width="16" height="16"><path fill="currentColor" d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z"/></svg>';
+  submitIcon.innerHTML = '<img src="images/表格-提交.png" width="16" height="16" alt="填充">';
   submitIcon.title = '填充';
   
   // 删除图标
   const deleteIcon = document.createElement('div');
   deleteIcon.className = 'action-icon';
-  deleteIcon.innerHTML = '<svg viewBox="0 0 24 24" width="16" height="16"><path fill="currentColor" d="M6 19c0 1.1.9 2 2 2h8c1.1 0 2-.9 2-2V7H6v12zM19 4h-3.5l-1-1h-5l-1 1H5v2h14V4z"/></svg>';
+  deleteIcon.innerHTML = '<img src="images/表格-删除.png" width="16" height="16" alt="删除">';
   deleteIcon.title = '删除';
   
   actions.appendChild(editIcon);
@@ -2164,7 +2171,7 @@ function renderBlueprintPresetsList() {
     const delBtn = document.createElement('button');
     delBtn.className = 'delete-btn';
     delBtn.type = 'button';
-    delBtn.innerHTML = '×';
+    delBtn.innerHTML = '<img src="images/表格-删除.png" width="16" height="16" alt="删除">';
     delBtn.title = '删除';
     delBtn.dataset.key = projectKey;
     delBtn.dataset.type = 'blueprint';
@@ -2294,7 +2301,7 @@ function renderTaskReviewerPresetsList() {
     const delBtn = document.createElement('button');
     delBtn.className = 'delete-btn';
     delBtn.type = 'button';
-    delBtn.innerHTML = '×';
+    delBtn.innerHTML = '<img src="images/表格-删除.png" width="16" height="16" alt="删除">';
     delBtn.title = '删除';
     delBtn.dataset.key = projectKey;
     delBtn.dataset.type = 'taskreviewer';
@@ -2662,7 +2669,7 @@ function renderStageDemandPresetsList() {
     const delBtn = document.createElement('button');
     delBtn.className = 'delete-btn';
     delBtn.type = 'button';
-    delBtn.innerHTML = '×';
+    delBtn.innerHTML = '<img src="images/表格-删除.png" width="16" height="16" alt="删除">';
     delBtn.title = '删除';
     delBtn.dataset.key = projectKey;
     delBtn.dataset.type = 'stagedemand';

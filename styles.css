@@ -697,65 +697,74 @@ body {
 
 .log-actions {
   display: flex;
+  align-items: center; /* 确保按钮垂直居中对齐 */
   gap: 6px; /* 调整按钮间距 */
   margin-left: auto;
 }
 
 .action-icon {
-  width: 26px; /* 调整按钮宽度 */
-  height: 26px; /* 调整按钮高度 */
-  padding: 5px; /* 调整内边距 */
+  width: 32px; /* 调整按钮宽度 */
+  height: 32px; /* 调整按钮高度 */
+  padding: 6px; /* 调整内边距 */
   border-radius: 4px;
   cursor: pointer;
   transition: all 0.2s ease;
   display: flex;
   align-items: center;
   justify-content: center;
+  margin: 0; /* 确保没有外边距 */
+  vertical-align: middle; /* 确保垂直对齐 */
+  flex-shrink: 0; /* 防止按钮收缩 */
 }
 
-.action-icon svg {
-  width: 15px; /* 调整SVG图标大小 */
-  height: 15px; /* 调整SVG图标大小 */
+.action-icon svg,
+.action-icon img {
+  width: 18px; /* 调整图标大小 */
+  height: 18px; /* 调整图标大小 */
 }
 
 .edit-btn {
   color: #2196F3;
-  background-color: rgba(33, 150, 243, 0.1);
+  background-color: transparent;
 }
 
 .edit-btn:hover {
-  background-color: rgba(33, 150, 243, 0.2);
+  background-color: transparent;
   transform: translateY(-1px);
+  opacity: 0.7;
 }
 
 .fill-btn {
   color: #4CAF50;
-  background-color: rgba(76, 175, 80, 0.1);
+  background-color: transparent;
 }
 
 .fill-btn:hover {
-  background-color: rgba(76, 175, 80, 0.2);
+  background-color: transparent;
   transform: translateY(-1px);
+  opacity: 0.7;
 }
 
 .log-item .delete-btn {
   color: #F44336;
-  background-color: rgba(244, 67, 54, 0.1);
+  background-color: transparent;
 }
 
 .log-item .delete-btn:hover {
-  background-color: rgba(244, 67, 54, 0.2);
+  background-color: transparent;
   transform: translateY(-1px);
+  opacity: 0.7;
 }
 
 .restore-btn {
   color: #FF9800;
-  background-color: rgba(255, 152, 0, 0.1);
+  background-color: transparent;
 }
 
 .restore-btn:hover {
-  background-color: rgba(255, 152, 0, 0.2);
+  background-color: transparent;
   transform: translateY(-1px);
+  opacity: 0.7;
 }
 
 /* 任务内容样式 */
