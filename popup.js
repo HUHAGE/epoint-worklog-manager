@@ -455,12 +455,12 @@ function bindEventListeners() {
       if (newPresetProjectTab) {
         const projectName = newPresetProjectTab.value.trim();
         if (!projectName) {
-          showToast('请输入项目名称');
+          showErrorToast('请输入项目名称');
           return;
         }
         
         if (presetProjects.includes(projectName)) {
-          showToast('该项目已存在');
+          showErrorToast('该项目已存在');
           return;
         }
         
@@ -479,6 +479,25 @@ function bindEventListeners() {
 function showToast(message, duration = 3000) {
   const toast = document.createElement('div');
   toast.className = 'toast-message';
+  toast.textContent = message;
+  toastContainer.appendChild(toast);
+
+  setTimeout(() => {
+    toast.classList.add('show');
+  }, 10);
+
+  setTimeout(() => {
+    toast.classList.remove('show');
+    setTimeout(() => {
+      toast.remove();
+    }, 300);
+  }, duration);
+}
+
+// 显示错误提示的toast
+function showErrorToast(message, duration = 3000) {
+  const toast = document.createElement('div');
+  toast.className = 'toast-message error'; // 添加error类以应用红色背景
   toast.textContent = message;
   toastContainer.appendChild(toast);
 
@@ -592,15 +611,34 @@ function handleFormSubmit(event) {
   
   // 获取表单数据
   let project = projectSelect.value;
-  // 移除了与"其他"选项相关的处理逻辑
-  
-  const taskName = document.getElementById('task-name').value;
-  const content = document.getElementById('content').value;
+  const taskName = document.getElementById('task-name').value.trim();
+  const content = document.getElementById('content').value.trim();
   const hours = parseFloat(document.getElementById('hours').value);
   const date = document.getElementById('date').value;
   
+  // 验证所有字段是否已填写
   if (!project) {
-    showToast('项目名称不能为空');
+    showErrorToast('请选择项目名称');
+    return;
+  }
+  
+  if (!taskName) {
+    showErrorToast('请输入任务名称');
+    return;
+  }
+  
+  if (!content) {
+    showErrorToast('请输入工作内容');
+    return;
+  }
+  
+  if (!hours || hours <= 0) {
+    showErrorToast('请输入有效的工时');
+    return;
+  }
+  
+  if (!date) {
+    showErrorToast('请选择日期');
     return;
   }
 

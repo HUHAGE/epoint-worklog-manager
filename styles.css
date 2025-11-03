@@ -154,6 +154,7 @@ body {
   font-family: inherit;
   font-size: 14px;
   transition: border-color 0.3s;
+  resize: none; /* 禁止textarea大小缩放 */
 }
 
 .form-group input:focus,
@@ -836,6 +837,10 @@ input:checked + .slider:before {
   margin-top: 10px;
   opacity: 0;
   transition: opacity 0.3s ease-in-out;
+}
+
+.toast-message.error {
+  background-color: #f44336; /* 红色背景 */
 }
 
 .toast-message.show {
