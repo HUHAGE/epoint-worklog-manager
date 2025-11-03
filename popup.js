@@ -12,6 +12,8 @@ let activeTab = 'add';
 
 // 当前活动的项目筛选
 let activeProjectFilter = 'all';
+// 当前活动的日期筛选（待申请/已申请）
+let activePendingDateFilter = '';
 
 // DOM元素
 const tabButtons = document.querySelectorAll('.tab-button');
@@ -39,6 +41,13 @@ const captureBlueprintBtn = document.getElementById('capture-blueprint-btn');
 const applyBlueprintBtn = document.getElementById('apply-blueprint-btn');
 const blueprintAutoApplyCheckbox = document.getElementById('blueprint-auto-apply-checkbox');
 const blueprintPresetsList = document.getElementById('blueprint-presets-list');
+// 筛选栏元素引用（与popup.html一致）
+const pendingProjectDropdown = document.getElementById('pending-project-filter');
+const pendingDateFilter = document.getElementById('pending-date-filter');
+const pendingTodayBtn = document.getElementById('pending-today-btn');
+const filledProjectDropdown = document.getElementById('filled-project-filter');
+const filledDateFilter = document.getElementById('filled-date-filter');
+const filledTodayBtn = document.getElementById('filled-today-btn');
 // 任务审核人预设 UI 引用
 const captureTaskReviewerBtn = document.getElementById('capture-taskreviewer-btn');
 const applyTaskReviewerBtn = document.getElementById('apply-taskreviewer-btn');
@@ -58,12 +67,16 @@ let presetStageDemands = {};
 let presetStageDemandAutoApply = true;
 let presetTaskReviewers = {};
 let presetTaskReviewerAutoApply = true;
+// 已申请日期筛选状态
+let activeFilledDateFilter = '';
 
 // 初始化
 // 计算工时总和的函数
-function calculateTotalHours(logsList, projectFilter = 'all') {
+function calculateTotalHours(logsList, projectFilter = 'all', dateFilter = '') {
   return logsList.reduce((total, log) => {
-    if (projectFilter === 'all' || log.project === projectFilter) {
+    const matchProject = (projectFilter === 'all' || log.project === projectFilter);
+    const matchDate = (!dateFilter || log.date === dateFilter);
+    if (matchProject && matchDate) {
       return total + (parseFloat(log.hours) || 0);
     }
     return total;
@@ -80,8 +93,8 @@ function updateStatusIndicator(isLogPage) {
   const filledHoursValue = document.querySelector('.filled-hours-value');
 
   // 计算待填写和已填写的工时总和
-  const pendingHours = calculateTotalHours(logs.pending, activeProjectFilter);
-  const filledHours = calculateTotalHours(logs.filled, activeProjectFilter);
+  const pendingHours = calculateTotalHours(logs.pending, activeProjectFilter, typeof activePendingDateFilter !== 'undefined' ? activePendingDateFilter : '');
+  const filledHours = calculateTotalHours(logs.filled, typeof activeFilledProjectFilter !== 'undefined' ? activeFilledProjectFilter : 'all', typeof activeFilledDateFilter !== 'undefined' ? activeFilledDateFilter : '');
   const totalHours = pendingHours + filledHours;
 
   if (isLogPage) {
@@ -124,27 +137,10 @@ function updateStatusIndicator(isLogPage) {
 // 检查当前窗口中的标签页
 function checkLogPages() {
   // 首先检查当前窗口中的标签页
-  chrome.windows.getCurrent({ populate: true }, function(window) {
-    if (window && window.tabs) {
-      const hasLogPageInCurrentWindow = window.tabs.some(tab => {
-        if (!tab.url) return false;
-        const normalizedUrl = tab.url.toLowerCase();
-        return (
-          /missionapply/i.test(tab.url) || 
-          /missionapplyadd/i.test(tab.url) ||
-          (/epointprojectm/i.test(tab.url) && /mission/i.test(tab.url)) ||
-          normalizedUrl.includes('missionapply') ||
-          normalizedUrl.includes('missionapplyadd') ||
-          normalizedUrl.includes('mission') && normalizedUrl.includes('apply') ||
-          normalizedUrl.includes('worklog') ||
-          normalizedUrl.includes('log') && (normalizedUrl.includes('mission') || normalizedUrl.includes('task'))
-        );
-      });
-      updateStatusIndicator(hasLogPageInCurrentWindow);
-    } else {
-      // 如果无法获取当前窗口信息，回退到检查所有标签页
-      chrome.tabs.query({}, function(tabs) {
-        const hasLogPage = tabs.some(tab => {
+  if (typeof chrome !== 'undefined' && chrome.windows && chrome.tabs) {
+    chrome.windows.getCurrent({ populate: true }, function(window) {
+      if (window && window.tabs) {
+        const hasLogPageInCurrentWindow = window.tabs.some(tab => {
           if (!tab.url) return false;
           const normalizedUrl = tab.url.toLowerCase();
           return (
@@ -158,23 +154,49 @@ function checkLogPages() {
             normalizedUrl.includes('log') && (normalizedUrl.includes('mission') || normalizedUrl.includes('task'))
           );
         });
-        updateStatusIndicator(hasLogPage);
-      });
+        updateStatusIndicator(hasLogPageInCurrentWindow);
+      } else {
+        // 如果无法获取当前窗口信息，回退到检查所有标签页
+        chrome.tabs.query({}, function(tabs) {
+          const hasLogPage = tabs.some(tab => {
+            if (!tab.url) return false;
+            const normalizedUrl = tab.url.toLowerCase();
+            return (
+              /missionapply/i.test(tab.url) || 
+              /missionapplyadd/i.test(tab.url) ||
+              (/epointprojectm/i.test(tab.url) && /mission/i.test(tab.url)) ||
+              normalizedUrl.includes('missionapply') ||
+              normalizedUrl.includes('missionapplyadd') ||
+              normalizedUrl.includes('mission') && normalizedUrl.includes('apply') ||
+              normalizedUrl.includes('worklog') ||
+              normalizedUrl.includes('log') && (normalizedUrl.includes('mission') || normalizedUrl.includes('task'))
+            );
+          });
+          updateStatusIndicator(hasLogPage);
+        });
+      }
+    });
+  } else {
+    // 本地预览环境（无chrome API）降级为非日志页面状态
+    updateStatusIndicator(false);
+  }
+}
+
+// 监听标签页更新事件
+if (typeof chrome !== 'undefined' && chrome.tabs && chrome.tabs.onUpdated) {
+  chrome.tabs.onUpdated.addListener(function(tabId, changeInfo, tab) {
+    if (changeInfo.status === 'complete') {
+      checkLogPages();
     }
   });
 }
 
-// 监听标签页更新事件
-chrome.tabs.onUpdated.addListener(function(tabId, changeInfo, tab) {
-  if (changeInfo.status === 'complete') {
-    checkLogPages();
-  }
-});
-
 // 监听标签页关闭事件
-chrome.tabs.onRemoved.addListener(function(tabId, removeInfo) {
-  checkLogPages();
-});
+if (typeof chrome !== 'undefined' && chrome.tabs && chrome.tabs.onRemoved) {
+  chrome.tabs.onRemoved.addListener(function(tabId, removeInfo) {
+    checkLogPages();
+  });
+}
 
 document.addEventListener('DOMContentLoaded', function() {
   // 初始检查页面状态
@@ -218,23 +240,25 @@ document.addEventListener('DOMContentLoaded', function() {
     applyStageDemandPresetToOA();
   }
   
-  // 检查当前页面是否为missionapplyadd页面
-  chrome.tabs.query({ active: true, currentWindow: true }, function(tabs) {
-    if (!tabs || tabs.length === 0) return;
-    const tab = tabs[0];
-    const url = tab.url || '';
-    const normalizedUrl = url.toLowerCase();
-    if (normalizedUrl.includes('missionapplyadd')) {
-      showToast('预设配置已成功加载！');
-      // 在工具标题右侧添加绿色勾图标
-      const toolTitle = document.querySelector('.form-container h2');
-      if (toolTitle) {
-        const checkIcon = document.createElement('span');
-        checkIcon.className = 'preset-loaded-icon';
-        toolTitle.appendChild(checkIcon);
+  // 检查当前页面是否为missionapplyadd页面（在扩展环境中）
+  if (typeof chrome !== 'undefined' && chrome.tabs && chrome.tabs.query) {
+    chrome.tabs.query({ active: true, currentWindow: true }, function(tabs) {
+      if (!tabs || tabs.length === 0) return;
+      const tab = tabs[0];
+      const url = tab.url || '';
+      const normalizedUrl = url.toLowerCase();
+      if (normalizedUrl.includes('missionapplyadd')) {
+        showToast('预设配置已成功加载！');
+        // 在工具标题右侧添加绿色勾图标
+        const toolTitle = document.querySelector('.form-container h2');
+        if (toolTitle) {
+          const checkIcon = document.createElement('span');
+          checkIcon.className = 'preset-loaded-icon';
+          toolTitle.appendChild(checkIcon);
+        }
       }
-    }
-  });
+    });
+  }
   
   // 绑定事件监听器
   bindEventListeners();
@@ -489,6 +513,58 @@ function bindEventListeners() {
   }
   
   // 移除了保存预设项目按钮，因为添加预设项目后会自动保存
+  
+  // —— 筛选栏事件绑定 ——
+  // 待申请：项目筛选
+  if (pendingProjectDropdown) {
+    pendingProjectDropdown.addEventListener('change', (e) => {
+      const value = e.target.value || 'all';
+      switchProjectFilter(value);
+    });
+  }
+  // 待申请：日期筛选
+  if (pendingDateFilter) {
+    pendingDateFilter.addEventListener('change', (e) => {
+      activePendingDateFilter = e.target.value || '';
+      renderPendingLogs();
+      updateHoursStatistics();
+    });
+  }
+  // 待申请：当日任务
+  if (pendingTodayBtn) {
+    pendingTodayBtn.addEventListener('click', () => {
+      const today = new Date().toISOString().split('T')[0];
+      if (pendingDateFilter) pendingDateFilter.value = today;
+      activePendingDateFilter = today;
+      renderPendingLogs();
+      updateHoursStatistics();
+    });
+  }
+  // 已申请：项目筛选
+  if (filledProjectDropdown) {
+    filledProjectDropdown.addEventListener('change', (e) => {
+      const value = e.target.value || 'all';
+      switchFilledProjectFilter(value);
+    });
+  }
+  // 已申请：日期筛选
+  if (filledDateFilter) {
+    filledDateFilter.addEventListener('change', (e) => {
+      activeFilledDateFilter = e.target.value || '';
+      renderFilledLogs();
+      updateHoursStatistics();
+    });
+  }
+  // 已申请：当日任务
+  if (filledTodayBtn) {
+    filledTodayBtn.addEventListener('click', () => {
+      const today = new Date().toISOString().split('T')[0];
+      if (filledDateFilter) filledDateFilter.value = today;
+      activeFilledDateFilter = today;
+      renderFilledLogs();
+      updateHoursStatistics();
+    });
+  }
 }
 
 function showToast(message, duration = 3000) {
@@ -574,29 +650,16 @@ function switchTab(tabName) {
 // 切换项目筛选
 function switchProjectFilter(projectName) {
   activeProjectFilter = projectName;
-  
-  // 更新项目标签按钮状态
-  document.querySelectorAll('.project-tab-btn').forEach(button => {
-    if (button.dataset.project === projectName) {
-      button.classList.add('active');
-    } else {
-      button.classList.remove('active');
-    }
-  });
+  // 同步下拉框显示
+  if (pendingProjectDropdown) {
+    pendingProjectDropdown.value = projectName;
+  }
   
   // 重新渲染待填写日志列表
   renderPendingLogs();
   
-  // 更新工时统计（无论是否在日志页面都显示工时）
-  if (activeTab === 'filled') {
-    const filledHoursValue = document.querySelector('.filled-hours-value');
-    const filledHours = calculateTotalHours(logs.filled, activeProjectFilter);
-    filledHoursValue.textContent = filledHours.toFixed(1);
-  } else {
-    const hoursValue = document.querySelector('.hours-value');
-    const pendingHours = calculateTotalHours(logs.pending, activeProjectFilter);
-    hoursValue.textContent = pendingHours.toFixed(1);
-  }
+  // 更新工时统计
+  updateHoursStatistics();
 }
 
 // 显示日志表单
@@ -774,7 +837,11 @@ function updateHoursStatistics() {
   // 根据当前标签页更新工时显示
   if (activeTab === 'filled') {
     const filledHoursValue = document.querySelector('.filled-hours-value');
-    const filledHours = calculateTotalHours(logs.filled, activeProjectFilter);
+    const filledHours = calculateTotalHours(
+      logs.filled,
+      typeof activeFilledProjectFilter !== 'undefined' ? activeFilledProjectFilter : 'all',
+      typeof activeFilledDateFilter !== 'undefined' ? activeFilledDateFilter : ''
+    );
     if (filledHoursValue) {
       filledHoursValue.textContent = filledHours.toFixed(1);
     }
@@ -784,7 +851,11 @@ function updateHoursStatistics() {
     if (statusFilledHours) statusFilledHours.style.display = 'flex';
   } else {
     const hoursValue = document.querySelector('.hours-value');
-    const pendingHours = calculateTotalHours(logs.pending, activeProjectFilter);
+    const pendingHours = calculateTotalHours(
+      logs.pending,
+      activeProjectFilter,
+      typeof activePendingDateFilter !== 'undefined' ? activePendingDateFilter : ''
+    );
     if (hoursValue) {
       hoursValue.textContent = pendingHours.toFixed(1);
     }
@@ -797,26 +868,20 @@ function updateHoursStatistics() {
 
 // 更新项目标签
 function updateProjectTabs() {
-  // 确保projectTabs存在
-  if (!projectTabs) return;
-  
-  // 获取所有唯一的项目名称
-  const projects = [...new Set(logs.pending.map(log => log.project))];
-  
-  // 清空项目标签容器
-  projectTabs.innerHTML = '<button class="project-tab-btn active" data-project="all">全部项目</button>';
-  
-  // 为每个项目创建标签按钮
-  projects.forEach(project => {
-    const button = document.createElement('button');
-    button.className = 'project-tab-btn';
-    button.dataset.project = project;
-    button.textContent = project;
-    if (activeProjectFilter === project) {
-      button.classList.add('active');
-    }
-    projectTabs.appendChild(button);
+  // 使用待申请筛选下拉框替代项目标签
+  if (!pendingProjectDropdown) return;
+
+  const projectsSet = new Set(logs.pending.map(log => log.project));
+  const projects = ['all', ...projectsSet];
+  pendingProjectDropdown.innerHTML = '';
+  projects.forEach(p => {
+    const option = document.createElement('option');
+    option.value = p;
+    option.textContent = p === 'all' ? '全部项目' : p;
+    pendingProjectDropdown.appendChild(option);
   });
+  // 保持当前筛选值
+  pendingProjectDropdown.value = activeProjectFilter;
 }
 
 // 渲染所有日志
@@ -837,6 +902,10 @@ function renderPendingLogs() {
   let filteredLogs = logs.pending;
   if (activeProjectFilter !== 'all') {
     filteredLogs = logs.pending.filter(log => log.project === activeProjectFilter);
+  }
+  // 日期筛选（可选）
+  if (activePendingDateFilter) {
+    filteredLogs = filteredLogs.filter(log => log.date === activePendingDateFilter);
   }
   
   if (filteredLogs.length === 0) {
@@ -912,6 +981,10 @@ function renderFilledLogs() {
   if (activeFilledProjectFilter !== 'all') {
     filteredLogs = logs.filled.filter(log => log.project === activeFilledProjectFilter);
   }
+  // 日期筛选（可选）
+  if (activeFilledDateFilter) {
+    filteredLogs = filteredLogs.filter(log => log.date === activeFilledDateFilter);
+  }
   
   if (filteredLogs.length === 0) {
     filledLogsList.innerHTML = '<p class="empty-message">暂无已填写日志</p>';
@@ -957,63 +1030,34 @@ function renderFilledLogs() {
 
 // 更新已填写项目标签
 function updateFilledProjectTabs() {
-  const filledProjectTabs = document.getElementById('filled-project-tabs');
-  if (!filledProjectTabs) {
-    // 如果不存在，创建项目标签容器
-    const filledTab = document.getElementById('filled-tab');
-    if (filledTab) {
-      const projectTabs = document.createElement('div');
-      projectTabs.id = 'filled-project-tabs';
-      projectTabs.className = 'project-tabs';
-      filledTab.insertBefore(projectTabs, filledLogsList);
-    }
-    return;
-  }
+  // 使用已申请下拉框填充项目列表
+  if (!filledProjectDropdown) return;
 
-  // 获取所有唯一的项目名称
-  const projects = [...new Set(logs.filled.map(log => log.project))];
-  
-  // 清空项目标签容器
-  filledProjectTabs.innerHTML = '<button class="project-tab-btn active" data-project="all">全部项目</button>';
-  
-  // 为每个项目创建标签按钮
-  projects.forEach(project => {
-    const button = document.createElement('button');
-    button.className = 'project-tab-btn';
-    button.dataset.project = project;
-    button.textContent = project;
-    if (activeFilledProjectFilter === project) {
-      button.classList.add('active');
-    }
-    filledProjectTabs.appendChild(button);
+  const projectsSet = new Set(logs.filled.map(log => log.project));
+  const projects = ['all', ...projectsSet];
+  filledProjectDropdown.innerHTML = '';
+  projects.forEach(p => {
+    const option = document.createElement('option');
+    option.value = p;
+    option.textContent = p === 'all' ? '全部项目' : p;
+    filledProjectDropdown.appendChild(option);
   });
-
-  // 添加点击事件监听器
-  filledProjectTabs.addEventListener('click', (e) => {
-    if (e.target.classList.contains('project-tab-btn')) {
-      switchFilledProjectFilter(e.target.dataset.project);
-    }
-  });
+  // 保持当前筛选值
+  filledProjectDropdown.value = activeFilledProjectFilter;
 }
 
 // 切换已填写项目筛选
 function switchFilledProjectFilter(projectName) {
   activeFilledProjectFilter = projectName;
-  
-  // 更新项目标签按钮状态
-  const filledProjectTabs = document.getElementById('filled-project-tabs');
-  if (filledProjectTabs) {
-    filledProjectTabs.querySelectorAll('.project-tab-btn').forEach(button => {
-      if (button.dataset.project === projectName) {
-        button.classList.add('active');
-      } else {
-        button.classList.remove('active');
-      }
-    });
+  // 同步下拉框显示
+  if (filledProjectDropdown) {
+    filledProjectDropdown.value = projectName;
   }
   
   // 重新渲染已填写日志列表
   renderFilledLogs();
+  // 更新工时统计
+  updateHoursStatistics();
 }
 
 // 添加还原日志功能

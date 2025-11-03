@@ -356,6 +356,38 @@ body {
   border-color: #667eea;
 }
 
+/* 筛选栏样式 */
+.filter-bar {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 0;
+}
+
+.filter-select,
+.filter-date {
+  height: 28px;
+  padding: 4px 8px;
+  font-size: 12px;
+  border: 1px solid #ddd;
+  border-radius: 6px;
+  background-color: #fff;
+}
+
+.filter-today-btn {
+  height: 28px;
+  padding: 4px 8px;
+  font-size: 12px;
+  border: 1px solid #ddd;
+  border-radius: 6px;
+  background-color: #f8f9fa;
+  cursor: pointer;
+}
+
+.filter-today-btn:hover {
+  background-color: #e9ecef;
+}
+
 .logs-list {
   display: flex;
   flex-direction: column;
