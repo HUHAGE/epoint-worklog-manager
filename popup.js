@@ -84,6 +84,75 @@ let filledSelectionMode = false;
 const pendingSelectedIds = new Set();
 const filledSelectedIds = new Set();
 
+// 项目颜色分配函数
+// 项目名称到颜色索引的映射缓存
+let projectColorMapping = {};
+let usedColorIndices = new Set();
+let nextAvailableColorIndex = 0;
+
+function getProjectColorIndex(projectName) {
+  if (!projectName) return 0;
+  
+  // 如果已经有映射，直接返回
+  if (projectColorMapping[projectName] !== undefined) {
+    return projectColorMapping[projectName];
+  }
+  
+  // 为新项目分配颜色索引
+  let colorIndex;
+  
+  // 如果还有未使用的颜色索引，按顺序分配
+  if (nextAvailableColorIndex < 10) {
+    colorIndex = nextAvailableColorIndex;
+    nextAvailableColorIndex++;
+  } else {
+    // 如果10种颜色都用完了，使用改进的哈希函数
+    let hash = 0;
+    for (let i = 0; i < projectName.length; i++) {
+      const char = projectName.charCodeAt(i);
+      hash = ((hash << 5) - hash) + char;
+      hash = hash & hash; // 转换为32位整数
+    }
+    colorIndex = Math.abs(hash) % 10;
+  }
+  
+  // 缓存映射关系
+  projectColorMapping[projectName] = colorIndex;
+  usedColorIndices.add(colorIndex);
+  
+  return colorIndex;
+}
+
+// 初始化项目颜色映射
+function initializeProjectColorMapping() {
+  // 重置映射状态
+  projectColorMapping = {};
+  usedColorIndices = new Set();
+  nextAvailableColorIndex = 0;
+  
+  // 收集所有项目名称
+  const allProjects = new Set();
+  
+  // 从待填写日志中收集项目
+  logs.pending.forEach(log => {
+    if (log.project && log.project.trim()) {
+      allProjects.add(log.project.trim());
+    }
+  });
+  
+  // 从已填写日志中收集项目
+  logs.filled.forEach(log => {
+    if (log.project && log.project.trim()) {
+      allProjects.add(log.project.trim());
+    }
+  });
+  
+  // 为每个项目分配颜色索引
+  Array.from(allProjects).forEach(projectName => {
+    getProjectColorIndex(projectName);
+  });
+}
+
 // 初始化
 // 计算工时总和的函数
 function calculateTotalHours(logsList, projectFilter = 'all', dateFilter = '') {
@@ -1058,6 +1127,10 @@ function renderPendingLogs() {
     logItem.className = 'log-item';
     logItem.dataset.id = log.id;
     
+    // 添加项目颜色类
+    const colorIndex = getProjectColorIndex(log.project);
+    logItem.classList.add(`project-color-${colorIndex}`);
+    
     logItem.innerHTML = `
       <div class="log-item-header">
         ${pendingSelectionMode ? `<input type="checkbox" class="log-select-checkbox" data-id="${log.id}" ${pendingSelectedIds.has(log.id) ? 'checked' : ''}>` : ''}
@@ -1151,6 +1224,10 @@ function renderFilledLogs() {
     const logItem = document.createElement('div');
     logItem.className = 'log-item';
     logItem.dataset.id = log.id;
+    
+    // 添加项目颜色类
+    const colorIndex = getProjectColorIndex(log.project);
+    logItem.classList.add(`project-color-${colorIndex}`);
     
     logItem.innerHTML = `
       <div class="log-item-header">
@@ -1897,6 +1974,10 @@ function loadLogs() {
     console.error('加载日志失败:', error);
     logs = { pending: [], filled: [] };
   }
+  
+  // 初始化项目颜色映射
+  initializeProjectColorMapping();
+  
   renderLogs();
   updateProjectTabs();
 }

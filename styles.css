@@ -783,6 +783,47 @@ body {
   margin-top: 0; /* 移除顶部边距 */
 }
 
+/* 项目背景色样式 */
+.log-item.project-color-0 {
+  background-color: rgba(173, 216, 230, 0.3); /* 淡蓝色 */
+}
+
+.log-item.project-color-1 {
+  background-color: rgba(144, 238, 144, 0.3); /* 淡绿色 */
+}
+
+.log-item.project-color-2 {
+  background-color: rgba(221, 160, 221, 0.3); /* 淡紫色 */
+}
+
+.log-item.project-color-3 {
+  background-color: rgba(255, 218, 185, 0.3); /* 淡橙色 */
+}
+
+.log-item.project-color-4 {
+  background-color: rgba(255, 182, 193, 0.3); /* 淡粉色 */
+}
+
+.log-item.project-color-5 {
+  background-color: rgba(255, 255, 224, 0.5); /* 淡黄色 */
+}
+
+.log-item.project-color-6 {
+  background-color: rgba(175, 238, 238, 0.3); /* 淡青色 */
+}
+
+.log-item.project-color-7 {
+  background-color: rgba(211, 211, 211, 0.3); /* 淡灰色 */
+}
+
+.log-item.project-color-8 {
+  background-color: rgba(250, 235, 215, 0.4); /* 淡杏色 */
+}
+
+.log-item.project-color-9 {
+  background-color: rgba(230, 230, 250, 0.4); /* 淡薰衣草色 */
+}
+
 /* 移除已填写日志的特殊样式 */
 .filled-log-item {
   /* 移除特殊样式 */
