@@ -44,10 +44,8 @@ const blueprintPresetsList = document.getElementById('blueprint-presets-list');
 // 筛选栏元素引用（与popup.html一致）
 const pendingProjectDropdown = document.getElementById('pending-project-filter');
 const pendingDateFilter = document.getElementById('pending-date-filter');
-  const pendingTodayBtn = document.getElementById('pending-today-btn');
-  const filledProjectDropdown = document.getElementById('filled-project-filter');
-  const filledDateFilter = document.getElementById('filled-date-filter');
-  const filledTodayBtn = document.getElementById('filled-today-btn');
+const filledProjectDropdown = document.getElementById('filled-project-filter');
+const filledDateFilter = document.getElementById('filled-date-filter');
 // 选择模式与批量操作控件
 const pendingSelectModeBtn = document.getElementById('pending-select-mode-btn');
 const pendingSelectAllBtn = document.getElementById('pending-select-all-btn');
@@ -546,16 +544,6 @@ function bindEventListeners() {
       updateHoursStatistics();
     });
   }
-  // 待申请：当日任务
-  if (pendingTodayBtn) {
-    pendingTodayBtn.addEventListener('click', () => {
-      const today = new Date().toISOString().split('T')[0];
-      if (pendingDateFilter) pendingDateFilter.value = today;
-      activePendingDateFilter = today;
-      renderPendingLogs();
-      updateHoursStatistics();
-    });
-  }
   // 已申请：项目筛选
   if (filledProjectDropdown) {
     filledProjectDropdown.addEventListener('change', (e) => {
@@ -567,16 +555,6 @@ function bindEventListeners() {
   if (filledDateFilter) {
     filledDateFilter.addEventListener('change', (e) => {
       activeFilledDateFilter = e.target.value || '';
-      renderFilledLogs();
-      updateHoursStatistics();
-    });
-  }
-  // 已申请：当日任务
-  if (filledTodayBtn) {
-    filledTodayBtn.addEventListener('click', () => {
-      const today = new Date().toISOString().split('T')[0];
-      if (filledDateFilter) filledDateFilter.value = today;
-      activeFilledDateFilter = today;
       renderFilledLogs();
       updateHoursStatistics();
     });
