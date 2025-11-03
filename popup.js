@@ -694,6 +694,9 @@ function handleFormSubmit(event) {
   }
   // 注意：新增模式下不再自动跳转到待填写页面
   // 用户可以手动点击"待填写"标签页查看新增的日志
+  
+  // 立即更新页面下方指示器中的工时统计
+  updateHoursStatistics();
 }
 
 // 将这些函数定义为全局函数
@@ -751,6 +754,32 @@ function updateProjectSelect() {
   // 移除了"其他"选项，只使用预设项目
 }
 
+// 更新工时统计
+function updateHoursStatistics() {
+  // 根据当前标签页更新工时显示
+  if (activeTab === 'filled') {
+    const filledHoursValue = document.querySelector('.filled-hours-value');
+    const filledHours = calculateTotalHours(logs.filled, activeProjectFilter);
+    if (filledHoursValue) {
+      filledHoursValue.textContent = filledHours.toFixed(1);
+    }
+    const statusHours = document.querySelector('.status-hours');
+    const statusFilledHours = document.querySelector('.status-filled-hours');
+    if (statusHours) statusHours.style.display = 'none';
+    if (statusFilledHours) statusFilledHours.style.display = 'flex';
+  } else {
+    const hoursValue = document.querySelector('.hours-value');
+    const pendingHours = calculateTotalHours(logs.pending, activeProjectFilter);
+    if (hoursValue) {
+      hoursValue.textContent = pendingHours.toFixed(1);
+    }
+    const statusHours = document.querySelector('.status-hours');
+    const statusFilledHours = document.querySelector('.status-filled-hours');
+    if (statusHours) statusHours.style.display = 'flex';
+    if (statusFilledHours) statusFilledHours.style.display = 'none';
+  }
+}
+
 // 更新项目标签
 function updateProjectTabs() {
   // 确保projectTabs存在
@@ -780,21 +809,8 @@ function renderLogs() {
   renderPendingLogs();
   renderFilledLogs();
   
-  // 更新工时统计（无论是否在日志页面都显示工时）
-  // 根据当前标签页更新工时显示
-  if (activeTab === 'filled') {
-    const filledHoursValue = document.querySelector('.filled-hours-value');
-    const filledHours = calculateTotalHours(logs.filled, activeProjectFilter);
-    filledHoursValue.textContent = filledHours.toFixed(1);
-    document.querySelector('.status-hours').style.display = 'none';
-    document.querySelector('.status-filled-hours').style.display = 'flex';
-  } else {
-    const hoursValue = document.querySelector('.hours-value');
-    const pendingHours = calculateTotalHours(logs.pending, activeProjectFilter);
-    hoursValue.textContent = pendingHours.toFixed(1);
-    document.querySelector('.status-hours').style.display = 'flex';
-    document.querySelector('.status-filled-hours').style.display = 'none';
-  }
+  // 更新工时统计
+  updateHoursStatistics();
 }
 
 // 渲染待填写日志列表
