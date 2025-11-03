@@ -250,6 +250,32 @@ body {
   width: 60px;
 }
 
+/* 预设页面按钮组样式 - 靠右对齐 */
+.config-card .form-group {
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
+  gap: 8px;
+}
+
+/* 确保复选框标签占据剩余空间并左对齐 */
+.config-card .form-group .checkbox-label {
+  flex: 1;
+  justify-content: flex-start;
+}
+
+/* 预设列表容器保持默认布局 */
+.config-card .form-group:has(#blueprint-presets-list),
+.config-card .form-group:has(#stagedemand-presets-list),
+.config-card .form-group:has(#taskreviewer-presets-list) {
+  justify-content: flex-start;
+}
+
+/* 下拉框容器保持默认布局 */
+.config-card .form-group:has(select) {
+  justify-content: flex-start;
+}
+
 .btn-capture, .btn-apply {
   padding: 6px 12px;
   font-size: 12px;
@@ -257,6 +283,7 @@ body {
   cursor: pointer;
   transition: all 0.2s ease;
   font-weight: 500;
+  flex-shrink: 0; /* 防止按钮被压缩 */
 }
 
 .preset-btn {
