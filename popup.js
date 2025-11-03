@@ -245,8 +245,15 @@ function bindEventListeners() {
   const applyNonPublicBtn = document.getElementById('apply-non-public-btn');
   if (applyNonPublicBtn) {
     applyNonPublicBtn.addEventListener('click', () => {
-      // 打开申请非公页面
-      window.open('https://oa.epoint.com.cn/epointprojectm/projectmanage/mission/missionapply/projectselect', '_blank');
+      // 获取当前日期并格式化为YYYY-MM-DD
+      const today = new Date();
+      const year = today.getFullYear();
+      const month = String(today.getMonth() + 1).padStart(2, '0');
+      const day = String(today.getDate()).padStart(2, '0');
+      const currentDate = `${year}-${month}-${day}`;
+      
+      // 打开申请非公页面，带上当前日期参数
+      window.open(`https://oa.epoint.com.cn/epointprojectm/projectmanage/mission/missionapply/projectselect?RZDate=${currentDate}`, '_blank');
     });
   }
   
