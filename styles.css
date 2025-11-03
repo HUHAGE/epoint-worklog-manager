@@ -1442,7 +1442,7 @@ input:checked + .slider:before {
   padding: 8px 16px;
   font-size: 13px;
   border-radius: 18px;
-  background: rgba(87, 96, 111, 0.8); /* #57606f 毛玻璃效果 */
+  background: rgba(207, 116, 182, 0.8); /* #cf74b6 毛玻璃效果 */
   color: white;
   border: none;
   cursor: pointer;
@@ -1456,6 +1456,11 @@ input:checked + .slider:before {
   min-width: auto;
 }
 
+/* 除填充按钮外的其他底部按钮样式 */
+.btn-apply-non-public:not(#apply-presets-btn) {
+  background: rgba(87, 96, 111, 0.8); /* #57606f 毛玻璃效果 */
+}
+
 .btn-apply-non-public.compact {
   padding: 6px 12px;
   font-size: 12px;
@@ -1465,6 +1470,12 @@ input:checked + .slider:before {
 
 .btn-apply-non-public:hover {
   transform: translateY(-2px);
+  box-shadow: 0 4px 15px rgba(207, 116, 182, 0.4);
+  background: rgba(207, 116, 182, 1); /* 悬停时的实心背景 */
+}
+
+/* 除填充按钮外的其他底部按钮悬停样式 */
+.btn-apply-non-public:not(#apply-presets-btn):hover {
   box-shadow: 0 4px 15px rgba(87, 96, 111, 0.4);
   background: rgba(87, 96, 111, 1); /* 悬停时的实心背景 */
 }

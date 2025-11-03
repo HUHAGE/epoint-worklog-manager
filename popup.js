@@ -172,8 +172,6 @@ function calculateTotalHours(logsList, projectFilter = 'all', dateFilter = '') {
 
 // 更新状态指示器的函数
 function updateStatusIndicator(isLogPage) {
-  const statusIcon = document.querySelector('.status-icon');
-  const statusText = document.querySelector('.status-text');
   const hoursValue = document.querySelector('.hours-value');
   const statusHours = document.querySelector('.status-hours');
   const statusFilledHours = document.querySelector('.status-filled-hours');
@@ -182,42 +180,18 @@ function updateStatusIndicator(isLogPage) {
   // 计算待填写和已填写的工时总和
   const pendingHours = calculateTotalHours(logs.pending, activeProjectFilter, typeof activePendingDateFilter !== 'undefined' ? activePendingDateFilter : '');
   const filledHours = calculateTotalHours(logs.filled, typeof activeFilledProjectFilter !== 'undefined' ? activeFilledProjectFilter : 'all', typeof activeFilledDateFilter !== 'undefined' ? activeFilledDateFilter : '');
-  const totalHours = pendingHours + filledHours;
 
-  if (isLogPage) {
-    statusIcon.classList.remove('non-log');
-    statusIcon.classList.add('normal');
-    statusText.textContent = '正常';
-    
-    // 根据当前标签页显示不同的工时信息
-    if (activeTab === 'filled') {
-      // 在已填写标签页显示已填工时
-      filledHoursValue.textContent = filledHours.toFixed(1);
-      statusHours.style.display = 'none';
-      statusFilledHours.style.display = 'flex';
-    } else {
-      // 在其他标签页显示待填工时
-      hoursValue.textContent = pendingHours.toFixed(1);
-      statusHours.style.display = 'flex';
-      statusFilledHours.style.display = 'none';
-    }
+  // 根据当前标签页显示不同的工时信息
+  if (activeTab === 'filled') {
+    // 在已填写标签页显示已填工时
+    filledHoursValue.textContent = filledHours.toFixed(1);
+    statusHours.style.display = 'none';
+    statusFilledHours.style.display = 'flex';
   } else {
-    statusIcon.classList.remove('normal');
-    statusIcon.classList.add('non-log');
-    statusText.textContent = '非日志页面';
-    
-    // 即使在非日志页面也显示工时统计
-    if (activeTab === 'filled') {
-      // 在已填写标签页显示已填工时
-      filledHoursValue.textContent = filledHours.toFixed(1);
-      statusHours.style.display = 'none';
-      statusFilledHours.style.display = 'flex';
-    } else {
-      // 在其他标签页显示待填工时
-      hoursValue.textContent = pendingHours.toFixed(1);
-      statusHours.style.display = 'flex';
-      statusFilledHours.style.display = 'none';
-    }
+    // 在其他标签页显示待填工时
+    hoursValue.textContent = pendingHours.toFixed(1);
+    statusHours.style.display = 'flex';
+    statusFilledHours.style.display = 'none';
   }
 }
 
@@ -340,9 +314,8 @@ document.addEventListener('DOMContentLoaded', function() {
   // 绑定事件监听器
   bindEventListeners();
 
-  // 根据“自动填充”设置，显示或隐藏底部“填充预设”按钮，并绑定点击
+  // 绑定“填充”按钮点击，并初次根据当前标签与总开关更新可见性
   if (applyPresetsBtn) {
-    applyPresetsBtn.classList.toggle('hidden', !!presetAutoFillPresets);
     applyPresetsBtn.addEventListener('click', () => {
       autofillDemandTagToStory(presetDemandTag);
       autofillWorkTypeToMission(presetWorkType);
@@ -361,6 +334,8 @@ document.addEventListener('DOMContentLoaded', function() {
   
   // 切换到增加日志标签页
   switchTab('add');
+  // 根据当前标签与总开关状态，统一更新底部“填充”按钮可见性
+  updateApplyPresetsBtnVisibility();
 });
 
 
@@ -401,6 +376,25 @@ function bindEventListeners() {
   
   if (applyNonPublicBtn) {
     applyNonPublicBtn.addEventListener('click', openApplyNonPublicPage);
+  }
+  
+  // 添加写日志按钮事件监听器
+  const writeLogBtn = document.getElementById('write-log-btn');
+  
+  const openWriteLogPage = () => {
+    // 获取当前日期并格式化为YYYY-MM-DD
+    const today = new Date();
+    const year = today.getFullYear();
+    const month = String(today.getMonth() + 1).padStart(2, '0');
+    const day = String(today.getDate()).padStart(2, '0');
+    const currentDate = `${year}-${month}-${day}`;
+    
+    // 打开写日志页面，带上当前日期参数
+    window.open(`https://oa.epoint.com.cn/dailyreportmanage/pages/dailyrecord/dailyrecordaddv2/gzrz/gzrzframe?RZDate=${currentDate}`, '_blank');
+  };
+  
+  if (writeLogBtn) {
+    writeLogBtn.addEventListener('click', openWriteLogPage);
   }
   
   // 添加发放非功按钮事件监听器
@@ -857,6 +851,9 @@ function switchTab(tabName) {
       statusIndicator.style.display = 'flex';
     }
   }
+  
+  // 统一更新底部“填充”按钮可见性
+  updateApplyPresetsBtnVisibility();
   
   // 渲染对应标签页的内容
   renderLogs();
@@ -2234,10 +2231,14 @@ function loadPresetAutoFillPresets() {
     if (autoFillPresetsCheckbox) {
       autoFillPresetsCheckbox.checked = !!presetAutoFillPresets;
     }
+    // 加载设置后立即更新按钮可见性
+    updateApplyPresetsBtnVisibility();
   } catch (error) {
     console.error('加载自动填充设置失败:', error);
     presetAutoFillPresets = true;
     if (autoFillPresetsCheckbox) autoFillPresetsCheckbox.checked = true;
+    // 出错时也要更新按钮可见性
+    updateApplyPresetsBtnVisibility();
   }
 }
 
@@ -2246,13 +2247,26 @@ function savePresetAutoFillPresets() {
   try {
     presetAutoFillPresets = !!(autoFillPresetsCheckbox && autoFillPresetsCheckbox.checked);
     localStorage.setItem('presetAutoFillPresets', String(presetAutoFillPresets));
-    if (applyPresetsBtn) {
-      applyPresetsBtn.classList.toggle('hidden', !!presetAutoFillPresets);
-    }
+    // 统一更新底部“填充”按钮可见性
+    updateApplyPresetsBtnVisibility();
+    
     showToast(presetAutoFillPresets ? '已开启自动填充' : '已关闭自动填充');
   } catch (error) {
     console.error('保存自动填充设置失败:', error);
     showToast('保存自动填充设置失败');
+  }
+}
+
+// 统一更新底部“填充”按钮的显示/隐藏逻辑
+function updateApplyPresetsBtnVisibility() {
+  try {
+    const btn = document.getElementById('apply-presets-btn');
+    if (!btn) return;
+    // 填充按钮始终显示
+    btn.classList.remove('hidden');
+    btn.style.display = 'block';
+  } catch (error) {
+    console.error('更新填充按钮可见性失败:', error);
   }
 }
 
