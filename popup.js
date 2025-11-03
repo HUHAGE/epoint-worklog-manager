@@ -55,7 +55,10 @@ const filledSelectModeBtn = document.getElementById('filled-select-mode-btn');
   const filledDeleteSelectedBtn = document.getElementById('filled-delete-selected-btn');
   // 可选：清除全部按钮（如果未在HTML中提供，则为null）
   const pendingClearAllBtn = document.getElementById('pending-clear-all-btn');
-  const filledClearAllBtn = document.getElementById('filled-clear-all-btn');
+const filledClearAllBtn = document.getElementById('filled-clear-all-btn');
+// 自动填充总开关与按钮 UI 引用
+const autoFillPresetsCheckbox = document.getElementById('auto-fill-presets-checkbox');
+const applyPresetsBtn = document.getElementById('apply-presets-btn');
 // 任务审核人预设 UI 引用
 const captureTaskReviewerBtn = document.getElementById('capture-taskreviewer-btn');
 const applyTaskReviewerBtn = document.getElementById('apply-taskreviewer-btn');
@@ -75,6 +78,7 @@ let presetStageDemands = {};
 let presetStageDemandAutoApply = true;
 let presetTaskReviewers = {};
 let presetTaskReviewerAutoApply = true;
+let presetAutoFillPresets = true; // 预设配置自动填充总开关，默认开启
 // 已申请日期筛选状态
 let activeFilledDateFilter = '';
 
@@ -295,32 +299,22 @@ document.addEventListener('DOMContentLoaded', function() {
   loadPresetWorkType();
   loadPresetCloseReminders();
   loadPresetBlueprints();
-  loadPresetBlueprintAutoApply();
   loadPresetStageDemands();
-  loadPresetStageDemandAutoApply();
   loadPresetTaskReviewers();
-  loadPresetTaskReviewerAutoApply();
-  loadPresetStageDemands();
-  loadPresetStageDemandAutoApply();
-  // 打开插件时自动填充预设需求标签到OA页面
-  autofillDemandTagToStory(presetDemandTag);
-  // 打开插件时自动填充预设工作类型到OA页面
-  autofillWorkTypeToMission(presetWorkType);
-  // 打开插件时根据预设关闭提醒，自动隐藏帮助信息区域
-  autofillCloseRemindersToPage(presetCloseReminders);
-  // 打开插件时若开启自动应用蓝图，尝试应用蓝图预设到OA页面
-  if (presetBlueprintAutoApply) {
+  // 统一由总开关管理自动应用行为，移除各自自动应用开关的加载
+  // 加载“自动填充预设配置”总开关
+  loadPresetAutoFillPresets();
+  // 打开插件时自动填充预设需求标签、工作类型和关闭提醒到OA页面（仅在总开关开启时）
+  if (presetAutoFillPresets) {
+    // 统一在总开关开启时，应用所有预设到OA页面
+    autofillDemandTagToStory(presetDemandTag);
+    autofillWorkTypeToMission(presetWorkType);
+    if (presetCloseReminders) {
+      autofillCloseRemindersToPage(presetCloseReminders);
+    }
     applyBlueprintPresetToOA();
-  }
-  if (presetStageDemandAutoApply) {
     applyStageDemandPresetToOA();
-  }
-  if (presetTaskReviewerAutoApply) {
     applyTaskReviewerPresetToOA();
-  }
-  // 打开插件时若开启自动应用工作场景，尝试应用工作场景预设到OA页面
-  if (presetStageDemandAutoApply) {
-    applyStageDemandPresetToOA();
   }
   
   // 检查当前页面是否为missionapplyadd页面（在扩展环境中）
@@ -345,6 +339,22 @@ document.addEventListener('DOMContentLoaded', function() {
   
   // 绑定事件监听器
   bindEventListeners();
+
+  // 根据“自动填充”设置，显示或隐藏底部“填充预设”按钮，并绑定点击
+  if (applyPresetsBtn) {
+    applyPresetsBtn.classList.toggle('hidden', !!presetAutoFillPresets);
+    applyPresetsBtn.addEventListener('click', () => {
+      autofillDemandTagToStory(presetDemandTag);
+      autofillWorkTypeToMission(presetWorkType);
+      if (presetCloseReminders) {
+        autofillCloseRemindersToPage(presetCloseReminders);
+      }
+      applyBlueprintPresetToOA();
+      applyStageDemandPresetToOA();
+      applyTaskReviewerPresetToOA();
+      showToast('已填充预设配置');
+    });
+  }
   
   // 初始化项目选择下拉框
   updateProjectSelect();
@@ -2120,6 +2130,23 @@ function createLogElement(log) {
       autofillCloseRemindersToPage(presetCloseReminders);
     });
   }
+  // 自动填充总开关勾选后保存，并切换底部按钮显示
+  if (autoFillPresetsCheckbox) {
+    autoFillPresetsCheckbox.addEventListener('change', () => {
+      savePresetAutoFillPresets();
+      // 开启时立即应用所有预设；关闭时仅不再自动应用（不撤销已应用）
+      if (presetAutoFillPresets) {
+        autofillDemandTagToStory(presetDemandTag);
+        autofillWorkTypeToMission(presetWorkType);
+        if (presetCloseReminders) {
+          autofillCloseRemindersToPage(presetCloseReminders);
+        }
+        applyBlueprintPresetToOA();
+        applyStageDemandPresetToOA();
+        applyTaskReviewerPresetToOA();
+      }
+    });
+  }
 // 加载预设需求标签
 function loadPresetDemandTag() {
   try {
@@ -2195,6 +2222,37 @@ function savePresetCloseReminders() {
     showToast('关闭提醒已保存');
   } catch (error) {
     console.error('保存预设关闭提醒失败:', error);
+  }
+}
+
+// 加载“自动填充预设配置”总开关
+function loadPresetAutoFillPresets() {
+  try {
+    const saved = localStorage.getItem('presetAutoFillPresets');
+    // 默认开启；若不存在则使用true
+    presetAutoFillPresets = saved === null ? true : (saved === 'true');
+    if (autoFillPresetsCheckbox) {
+      autoFillPresetsCheckbox.checked = !!presetAutoFillPresets;
+    }
+  } catch (error) {
+    console.error('加载自动填充设置失败:', error);
+    presetAutoFillPresets = true;
+    if (autoFillPresetsCheckbox) autoFillPresetsCheckbox.checked = true;
+  }
+}
+
+// 保存“自动填充预设配置”总开关
+function savePresetAutoFillPresets() {
+  try {
+    presetAutoFillPresets = !!(autoFillPresetsCheckbox && autoFillPresetsCheckbox.checked);
+    localStorage.setItem('presetAutoFillPresets', String(presetAutoFillPresets));
+    if (applyPresetsBtn) {
+      applyPresetsBtn.classList.toggle('hidden', !!presetAutoFillPresets);
+    }
+    showToast(presetAutoFillPresets ? '已开启自动填充' : '已关闭自动填充');
+  } catch (error) {
+    console.error('保存自动填充设置失败:', error);
+    showToast('保存自动填充设置失败');
   }
 }
 
