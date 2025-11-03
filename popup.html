@@ -65,7 +65,10 @@
               </div>
             </div>
             <div class="form-actions">
-              <button type="submit" class="btn-primary">保存</button>
+              <button type="submit" class="btn-primary">
+                <svg class="btn-icon" viewBox="0 0 24 24" width="14" height="14"><path fill="currentColor" d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z"/></svg>
+                保存日志
+              </button>
             </div>
           </form>
         </div>
@@ -81,12 +84,6 @@
             <!-- 日志列表将通过JavaScript动态生成 -->
           </div>
         </div>
-
-          <!-- 申请非公按钮 -->
-  <div class="apply-non-public-container">
-    <button id="apply-non-public-btn" class="btn-apply-non-public">申请非功</button>
-    <button id="distribute-non-public-btn" class="btn-apply-non-public">发放非功</button>
-  </div>
       </div>
 
       <!-- 已填写标签页 -->
@@ -239,7 +236,17 @@
     </div>
   </div>
 
-
+  <!-- 申请非公按钮 -->
+  <div class="apply-non-public-container">
+    <button id="apply-non-public-btn" class="btn-apply-non-public">
+      <svg class="btn-icon" viewBox="0 0 24 24" width="16" height="16"><path fill="currentColor" d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm-8 14H7v-2h4v2zm0-4H7v-2h4v2zm0-4H7V7h4v2zm6 8h-4v-2h4v2zm0-4h-4v-2h4v2zm0-4h-4V7h4v2z"/></svg>
+      申请非功
+    </button>
+    <button id="distribute-non-public-btn" class="btn-apply-non-public">
+      <svg class="btn-icon" viewBox="0 0 24 24" width="16" height="16"><path fill="currentColor" d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-1 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-8 8z"/></svg>
+      发放非功
+    </button>
+  </div>
 
   <div id="toast-container" class="toast-container"></div>
   <div class="status-indicator">

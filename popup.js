@@ -269,27 +269,33 @@ function bindEventListeners() {
   
   // 添加申请非公按钮事件监听器
   const applyNonPublicBtn = document.getElementById('apply-non-public-btn');
+  
+  const openApplyNonPublicPage = () => {
+    // 获取当前日期并格式化为YYYY-MM-DD
+    const today = new Date();
+    const year = today.getFullYear();
+    const month = String(today.getMonth() + 1).padStart(2, '0');
+    const day = String(today.getDate()).padStart(2, '0');
+    const currentDate = `${year}-${month}-${day}`;
+    
+    // 打开申请非公页面，带上当前日期参数
+    window.open(`https://oa.epoint.com.cn/epointprojectm/projectmanage/mission/missionapply/projectselect?RZDate=${currentDate}`, '_blank');
+  };
+  
   if (applyNonPublicBtn) {
-    applyNonPublicBtn.addEventListener('click', () => {
-      // 获取当前日期并格式化为YYYY-MM-DD
-      const today = new Date();
-      const year = today.getFullYear();
-      const month = String(today.getMonth() + 1).padStart(2, '0');
-      const day = String(today.getDate()).padStart(2, '0');
-      const currentDate = `${year}-${month}-${day}`;
-      
-      // 打开申请非公页面，带上当前日期参数
-      window.open(`https://oa.epoint.com.cn/epointprojectm/projectmanage/mission/missionapply/projectselect?RZDate=${currentDate}`, '_blank');
-    });
+    applyNonPublicBtn.addEventListener('click', openApplyNonPublicPage);
   }
   
   // 添加发放非功按钮事件监听器
   const distributeNonPublicBtn = document.getElementById('distribute-non-public-btn');
+  
+  const openDistributeNonPublicPage = () => {
+    // 打开发放非功页面
+    window.open('https://oa.epoint.com.cn/epointprojectm/projectmanage/mission/missionapply/missionapplysplitv2', '_blank');
+  };
+  
   if (distributeNonPublicBtn) {
-    distributeNonPublicBtn.addEventListener('click', () => {
-      // 打开发放非功页面
-      window.open('https://oa.epoint.com.cn/epointprojectm/projectmanage/mission/missionapply/missionapplysplitv2', '_blank');
-    });
+    distributeNonPublicBtn.addEventListener('click', openDistributeNonPublicPage);
   }
   
   // 添加日志按钮

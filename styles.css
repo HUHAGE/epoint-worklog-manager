@@ -108,9 +108,9 @@ body {
 .compact-form {
   background-color: #fff;
   border-radius: 8px;
-  padding: 15px;
+  padding: 12px;
   box-shadow: 0 2px 10px rgba(0,0,0,0.05);
-  margin-bottom: 20px;
+  margin-bottom: 15px;
 }
 
 .compact-btn {
@@ -125,12 +125,12 @@ body {
 }
 
 .form-group {
-  margin-bottom: 15px;
+  margin-bottom: 12px;
 }
 
 .form-row {
   display: flex;
-  gap: 15px;
+  gap: 12px;
 }
 
 .half-width {
@@ -139,7 +139,7 @@ body {
 
 .form-group label {
   display: block;
-  margin-bottom: 5px;
+  margin-bottom: 4px;
   font-weight: 500;
   color: #555;
 }
@@ -255,7 +255,31 @@ body {
 .form-actions {
   display: flex;
   gap: 10px;
-  justify-content: flex-end;
+  justify-content: center;
+  margin-top: 10px;
+  margin-bottom: 10px;
+}
+
+/* 现代化的小型保存按钮样式 */
+.btn-primary {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  border: none;
+  padding: 8px 16px;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 13px;
+  font-weight: 500;
+  transition: all 0.3s ease;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.btn-primary:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 10px rgba(102, 126, 234, 0.4);
 }
 
 .project-input-container {
@@ -823,7 +847,7 @@ input:checked + .slider:before {
   bottom: 20px;
   left: 50%;
   transform: translateX(-50%);
-  z-index: 1000;
+  z-index: 9999;
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -1012,23 +1036,41 @@ input:checked + .slider:before {
   position: fixed;
   bottom: 20px;
   right: 20px;
-  z-index: 1000;
+  z-index: 9999;
   display: flex;
-  flex-direction: column;
+  flex-direction: row;
   gap: 10px;
-  align-items: flex-end;
+  align-items: center;
+}
+
+/* 按钮图标样式 */
+.btn-icon {
+  width: 16px;
+  height: 16px;
+  vertical-align: middle;
+}
+
+/* 保存按钮图标样式 */
+.btn-primary .btn-icon {
+  width: 14px;
+  height: 14px;
+  margin-right: 6px;
 }
 
 .btn-apply-non-public {
   padding: 8px 16px;
   font-size: 13px;
   border-radius: 18px;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  background: rgba(87, 96, 111, 0.8); /* #57606f 毛玻璃效果 */
   color: white;
   border: none;
   cursor: pointer;
   transition: all 0.3s ease;
   box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  backdrop-filter: blur(10px); /* 毛玻璃效果 */
 }
 
 .btn-apply-non-public.small {
@@ -1039,5 +1081,6 @@ input:checked + .slider:before {
 
 .btn-apply-non-public:hover {
   transform: translateY(-2px);
-  box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);
+  box-shadow: 0 4px 15px rgba(87, 96, 111, 0.4);
+  background: rgba(87, 96, 111, 1); /* 悬停时的实心背景 */
 }
