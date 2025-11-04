@@ -776,6 +776,13 @@ body {
   opacity: 0.7;
 }
 
+/* 保持填充按钮内图标的尺寸与其它按钮一致 */
+.fill-btn svg,
+.fill-btn img {
+  width: 18px;
+  height: 18px;
+}
+
 .log-item .delete-btn {
   color: #F44336;
   background-color: transparent;
@@ -785,6 +792,21 @@ body {
   background-color: transparent;
   transform: translateY(-1px);
   opacity: 0.7;
+}
+
+/* 配置页面删除按钮去掉背景色 */
+#preset-projects-tab-list .delete-btn,
+#blueprint-presets-list .delete-btn,
+#stagedemand-presets-list .delete-btn,
+#taskreviewer-presets-list .delete-btn {
+  background-color: transparent;
+}
+
+#preset-projects-tab-list .delete-btn:hover,
+#blueprint-presets-list .delete-btn:hover,
+#stagedemand-presets-list .delete-btn:hover,
+#taskreviewer-presets-list .delete-btn:hover {
+  background-color: transparent;
 }
 
 .restore-btn {

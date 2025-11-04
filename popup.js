@@ -195,6 +195,38 @@ function updateStatusIndicator(isLogPage) {
   }
 }
 
+// 检查当前页面是否为日志申请页面
+function checkCurrentPageIsLogPage(callback) {
+  if (typeof chrome !== 'undefined' && chrome.tabs && chrome.tabs.query) {
+    chrome.tabs.query({ active: true, currentWindow: true }, function(tabs) {
+      if (!tabs || tabs.length === 0) {
+        callback(false);
+        return;
+      }
+      
+      const tab = tabs[0];
+      const url = tab.url || '';
+      const normalizedUrl = url.toLowerCase();
+      
+      const isLogPage = url && (
+        /missionapply/i.test(url) || 
+        /missionapplyadd/i.test(url) ||
+        (/epointprojectm/i.test(url) && /mission/i.test(url)) ||
+        normalizedUrl.includes('missionapply') ||
+        normalizedUrl.includes('missionapplyadd') ||
+        normalizedUrl.includes('mission') && normalizedUrl.includes('apply') ||
+        normalizedUrl.includes('worklog') ||
+        normalizedUrl.includes('log') && (normalizedUrl.includes('mission') || normalizedUrl.includes('task'))
+      );
+      
+      callback(isLogPage);
+    });
+  } else {
+    // 本地预览环境（无chrome API）降级为非日志页面状态
+    callback(false);
+  }
+}
+
 // 检查当前窗口中的标签页
 function checkLogPages() {
   // 首先检查当前窗口中的标签页
@@ -317,15 +349,24 @@ document.addEventListener('DOMContentLoaded', function() {
   // 绑定“填充”按钮点击，并初次根据当前标签与总开关更新可见性
   if (applyPresetsBtn) {
     applyPresetsBtn.addEventListener('click', () => {
-      autofillDemandTagToStory(presetDemandTag);
-      autofillWorkTypeToMission(presetWorkType);
-      if (presetCloseReminders) {
-        autofillCloseRemindersToPage(presetCloseReminders);
-      }
-      applyBlueprintPresetToOA();
-      applyStageDemandPresetToOA();
-      applyTaskReviewerPresetToOA();
-      showToast('已填充预设配置');
+      // 检查当前页面是否为日志申请页面
+      checkCurrentPageIsLogPage((isLogPage) => {
+        if (!isLogPage) {
+          showErrorToast('未打开日志申请页面，无法填充');
+          return;
+        }
+        
+        // 如果在日志申请页面，执行填充操作
+        autofillDemandTagToStory(presetDemandTag);
+        autofillWorkTypeToMission(presetWorkType);
+        if (presetCloseReminders) {
+          autofillCloseRemindersToPage(presetCloseReminders);
+        }
+        applyBlueprintPresetToOA();
+        applyStageDemandPresetToOA();
+        applyTaskReviewerPresetToOA();
+        showToast('已填充预设配置');
+      });
     });
   }
   
@@ -390,7 +431,7 @@ function bindEventListeners() {
     const currentDate = `${year}-${month}-${day}`;
     
     // 打开写日志页面，带上当前日期参数
-    window.open(`https://oa.epoint.com.cn/dailyreportmanage/pages/dailyrecord/dailyrecordaddv2/gzrz/gzrzframe?RZDate=${currentDate}`, '_blank');
+    window.open(`https://oa.epoint.com.cn/dailyreportmanage/pages/dailyrecord/dailyrecordaddv2/calendarmonth`, '_blank');
   };
   
   if (writeLogBtn) {
