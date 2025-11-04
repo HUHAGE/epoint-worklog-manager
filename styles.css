@@ -809,6 +809,20 @@ body {
   background-color: transparent;
 }
 
+/* 隐藏配置页面的应用按钮 */
+#apply-blueprint-btn,
+#apply-stagedemand-btn,
+#apply-taskreviewer-btn {
+  display: none;
+}
+
+/* 增加日志页面保存按钮更小的样式 */
+#log-form .btn-primary {
+  padding: 8px 16px;
+  font-size: 13px;
+  border-radius: 8px;
+}
+
 .restore-btn {
   color: #FF9800;
   background-color: transparent;
