@@ -779,6 +779,14 @@ function bindEventListeners() {
       clearAllFilledLogs();
     });
   }
+  
+  // 关于卡片：打开文档链接
+  const openDocsBtn = document.getElementById('open-docs-btn');
+  if (openDocsBtn) {
+    openDocsBtn.addEventListener('click', () => {
+      window.open('https://huhafish.feishu.cn/wiki/M6AvwaTiYiUtNakqRBRcasjLn4g?from=from_copylink', '_blank');
+    });
+  }
 }
 
 // 清除所有待填写日志

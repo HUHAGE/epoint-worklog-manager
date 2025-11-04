@@ -1431,6 +1431,45 @@ input:checked + .slider:before {
   background-color: #fff;
 }
 
+/* 关于卡片样式 */
+.config-card .form-group p {
+  margin: 5px 0;
+  color: #666;
+  font-size: 14px;
+}
+
+.config-card .form-group p:first-child {
+  margin-top: 0;
+}
+
+.config-card .form-group p:last-child {
+  margin-bottom: 10px;
+}
+
+/* 关于卡片垂直布局 */
+.about-info {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  margin-bottom: 10px;
+  text-align: left;
+}
+
+/* 小巧按钮样式 */
+#open-docs-btn.btn-small {
+  padding: 6px 12px;
+  font-size: 12px;
+  border-radius: 4px;
+  height: auto;
+  width: auto;
+  margin-top: 10px;
+}
+
+/* 关于卡片左对齐 */
+.config-card .form-group:has(.about-info) {
+  justify-content: flex-start;
+}
+
 #feedback-btn {
   width: 100%;
   padding: 12px;
