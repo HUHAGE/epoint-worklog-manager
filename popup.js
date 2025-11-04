@@ -1010,10 +1010,14 @@ function handleFormSubmit(event) {
   
   // 保存到存储
   saveLogs();
-  
-  // 重置表单
+
+  // 保存当前项目选择
+  const selectedProject = projectSelect.value;
+
+  // 重置表单（但不重置项目选择）
   logForm.reset();
-  
+  projectSelect.value = selectedProject;
+
   // 设置日期为今天
   const today = new Date().toISOString().split('T')[0];
   document.getElementById('date').value = today;
