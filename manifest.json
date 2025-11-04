@@ -1,6 +1,6 @@
 {
   "manifest_version": 3,
-  "name": "Epoint • 非功快申",
+  "name": "EP • 非功快申",
   "version": "1.0",
   "description": "管理并自动填充非功能工作日志到公司系统，实现快速申请",
   "permissions": [
@@ -18,7 +18,7 @@
   ],
   "action": {
     "default_popup": "popup.html",
-    "default_title": "Epoint • 非功快申"
+    "default_title": "EP • 非功快申"
   },
   "icons": {
     "16": "icons/icon16.png",
