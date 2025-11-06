@@ -46,6 +46,8 @@ const pendingProjectDropdown = document.getElementById('pending-project-filter')
 const pendingDateFilter = document.getElementById('pending-date-filter');
 const filledProjectDropdown = document.getElementById('filled-project-filter');
 const filledDateFilter = document.getElementById('filled-date-filter');
+// 任务状态筛选（待申请页面）
+const pendingStatusFilter = document.getElementById('pending-status-filter');
 // 选择模式与批量操作控件
 const pendingSelectModeBtn = document.getElementById('pending-select-mode-btn');
 const pendingSelectAllBtn = document.getElementById('pending-select-all-btn');
@@ -87,6 +89,8 @@ let pendingSelectionMode = false;
 let filledSelectionMode = false;
 const pendingSelectedIds = new Set();
 const filledSelectedIds = new Set();
+// 待申请页面的任务状态筛选
+let activePendingStatusFilter = 'pending';
 
 // 项目颜色分配函数
 // 项目名称到颜色索引的映射缓存
@@ -658,6 +662,16 @@ function bindEventListeners() {
       updateHoursStatistics();
     });
   }
+  // 待申请：任务状态筛选
+  if (pendingStatusFilter) {
+    pendingStatusFilter.addEventListener('change', (e) => {
+      activePendingStatusFilter = e.target.value || 'pending';
+      // 切换状态时更新项目下拉为两类任务并集
+      updateProjectTabs();
+      renderPendingLogs();
+      updateHoursStatistics();
+    });
+  }
   // 已申请：项目筛选
   if (filledProjectDropdown) {
     filledProjectDropdown.addEventListener('change', (e) => {
@@ -1100,43 +1114,61 @@ function updateProjectSelect() {
 // 更新工时统计
 function updateHoursStatistics() {
   // 根据当前标签页更新工时显示
-  if (activeTab === 'filled') {
-    const filledHoursValue = document.querySelector('.filled-hours-value');
-    const filledHours = calculateTotalHours(
-      logs.filled,
-      typeof activeFilledProjectFilter !== 'undefined' ? activeFilledProjectFilter : 'all',
-      typeof activeFilledDateFilter !== 'undefined' ? activeFilledDateFilter : ''
-    );
-    if (filledHoursValue) {
-      filledHoursValue.textContent = filledHours.toFixed(1);
-    }
-    const statusHours = document.querySelector('.status-hours');
-    const statusFilledHours = document.querySelector('.status-filled-hours');
+  const hoursValue = document.querySelector('.hours-value');
+  const filledHoursValue = document.querySelector('.filled-hours-value');
+  const statusHours = document.querySelector('.status-hours');
+  const statusFilledHours = document.querySelector('.status-filled-hours');
+
+  // 计算两类工时
+  const pendingHours = calculateTotalHours(
+    logs.pending,
+    activeProjectFilter,
+    typeof activePendingDateFilter !== 'undefined' ? activePendingDateFilter : ''
+  );
+  // 在待申请页使用同一个日期筛选来计算已申请工时
+  const filledHours = calculateTotalHours(
+    logs.filled,
+    typeof activeFilledProjectFilter !== 'undefined' ? activeFilledProjectFilter : 'all',
+    typeof activePendingDateFilter !== 'undefined' ? activePendingDateFilter : ''
+  );
+
+  if (activeTab === 'preset') {
     if (statusHours) statusHours.style.display = 'none';
-    if (statusFilledHours) statusFilledHours.style.display = 'flex';
-  } else {
-    const hoursValue = document.querySelector('.hours-value');
-    const pendingHours = calculateTotalHours(
-      logs.pending,
-      activeProjectFilter,
-      typeof activePendingDateFilter !== 'undefined' ? activePendingDateFilter : ''
-    );
-    if (hoursValue) {
-      hoursValue.textContent = pendingHours.toFixed(1);
-    }
-    const statusHours = document.querySelector('.status-hours');
-    const statusFilledHours = document.querySelector('.status-filled-hours');
-    if (statusHours) statusHours.style.display = 'flex';
     if (statusFilledHours) statusFilledHours.style.display = 'none';
+    return;
   }
+
+  // 在待申请标签页根据任务状态筛选显示
+  if (activeTab === 'pending' && typeof activePendingStatusFilter !== 'undefined') {
+    if (activePendingStatusFilter === 'filled') {
+      if (filledHoursValue) filledHoursValue.textContent = filledHours.toFixed(1);
+      if (statusHours) statusHours.style.display = 'none';
+      if (statusFilledHours) statusFilledHours.style.display = 'flex';
+      return;
+    }
+    if (activePendingStatusFilter === 'all') {
+      if (hoursValue) hoursValue.textContent = pendingHours.toFixed(1);
+      if (filledHoursValue) filledHoursValue.textContent = filledHours.toFixed(1);
+      if (statusHours) statusHours.style.display = 'flex';
+      if (statusFilledHours) statusFilledHours.style.display = 'flex';
+      return;
+    }
+  }
+  // 默认显示待填工时
+  if (hoursValue) hoursValue.textContent = pendingHours.toFixed(1);
+  if (statusHours) statusHours.style.display = 'flex';
+  if (statusFilledHours) statusFilledHours.style.display = 'none';
 }
 
 // 更新项目标签
 function updateProjectTabs() {
   // 使用待申请筛选下拉框替代项目标签
   if (!pendingProjectDropdown) return;
-
-  const projectsSet = new Set(logs.pending.map(log => log.project));
+  // 使用两类任务的并集填充项目筛选
+  const projectsSet = new Set([
+    ...logs.pending.map(log => log.project),
+    ...logs.filled.map(log => log.project)
+  ]);
   const projects = ['all', ...projectsSet];
   pendingProjectDropdown.innerHTML = '';
   projects.forEach(p => {
@@ -1163,26 +1195,39 @@ function renderPendingLogs() {
   // 确保pendingLogsList存在
   if (!pendingLogsList) return;
   
-  // 根据项目筛选过滤日志
-  let filteredLogs = logs.pending;
-  if (activeProjectFilter !== 'all') {
-    filteredLogs = logs.pending.filter(log => log.project === activeProjectFilter);
-  }
-  // 日期筛选（可选）
-  if (activePendingDateFilter) {
-    filteredLogs = filteredLogs.filter(log => log.date === activePendingDateFilter);
+  // 根据任务状态筛选选择数据源
+  let sourceItems = [];
+  const status = typeof activePendingStatusFilter !== 'undefined' ? activePendingStatusFilter : 'pending';
+  if (status === 'pending') {
+    sourceItems = logs.pending.map(log => ({ log, status: 'pending' }));
+  } else if (status === 'filled') {
+    sourceItems = logs.filled.map(log => ({ log, status: 'filled' }));
+  } else {
+    sourceItems = [
+      ...logs.pending.map(log => ({ log, status: 'pending' })),
+      ...logs.filled.map(log => ({ log, status: 'filled' }))
+    ];
   }
   
-  if (filteredLogs.length === 0) {
-    pendingLogsList.innerHTML = '<p class="empty-message">暂无待填写日志</p>';
+  // 根据项目筛选
+  if (activeProjectFilter !== 'all') {
+    sourceItems = sourceItems.filter(item => item.log.project === activeProjectFilter);
+  }
+  // 日期筛选
+  if (activePendingDateFilter) {
+    sourceItems = sourceItems.filter(item => item.log.date === activePendingDateFilter);
+  }
+  
+  if (sourceItems.length === 0) {
+    pendingLogsList.innerHTML = '<p class="empty-message">暂无日志</p>';
     return;
   }
   
   // 清空列表
   pendingLogsList.innerHTML = '';
   
-  // 为每个日志创建元素
-  filteredLogs.forEach(log => {
+  // 为每个日志创建元素（根据状态生成不同操作区）
+  sourceItems.forEach(({ log, status }) => {
     const logItem = document.createElement('div');
     logItem.className = 'log-item';
     logItem.dataset.id = log.id;
@@ -1191,8 +1236,7 @@ function renderPendingLogs() {
     const colorIndex = getProjectColorIndex(log.project);
     logItem.classList.add(`project-color-${colorIndex}`);
     
-    logItem.innerHTML = `
-      <div class="log-item-header">
+    const actionsHtmlPending = `
         ${pendingSelectionMode ? `<input type="checkbox" class="log-select-checkbox" data-id="${log.id}" ${pendingSelectedIds.has(log.id) ? 'checked' : ''}>` : ''}
         <div class="log-project">${escapeHtml(log.project)}</div>
         <div class="log-date">${formatDate(log.date)}</div>
@@ -1207,37 +1251,52 @@ function renderPendingLogs() {
           <div class="action-icon fill-btn" title="填充">
             <img src="images/表格-提交.png" width="16" height="16" alt="填充">
           </div>
-        </div>
+        </div>`;
+    const actionsHtmlFilled = `
+        <div class="log-project">${escapeHtml(log.project)}</div>
+        <div class="log-date">${formatDate(log.date)}</div>
+        <div class="log-hours">${log.hours}h</div>
+        <div class="log-actions">
+          <div class="action-icon restore-btn" title="还原">
+            <img src="images/表格-撤回.png" width="16" height="16" alt="还原">
+          </div>
+          <div class="action-icon delete-btn" title="删除">
+            <img src="images/表格-删除.png" width="16" height="16" alt="删除">
+          </div>
+          <div class="action-icon fill-btn" title="填充">
+            <img src="images/表格-提交.png" width="16" height="16" alt="填充">
+          </div>
+        </div>`;
+
+    logItem.innerHTML = `
+      <div class="log-item-header">
+        ${status === 'pending' ? actionsHtmlPending : actionsHtmlFilled}
       </div>
       <div class="log-content">${escapeHtml(log.content)}</div>
     `;
     
     // 添加事件监听器
-    const editBtn = logItem.querySelector('.edit-btn');
     const fillBtn = logItem.querySelector('.fill-btn');
     const deleteBtn = logItem.querySelector('.delete-btn');
-    const selectCheckbox = logItem.querySelector('.log-select-checkbox');
     
-    editBtn.addEventListener('click', () => editLog(log.id));
-    
-    // 修改提交按钮的事件处理，使用函数表达式而不是箭头函数
-    fillBtn.addEventListener('click', function() {
-      console.log('Fill button clicked for log:', log.id);
-      window.fillLog(log.id);
-    });
-    
-    deleteBtn.addEventListener('click', () => deleteLog(log.id, 'pending'));
-
-    // 选择复选框事件
-    if (selectCheckbox) {
-      selectCheckbox.addEventListener('change', (e) => {
-        const id = log.id;
-        if (e.target.checked) {
-          pendingSelectedIds.add(id);
-        } else {
-          pendingSelectedIds.delete(id);
-        }
-      });
+    if (status === 'pending') {
+      const editBtn = logItem.querySelector('.edit-btn');
+      const selectCheckbox = logItem.querySelector('.log-select-checkbox');
+      if (editBtn) editBtn.addEventListener('click', () => editLog(log.id));
+      if (fillBtn) fillBtn.addEventListener('click', function() { window.fillLog(log.id); });
+      if (deleteBtn) deleteBtn.addEventListener('click', () => deleteLog(log.id, 'pending'));
+      if (selectCheckbox) {
+        selectCheckbox.addEventListener('change', (e) => {
+          const id = log.id;
+          if (e.target.checked) pendingSelectedIds.add(id);
+          else pendingSelectedIds.delete(id);
+        });
+      }
+    } else {
+      const restoreBtn = logItem.querySelector('.restore-btn');
+      if (restoreBtn) restoreBtn.addEventListener('click', () => restoreLog(log.id));
+      if (deleteBtn) deleteBtn.addEventListener('click', () => deleteLog(log.id, 'filled'));
+      if (fillBtn) fillBtn.addEventListener('click', () => fillLog(log.id));
     }
     
     pendingLogsList.appendChild(logItem);
