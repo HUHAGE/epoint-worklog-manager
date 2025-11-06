@@ -429,8 +429,8 @@ body {
 }
 
 .btn-add-log {
-  padding: 4px 8px;
-  font-size: 11px;
+  padding: 3px 6px;
+  font-size: 10px;
   font-weight: 500;
   border-radius: 3px;
   background: linear-gradient(135deg, #4CAF50 0%, #45a049 100%);
@@ -440,8 +440,9 @@ body {
   transition: transform 0.2s, box-shadow 0.2s;
   display: flex;
   align-items: center;
-  gap: 3px;
+  gap: 2px;
   white-space: nowrap;
+  height: 30px; /* 降低按钮高度 */
 }
 
 .btn-add-log:hover {
