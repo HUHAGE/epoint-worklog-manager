@@ -443,6 +443,7 @@ body {
   gap: 2px;
   white-space: nowrap;
   height: 30px; /* 降低按钮高度 */
+  width: 80px;
 }
 
 .btn-add-log:hover {

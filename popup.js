@@ -1614,13 +1614,30 @@ function fillLogToPage(tabId, log) {
         window.restoreLog(log.id);
       } else if (results && results[0] && results[0].result === 'success') {
         showToast('日志填写成功！');
+        
+        // 填充数据后，执行额外的自动填充操作来激活编辑状态
+        // 这些操作与底部快捷按钮的功能一致，可以确保datagrid处于可编辑状态
+        setTimeout(() => {
+          console.log('执行额外的自动填充操作来激活编辑状态...');
+          
+          // 执行与底部快捷按钮相同的自动填充操作
+          autofillDemandTagToStory(presetDemandTag);
+          autofillWorkTypeToMission(presetWorkType);
+          if (presetCloseReminders) {
+            autofillCloseRemindersToPage(presetCloseReminders);
+          }
+          applyBlueprintPresetToOA();
+          applyStageDemandPresetToOA();
+          applyTaskReviewerPresetToOA();
+          
+          console.log('额外的自动填充操作完成');
+        }, 1000); // 延迟1秒确保数据填充完成后再执行
       }
     });
-  } catch (error) {
+  } catch (error) {"explanation:修改fillLogToPage函数，在数据填充成功后，添加与底部快捷按钮相同的自动填充操作，确保datagrid处于可编辑状态"}
     console.error('Error executing script:', error);
     showToast('填充日志时发生错误: ' + error.message);
   }
-}
 
 // 注入到页面的脚本函数
 function injectFillLogScript(logData) {
