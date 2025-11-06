@@ -58,6 +58,18 @@ const filledSelectModeBtn = document.getElementById('filled-select-mode-btn');
   // 可选：清除全部按钮（如果未在HTML中提供，则为null）
   const pendingClearAllBtn = document.getElementById('pending-clear-all-btn');
 const filledClearAllBtn = document.getElementById('filled-clear-all-btn');
+// 新增日志按钮
+const addNewLogBtn = document.getElementById('add-new-log-btn');
+// 模态框元素
+const addLogModal = document.getElementById('add-log-modal');
+const modalCloseBtn = document.getElementById('modal-close-btn');
+const modalCancelBtn = document.getElementById('modal-cancel-btn');
+const modalAddLogForm = document.getElementById('modal-add-log-form');
+const modalProjectSelect = document.getElementById('modal-project');
+const modalTaskNameInput = document.getElementById('modal-task-name');
+const modalContentTextarea = document.getElementById('modal-content');
+const modalHoursInput = document.getElementById('modal-hours');
+const modalDateInput = document.getElementById('modal-date');
 // 自动填充总开关与按钮 UI 引用
 const autoFillPresetsCheckbox = document.getElementById('auto-fill-presets-checkbox');
 const applyPresetsBtn = document.getElementById('apply-presets-btn');
@@ -495,6 +507,87 @@ function bindEventListeners() {
   if (blueprintAutoApplyCheckbox) {
     blueprintAutoApplyCheckbox.addEventListener('change', () => {
       savePresetBlueprintAutoApply();
+    });
+  }
+
+  // 新增日志按钮事件
+  if (addNewLogBtn) {
+    addNewLogBtn.addEventListener('click', () => {
+      openAddLogWindow();
+    });
+  }
+
+  // 模态框事件监听
+  if (modalCloseBtn) {
+    modalCloseBtn.addEventListener('click', closeAddLogModal);
+  }
+  
+  if (modalCancelBtn) {
+    modalCancelBtn.addEventListener('click', closeAddLogModal);
+  }
+  
+  // 点击模态框外部关闭
+  if (addLogModal) {
+    addLogModal.addEventListener('click', (e) => {
+      if (e.target === addLogModal) {
+        closeAddLogModal();
+      }
+    });
+  }
+  
+  // 模态框表单提交
+  if (modalAddLogForm) {
+    modalAddLogForm.addEventListener('submit', (e) => {
+      e.preventDefault();
+      
+      const project = modalProjectSelect.value;
+      const taskName = modalTaskNameInput.value.trim();
+      const content = modalContentTextarea.value.trim();
+      const hours = parseFloat(modalHoursInput.value);
+      const date = modalDateInput.value;
+
+      // 验证输入
+      if (!project) {
+        showErrorToast('请选择项目名称');
+        return;
+      }
+      if (!taskName) {
+        showErrorToast('请输入任务名称');
+        return;
+      }
+      if (!content) {
+        showErrorToast('请输入工作内容');
+        return;
+      }
+      if (!hours || hours <= 0) {
+        showErrorToast('请输入有效的工作时长');
+        return;
+      }
+      if (!date) {
+        showErrorToast('请选择工作日期');
+        return;
+      }
+
+      // 创建新日志
+      const newLog = {
+        id: Date.now().toString(),
+        project: project,
+        taskName: taskName,
+        content: content,
+        hours: hours,
+        date: date,
+        status: 'pending'
+      };
+
+      // 添加到待填写日志列表
+      logs.pending.push(newLog);
+      saveLogs();
+      renderPendingLogs();
+      updateHoursStatistics();
+      
+      // 关闭模态框并显示成功消息
+      closeAddLogModal();
+      showToast('日志添加成功！');
     });
   }
 
@@ -2513,6 +2606,51 @@ function savePresetBlueprintAutoApply() {
   } catch (error) {
     console.error('保存蓝图自动应用设置失败:', error);
   }
+}
+
+// ===================== 新增日志功能 =====================
+function openAddLogWindow() {
+  try {
+    // 获取当前日期作为默认值
+    const today = new Date().toISOString().split('T')[0];
+    
+    // 填充项目选项 - 包含现有日志项目和预设项目
+    const projectsSet = new Set([
+      ...logs.pending.map(log => log.project),
+      ...logs.filled.map(log => log.project),
+      ...presetProjects // 添加预设项目
+    ]);
+    
+    // 清空并重新填充项目下拉列表
+    modalProjectSelect.innerHTML = '<option value="">请选择项目</option>';
+    projectsSet.forEach(project => {
+      const option = document.createElement('option');
+      option.value = project;
+      option.textContent = project;
+      modalProjectSelect.appendChild(option);
+    });
+
+    // 设置默认日期和工时
+    modalDateInput.value = today;
+    modalHoursInput.value = '2'; // 默认工时为2小时
+    
+    // 清空其他表单字段
+    modalTaskNameInput.value = '';
+    modalContentTextarea.value = '';
+    
+    // 显示模态框
+    addLogModal.style.display = 'block';
+    
+  } catch (error) {
+    console.error('打开新增日志窗口失败:', error);
+    showToast('打开新增日志窗口失败，请重试');
+  }
+}
+
+// 关闭模态框函数
+function closeAddLogModal() {
+  addLogModal.style.display = 'none';
+  modalAddLogForm.reset();
 }
 
 // ===================== 任务审核人预设：存储与渲染 =====================
