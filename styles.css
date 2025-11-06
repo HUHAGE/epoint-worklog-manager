@@ -1003,6 +1003,18 @@ body {
 .edit-btn {
   color: #3182ce;
   background-color: transparent;
+  width: 30px;
+  height: 30px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 6px;
+}
+
+.edit-btn svg,
+.edit-btn img {
+  width: 18px;
+  height: 18px;
 }
 
 .edit-btn:hover {
@@ -1035,6 +1047,12 @@ body {
 .log-item .delete-btn {
   color: #e53e3e;
   background-color: transparent;
+  width: 30px;
+  height: 30px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 6px;
 }
 
 .log-item .delete-btn:hover {
