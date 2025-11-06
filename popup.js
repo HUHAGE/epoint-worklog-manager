@@ -1208,7 +1208,6 @@ function renderPendingLogs() {
     
     const actionsHtmlPending = `
         ${pendingSelectionMode ? `<input type="checkbox" class="log-select-checkbox" data-id="${log.id}" ${pendingSelectedIds.has(log.id) ? 'checked' : ''}>` : ''}
-        <div class="log-project">${escapeHtml(log.project)}</div>
         <div class="log-date">${formatDate(log.date)}</div>
         <div class="log-hours">${log.hours}h</div>
         <div class="log-actions">
@@ -1236,10 +1235,19 @@ function renderPendingLogs() {
         </div>`;
 
     logItem.innerHTML = `
-      <div class="log-item-header">
-        ${status === 'pending' ? actionsHtmlPending : actionsHtmlFilled}
+      <div class=\"log-item-header\">\n        <span class=\"log-task-title\">${escapeHtml(log.taskName)}</span>\n        <span class=\"log-project-tag\">${escapeHtml(log.project.slice(0,3))}</span>\n        ${status === 'pending' ? actionsHtmlPending : `
+        <div class=\"log-date\">${formatDate(log.date)}</div>
+        <div class=\"log-hours\">${log.hours}h</div>
+        <div class=\"log-actions\">
+          <div class=\"action-icon delete-btn\" title=\"删除\">
+            <img src=\"images/表格-删除.png\" width=\"16\" height=\"16\" alt=\"删除\">
+          </div>
+          <div class=\"action-icon fill-btn\" title=\"填充\">
+            <img src=\"images/表格-提交.png\" width=\"16\" height=\"16\" alt=\"填充\">
+          </div>
+        </div>`}
       </div>
-      <div class="log-content">${escapeHtml(log.content)}</div>
+      <div class=\"log-content\">${escapeHtml(log.content)}</div>
     `;
     
     // 添加事件监听器
@@ -1316,21 +1324,26 @@ function renderFilledLogs() {
     logItem.classList.add(`project-color-${colorIndex}`);
     
     logItem.innerHTML = `
-      <div class="log-item-header">
-        ${filledSelectionMode ? `<input type="checkbox" class="log-select-checkbox" data-id="${log.id}" ${filledSelectedIds.has(log.id) ? 'checked' : ''}>` : ''}
-        <div class="log-project">${escapeHtml(log.project)}</div>
-        <div class="log-date">${formatDate(log.date)}</div>
-        <div class="log-hours">${log.hours}h</div>
-        <div class="log-actions">
-          <div class="action-icon delete-btn" title="删除">
-            <img src="images/表格-删除.png" width="16" height="16" alt="删除">
-          </div>
-          <div class="action-icon fill-btn" title="填充">
-            <img src="images/表格-提交.png" width="16" height="16" alt="填充">
+      <div class=\"log-item-header\">
+        <div class=\"log-header-left\">
+          ${filledSelectionMode ? `<input type=\"checkbox\" class=\"log-select-checkbox\" data-id=\"${log.id}\" ${filledSelectedIds.has(log.id) ? 'checked' : ''}>` : ''}
+          <span class=\"log-task-title\">${escapeHtml(log.taskName)}</span>
+        </div>
+        <div class=\"log-header-right\">
+          <span class=\"log-project-tag\">${escapeHtml(log.project.slice(0,3))}</span>
+          <div class=\"log-date\">${formatDate(log.date)}</div>
+          <div class=\"log-hours\">${log.hours}h</div>
+          <div class=\"log-actions\">
+            <div class=\"action-icon delete-btn\" title=\"删除\">
+              <img src=\"images/表格-删除.png\" width=\"16\" height=\"16\" alt=\"删除\">
+            </div>
+            <div class=\"action-icon fill-btn\" title=\"填充\">
+              <img src=\"images/表格-提交.png\" width=\"16\" height=\"16\" alt=\"填充\">
+            </div>
           </div>
         </div>
       </div>
-      <div class="log-content">${escapeHtml(log.content)}</div>
+      <div class=\"log-content\">${escapeHtml(log.content)}</div>
     `;
     
     // 添加事件监听器

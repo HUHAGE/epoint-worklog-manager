@@ -935,25 +935,63 @@ body {
 .log-item-header {
   display: flex;
   align-items: center;
-  margin-bottom: 4px; /* 调整底部边距 */
+  margin-bottom: 4px;
+  justify-content: space-between;
 }
 
-.log-project {
-  flex: 1;
+.log-header-left {
+  display: flex;
+  align-items: center;
+  flex: 1 1 auto;
+  min-width: 0;
+}
+
+.log-header-right {
+  display: flex;
+  flex-direction: row-reverse; /* 元素顺序反转，实现靠右排列 */
+  align-items: center;
+  gap: 10px; /* 增大间距，避免紧贴 */
+  white-space: nowrap;
+}
+
+.log-task-title {
+  font-size: 15px;
+  font-weight: 700;
+  color: #222;
+  width: 100%; /* 占满左侧空间 */
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.log-project-tag,
+.log-date,
+.log-hours {
+  flex-shrink: 0; /* 防止被压缩，保证对齐 */
+}
+
+.log-project-tag {
+  display: inline-block;
+  background: linear-gradient(90deg, #667eea 60%, #764ba2 100%);
+  color: #fff;
+  font-size: 12px;
   font-weight: 600;
+  border-radius: 8px;
+  padding: 2px 10px;
+  margin-right: 10px;
+  letter-spacing: 0.5px;
+  box-shadow: 0 2px 8px rgba(102,126,234,0.12);
+  max-width: 48px;
+  text-align: center;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
-  color: #2d3748;
-  margin-right: 12px; /* 调整右边距 */
-  font-size: 14px; /* 调整字体大小 */
-  letter-spacing: 0.3px;
 }
 
 .log-date {
-  margin-right: 12px; /* 调整日期与工时之间的间距 */
+  margin-right: 10px;
   white-space: nowrap;
-  font-size: 12px; /* 调整字体大小 */
+  font-size: 12px;
   color: #718096;
   font-weight: 500;
   letter-spacing: 0.3px;
@@ -962,9 +1000,9 @@ body {
 .log-hours {
   color: #667eea;
   font-weight: 600;
-  margin-right: 12px; /* 调整右边距 */
+  margin-right: 10px;
   white-space: nowrap;
-  font-size: 12px; /* 调整字体大小 */
+  font-size: 12px;
   letter-spacing: 0.3px;
 }
 
@@ -972,7 +1010,6 @@ body {
   display: flex;
   align-items: center; /* 确保按钮垂直居中对齐 */
   gap: 6px; /* 调整按钮间距 */
-  margin-left: auto;
 }
 
 .action-icon {
