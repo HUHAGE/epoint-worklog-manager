@@ -1012,22 +1012,24 @@ body {
 }
 
 .fill-btn {
-  color: #ffffff;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-  border: 1px solid rgba(255, 255, 255, 0.3);
+  color: #333;
+  background: linear-gradient(135deg, rgba(102, 126, 234, 0.18) 0%, rgba(118, 75, 162, 0.18) 100%);
+  border: 1px solid rgba(102, 126, 234, 0.35);
+  box-shadow: 0 2px 6px rgba(102, 126, 234, 0.15), 0 1px 2px rgba(0, 0, 0, 0.06);
 }
 
 .fill-btn:hover {
-  background: linear-gradient(135deg, #764ba2 0%, #667eea 100%);
+  background: linear-gradient(135deg, rgba(118, 75, 162, 0.22) 0%, rgba(102, 126, 234, 0.22) 100%);
   transform: translateY(-1px) scale(1.05);
-  box-shadow: 0 6px 16px rgba(102, 126, 234, 0.4), 0 2px 4px rgba(0, 0, 0, 0.1);
+  box-shadow: 0 6px 14px rgba(102, 126, 234, 0.25), 0 2px 4px rgba(0, 0, 0, 0.08);
 }
 
-/* 保持填充按钮内图标的尺寸与其它按钮一致 */
+/* 保持填充按钮内图标的尺寸与其它按钮一致，并增强可见性 */
 .fill-btn svg,
 .fill-btn img {
   width: 18px;
   height: 18px;
+  filter: drop-shadow(0 1px 1px rgba(0, 0, 0, 0.25));
 }
 
 .log-item .delete-btn {
@@ -1041,19 +1043,26 @@ body {
   box-shadow: 0 4px 12px rgba(229, 62, 62, 0.2), 0 1px 3px rgba(0, 0, 0, 0.1);
 }
 
-/* 配置页面删除按钮去掉背景色 */
+/* 配置页面删除按钮去掉背景色（增强覆盖） */
 #preset-projects-tab-list .delete-btn,
 #blueprint-presets-list .delete-btn,
 #stagedemand-presets-list .delete-btn,
-#taskreviewer-presets-list .delete-btn {
-  background-color: transparent;
+#taskreviewer-presets-list .delete-btn,
+.config-card .delete-btn {
+  background: none !important;
+  background-color: transparent !important;
+  box-shadow: none !important;
+  border-color: transparent;
 }
 
 #preset-projects-tab-list .delete-btn:hover,
 #blueprint-presets-list .delete-btn:hover,
 #stagedemand-presets-list .delete-btn:hover,
-#taskreviewer-presets-list .delete-btn:hover {
-  background-color: transparent;
+#taskreviewer-presets-list .delete-btn:hover,
+.config-card .delete-btn:hover {
+  background: none !important;
+  background-color: transparent !important;
+  box-shadow: none !important;
 }
 
 /* 隐藏配置页面的应用按钮 */
@@ -1825,7 +1834,7 @@ input:checked + .slider:before {
   width: 100%;
   padding: 12px;
   background-color: #f5f7fa;
-  color: #667eea;
+  color: #f5f7fa;
   border: 1px solid #ddd;
   border-radius: 4px;
   cursor: pointer;
