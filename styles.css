@@ -347,30 +347,121 @@ body {
   font-size: 15px;
 }
 
-/* 输入框样式 */
-.config-card input[type="text"] {
+/* 模态框表单样式 - 专业质感 */
+.modal-body .form-group {
+  margin-bottom: 12px;
+}
+
+.modal-body .form-group:last-child {
+  margin-bottom: 0;
+}
+
+.modal-body .form-group label {
+  display: block;
+  margin-bottom: 6px;
+  font-weight: 600;
+  color: #2d3748;
+  font-size: 13px;
+  letter-spacing: 0.3px;
+}
+
+.modal-body .form-control {
   width: 100%;
   padding: 10px 12px;
   border: 2px solid #e2e8f0;
   border-radius: 8px;
   background: linear-gradient(135deg, #ffffff 0%, #f8fafc 100%);
-  font-size: 14px;
+  font-size: 13px;
   color: #4a5568;
   transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.05);
+  font-family: inherit;
 }
 
-.config-card input[type="text"]:focus {
+.modal-body .form-control:focus {
   outline: none;
   border-color: #667eea;
   box-shadow: 
     0 0 0 3px rgba(102, 126, 234, 0.1),
-    0 4px 12px rgba(102, 126, 234, 0.2);
+    0 6px 20px rgba(102, 126, 234, 0.2);
   background: linear-gradient(135deg, #ffffff 0%, #f1f5f9 100%);
 }
 
-.config-card input[type="text"]::placeholder {
+.modal-body .form-control::placeholder {
   color: #a0aec0;
   font-size: 13px;
+}
+
+.modal-body textarea.form-control {
+  resize: vertical;
+  min-height: 60px;
+  line-height: 1.4;
+}
+
+.modal-body select.form-control {
+  appearance: none;
+  background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%234a5568' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6 9 12 15 18 9'%3e%3c/polyline%3e%3c/svg%3e");
+  background-repeat: no-repeat;
+  background-position: right 12px center;
+  background-size: 16px;
+  padding-right: 40px;
+}
+
+/* 表单行样式 */
+.modal-body .form-row {
+  display: flex;
+  gap: 16px;
+}
+
+.modal-body .col-half {
+  flex: 1;
+}
+
+/* 模态框按钮样式 - 专业质感 */
+.modal-footer .btn {
+  padding: 10px 16px;
+  border: none;
+  border-radius: 8px;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  min-width: 80px;
+  backdrop-filter: blur(4px);
+  letter-spacing: 0.3px;
+}
+
+.modal-footer .btn-primary {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  box-shadow: 
+    0 6px 20px rgba(102, 126, 234, 0.4),
+    0 2px 8px rgba(0, 0, 0, 0.15);
+}
+
+.modal-footer .btn-primary:hover {
+  transform: translateY(-3px) scale(1.05);
+  box-shadow: 
+    0 8px 25px rgba(102, 126, 234, 0.5),
+    0 4px 12px rgba(0, 0, 0, 0.2);
+}
+
+.modal-footer .btn-secondary {
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.95), rgba(248, 250, 252, 0.9));
+  color: #4a5568;
+  border: 1px solid #e2e8f0;
+  box-shadow: 
+    0 4px 12px rgba(0, 0, 0, 0.08),
+    0 2px 4px rgba(0, 0, 0, 0.08);
+}
+
+.modal-footer .btn-secondary:hover {
+  background: linear-gradient(135deg, rgba(255, 255, 255, 1), rgba(248, 250, 252, 0.95));
+  border-color: #cbd5e0;
+  transform: translateY(-2px) scale(1.02);
+  box-shadow: 
+    0 6px 16px rgba(0, 0, 0, 0.12),
+    0 3px 6px rgba(0, 0, 0, 0.12);
 }
 
 /* 下拉框容器保持默认布局 */
@@ -618,7 +709,7 @@ body {
   gap: 2px;
   white-space: nowrap;
   height: 30px; /* 降低按钮高度 */
-  width: 70px;
+  width: 65px;
 }
 
 .btn-add-log:hover {
@@ -921,14 +1012,15 @@ body {
 }
 
 .fill-btn {
-  color: #38a169;
-  background-color: transparent;
+  color: #ffffff;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  border: 1px solid rgba(255, 255, 255, 0.3);
 }
 
 .fill-btn:hover {
-  background-color: rgba(56, 161, 105, 0.1);
+  background: linear-gradient(135deg, #764ba2 0%, #667eea 100%);
   transform: translateY(-1px) scale(1.05);
-  box-shadow: 0 4px 12px rgba(56, 161, 105, 0.2), 0 1px 3px rgba(0, 0, 0, 0.1);
+  box-shadow: 0 6px 16px rgba(102, 126, 234, 0.4), 0 2px 4px rgba(0, 0, 0, 0.1);
 }
 
 /* 保持填充按钮内图标的尺寸与其它按钮一致 */
@@ -1001,52 +1093,42 @@ body {
 /* 项目背景色样式 - 专业质感 */
 .log-item.project-color-0 {
   background: linear-gradient(135deg, rgba(173, 216, 230, 0.4), rgba(173, 216, 230, 0.2)); /* 淡蓝色 */
-  border-left: 3px solid rgba(70, 130, 180, 0.6);
 }
 
 .log-item.project-color-1 {
   background: linear-gradient(135deg, rgba(144, 238, 144, 0.4), rgba(144, 238, 144, 0.2)); /* 淡绿色 */
-  border-left: 3px solid rgba(34, 139, 34, 0.6);
 }
 
 .log-item.project-color-2 {
   background: linear-gradient(135deg, rgba(221, 160, 221, 0.4), rgba(221, 160, 221, 0.2)); /* 淡紫色 */
-  border-left: 3px solid rgba(186, 85, 211, 0.6);
 }
 
 .log-item.project-color-3 {
   background: linear-gradient(135deg, rgba(255, 218, 185, 0.4), rgba(255, 218, 185, 0.2)); /* 淡橙色 */
-  border-left: 3px solid rgba(255, 140, 0, 0.6);
 }
 
 .log-item.project-color-4 {
   background: linear-gradient(135deg, rgba(255, 182, 193, 0.4), rgba(255, 182, 193, 0.2)); /* 淡粉色 */
-  border-left: 3px solid rgba(255, 20, 147, 0.6);
 }
 
 .log-item.project-color-5 {
   background: linear-gradient(135deg, rgba(255, 255, 224, 0.5), rgba(255, 255, 224, 0.3)); /* 淡黄色 */
-  border-left: 3px solid rgba(218, 165, 32, 0.6);
 }
 
 .log-item.project-color-6 {
   background: linear-gradient(135deg, rgba(175, 238, 238, 0.4), rgba(175, 238, 238, 0.2)); /* 淡青色 */
-  border-left: 3px solid rgba(0, 139, 139, 0.6);
 }
 
 .log-item.project-color-7 {
   background: linear-gradient(135deg, rgba(211, 211, 211, 0.4), rgba(211, 211, 211, 0.2)); /* 淡灰色 */
-  border-left: 3px solid rgba(105, 105, 105, 0.6);
 }
 
 .log-item.project-color-8 {
   background: linear-gradient(135deg, rgba(250, 235, 215, 0.5), rgba(250, 235, 215, 0.3)); /* 淡杏色 */
-  border-left: 3px solid rgba(210, 180, 140, 0.6);
 }
 
 .log-item.project-color-9 {
   background: linear-gradient(135deg, rgba(230, 230, 250, 0.5), rgba(230, 230, 250, 0.3)); /* 淡薰衣草色 */
-  border-left: 3px solid rgba(147, 112, 219, 0.6);
 }
 
 /* 已填写日志的特殊样式 - 专业质感 */
@@ -1078,53 +1160,84 @@ body {
   margin: 16px 0;
 }
 
-/* 模态框样式 */
+/* 模态框样式 - 专业质感 */
 .modal {
   position: fixed;
   top: 0;
   left: 0;
   width: 100%;
   height: 100%;
-  background-color: rgba(0,0,0,0.5);
+  background: rgba(0, 0, 0, 0.6);
   display: flex;
   justify-content: center;
   align-items: center;
   z-index: 1000;
+  backdrop-filter: blur(8px);
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 .modal-content {
-  background-color: white;
-  border-radius: 8px;
+  background: linear-gradient(135deg, #ffffff 0%, #f8fafc 100%);
+  border-radius: 12px;
   width: 400px;
   max-width: 90%;
-  box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+  box-shadow: 
+    0 15px 40px rgba(0, 0, 0, 0.15),
+    0 6px 20px rgba(0, 0, 0, 0.1),
+    0 0 0 1px rgba(255, 255, 255, 0.1);
+  border: 1px solid rgba(255, 255, 255, 0.4);
+  overflow: hidden;
+  transform: translateY(0) scale(1);
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
+/* 模态框头部 - 专业质感 */
 .modal-header {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 15px 20px;
-  border-bottom: 1px solid #eee;
+  padding: 16px 24px;
+  border-bottom: 1px solid rgba(226, 232, 240, 0.6);
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  backdrop-filter: blur(10px);
 }
 
 .modal-header h3 {
   margin: 0;
-  color: #333;
+  color: #ffffff;
+  font-size: 18px;
+  font-weight: 600;
+  letter-spacing: 0.3px;
 }
 
-.close-modal {
+.modal-close {
   font-size: 24px;
   cursor: pointer;
-  color: #aaa;
+  color: rgba(255, 255, 255, 0.8);
+  background: rgba(255, 255, 255, 0.1);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  border-radius: 6px;
+  width: 32px;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  backdrop-filter: blur(4px);
+  font-weight: 300;
 }
 
-.close-modal:hover {
-  color: #333;
+.modal-close:hover {
+  color: #ffffff;
+  background: rgba(255, 255, 255, 0.2);
+  border-color: rgba(255, 255, 255, 0.3);
+  transform: scale(1.1);
 }
 
+/* 模态框主体 - 专业质感 */
 .modal-body {
-  padding: 20px;
+  padding: 20px 24px;
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.95), rgba(248, 250, 252, 0.9));
 }
 
 .preset-projects-list {
@@ -1238,10 +1351,16 @@ body {
   box-shadow: 0 0 0 2px rgba(102, 126, 234, 0.2);
 }
 
+/* 模态框底部 - 专业质感 */
 .modal-footer {
-  padding: 15px 20px;
-  border-top: 1px solid #eee;
+  padding: 16px 24px;
+  border-top: 1px solid rgba(226, 232, 240, 0.6);
   text-align: right;
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.9), rgba(248, 250, 252, 0.8));
+  backdrop-filter: blur(10px);
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
 }
 
 .checkbox-label {

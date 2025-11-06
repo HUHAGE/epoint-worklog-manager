@@ -1232,9 +1232,6 @@ function renderPendingLogs() {
         <div class="log-date">${formatDate(log.date)}</div>
         <div class="log-hours">${log.hours}h</div>
         <div class="log-actions">
-          <div class="action-icon restore-btn" title="还原">
-            <img src="images/表格-撤回.png" width="16" height="16" alt="还原">
-          </div>
           <div class="action-icon delete-btn" title="删除">
             <img src="images/表格-删除.png" width="16" height="16" alt="删除">
           </div>
@@ -1330,9 +1327,6 @@ function renderFilledLogs() {
         <div class="log-date">${formatDate(log.date)}</div>
         <div class="log-hours">${log.hours}h</div>
         <div class="log-actions">
-          <div class="action-icon restore-btn" title="还原">
-            <img src="images/表格-撤回.png" width="16" height="16" alt="还原">
-          </div>
           <div class="action-icon delete-btn" title="删除">
             <img src="images/表格-删除.png" width="16" height="16" alt="删除">
           </div>
@@ -1345,12 +1339,10 @@ function renderFilledLogs() {
     `;
     
     // 添加事件监听器
-    const restoreBtn = logItem.querySelector('.restore-btn');
     const deleteBtn = logItem.querySelector('.delete-btn');
     const fillBtn = logItem.querySelector('.fill-btn');
     const selectCheckbox = logItem.querySelector('.log-select-checkbox');
     
-    restoreBtn.addEventListener('click', () => restoreLog(log.id));
     deleteBtn.addEventListener('click', () => deleteLog(log.id, 'filled'));
     fillBtn.addEventListener('click', () => fillLog(log.id));
 
@@ -1426,23 +1418,39 @@ window.restoreLog = function(id) {
 window.fillLog = function(id) {
   console.log('fillLog called with id:', id);
   
-  const logIndex = logs.pending.findIndex(log => log.id === id);
+  // 首先尝试从待填写列表中查找
+  let logIndex = logs.pending.findIndex(log => log.id === id);
+  let log;
+  let fromPending = true;
+  
   if (logIndex === -1) {
-    console.error('Log not found with id:', id);
-    showToast('未找到对应的日志记录，请刷新页面后重试');
-    return;
+    // 如果在待填写列表中找不到，尝试从已填写列表中查找
+    logIndex = logs.filled.findIndex(log => log.id === id);
+    if (logIndex === -1) {
+      console.error('Log not found with id:', id);
+      showToast('未找到对应的日志记录，请刷新页面后重试');
+      return;
+    }
+    // 从已填写列表中获取日志
+    log = logs.filled[logIndex];
+    fromPending = false;
+  } else {
+    // 从待填写列表中获取日志
+    log = logs.pending[logIndex];
   }
   
-  // 从待填写列表中移除
-  const log = logs.pending.splice(logIndex, 1)[0];
-  
-  // 添加到已填写列表
-  logs.filled.push(log);
-  
-  // 保存并重新渲染
-  saveLogs();
-  updateProjectTabs();
-  renderLogs();
+  // 如果是从待填写列表中填充，则移动日志到已填写列表
+  if (fromPending) {
+    // 从待填写列表中移除
+    logs.pending.splice(logIndex, 1)[0];
+    // 添加到已填写列表
+    logs.filled.push(log);
+    
+    // 保存并重新渲染
+    saveLogs();
+    updateProjectTabs();
+    renderLogs();
+  }
   
   // 使用setTimeout确保UI更新后再处理tabs操作
   setTimeout(() => {
