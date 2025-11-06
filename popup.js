@@ -575,26 +575,45 @@ function bindEventListeners() {
         return;
       }
 
-      // 创建新日志
-      const newLog = {
-        id: Date.now().toString(),
-        project: project,
-        taskName: taskName,
-        content: content,
-        hours: hours,
-        date: date,
-        status: 'pending'
-      };
+      // 检查是否为编辑模式
+      const editingLogId = modalAddLogForm.dataset.editingLogId;
+      
+      if (editingLogId) {
+        // 编辑现有日志
+        const logIndex = logs.pending.findIndex(log => log.id === editingLogId);
+        if (logIndex !== -1) {
+          logs.pending[logIndex] = {
+            ...logs.pending[logIndex],
+            project: project,
+            taskName: taskName,
+            content: content,
+            hours: hours,
+            date: date
+          };
+        }
+        delete modalAddLogForm.dataset.editingLogId;
+        showToast('日志更新成功！');
+      } else {
+        // 创建新日志
+        const newLog = {
+          id: Date.now().toString(),
+          project: project,
+          taskName: taskName,
+          content: content,
+          hours: hours,
+          date: date,
+          status: 'pending'
+        };
+        logs.pending.push(newLog);
+        showToast('日志添加成功！');
+      }
 
-      // 添加到待填写日志列表
-      logs.pending.push(newLog);
       saveLogs();
       renderPendingLogs();
       updateHoursStatistics();
       
-      // 关闭模态框并显示成功消息
+      // 关闭模态框
       closeAddLogModal();
-      showToast('日志添加成功！');
     });
   }
 
@@ -1161,32 +1180,44 @@ window.editLog = function(id) {
   const log = logs.pending.find(log => log.id === id);
   if (!log) return;
   
-  // 切换到添加日志标签页
-  switchTab('add');
+  // 获取当前日期作为默认值
+  const today = new Date().toISOString().split('T')[0];
   
-  // 显示表单
-  showLogForm();
+  // 填充项目选项 - 包含现有日志项目和预设项目，确保编辑的项目包含在内
+  const projectsSet = new Set([
+    log.project, // 确保编辑的项目包含在内
+    ...logs.pending.map(log => log.project),
+    ...logs.filled.map(log => log.project),
+    ...presetProjects // 添加预设项目
+  ]);
+  
+  // 清空并重新填充项目下拉列表
+  modalProjectSelect.innerHTML = '<option value="">请选择项目</option>';
+  projectsSet.forEach(project => {
+    const option = document.createElement('option');
+    option.value = project;
+    option.textContent = project;
+    modalProjectSelect.appendChild(option);
+  });
+  
+  // 打开模态框
+  addLogModal.style.display = 'block';
   
   // 设置编辑模式标记
-  logForm.dataset.editingLogId = id;
+  modalAddLogForm.dataset.editingLogId = id;
   
-  // 填充表单数据
-  // 检查项目是否在预设项目中
-  if (presetProjects.includes(log.project)) {
-    projectSelect.value = log.project;
-    projectSelect.classList.remove('hidden');
-    projectInput.classList.add('hidden');
-  } else {
-    // 如果项目不在预设项目中，直接使用项目名称
-    projectSelect.value = log.project;
-    projectSelect.classList.remove('hidden');
-    projectInput.classList.add('hidden');
+  // 更新模态框标题为编辑模式
+  const modalTitle = addLogModal.querySelector('.modal-header h3');
+  if (modalTitle) {
+    modalTitle.textContent = '编辑工作日志';
   }
   
-  document.getElementById('content').value = log.content;
-  document.getElementById('hours').value = log.hours;
-  document.getElementById('date').value = log.date;
-  document.getElementById('task-name').value = log.taskName || '';
+  // 填充模态框表单数据
+  modalProjectSelect.value = log.project;
+  modalTaskNameInput.value = log.taskName || '';
+  modalContentTextarea.value = log.content;
+  modalHoursInput.value = log.hours;
+  modalDateInput.value = log.date;
 };
 
 // 处理项目选择变化
@@ -2658,6 +2689,15 @@ function openAddLogWindow() {
 function closeAddLogModal() {
   addLogModal.style.display = 'none';
   modalAddLogForm.reset();
+  
+  // 重置模态框标题为默认标题
+  const modalTitle = addLogModal.querySelector('.modal-header h3');
+  if (modalTitle) {
+    modalTitle.textContent = '新增工作日志';
+  }
+  
+  // 清除编辑模式标记
+  delete modalAddLogForm.dataset.editingLogId;
 }
 
 // 保存日志并继续函数
