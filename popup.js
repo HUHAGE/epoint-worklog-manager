@@ -8,7 +8,7 @@ let logs = {
 let presetProjects = [];
 
 // 当前活动的标签页
-let activeTab = 'add';
+let activeTab = 'pending';
 
 // 当前活动的项目筛选
 let activeProjectFilter = 'all';
@@ -19,11 +19,8 @@ let activePendingDateFilter = '';
 const tabButtons = document.querySelectorAll('.tab-button');
 const pendingTab = document.getElementById('pending-tab');
 const filledTab = document.getElementById('filled-tab');
-const logForm = document.getElementById('log-form');
 const pendingLogsList = document.getElementById('pending-logs-list');
 const filledLogsList = document.getElementById('filled-logs-list');
-const addLogBtn = document.getElementById('add-log-btn');
-const cancelLogBtn = document.getElementById('cancel-log-btn');
 const projectTabs = document.querySelector('.project-tabs');
 const presetProjectsBtn = document.getElementById('preset-projects-btn');
 const presetModal = document.getElementById('preset-modal');
@@ -31,8 +28,6 @@ const closeModal = document.querySelector('.close-modal');
 const presetProjectsList = document.getElementById('preset-projects-list');
 const newPresetProject = document.getElementById('new-preset-project');
 const addPresetProjectBtn = document.getElementById('add-preset-project-btn');
-const projectSelect = document.getElementById('project-select');
-const projectInput = document.getElementById('project');
 const toastContainer = document.getElementById('toast-container');
 const demandTagSelect = document.getElementById('demand-tag-select');
 const workTypeSelect = document.getElementById('work-type-select');
@@ -311,9 +306,6 @@ if (typeof chrome !== 'undefined' && chrome.tabs && chrome.tabs.onRemoved) {
 document.addEventListener('DOMContentLoaded', function() {
   // 初始检查页面状态
   checkLogPages();
-  // 设置默认日期为今天
-  const today = new Date().toISOString().split('T')[0];
-  document.getElementById('date').value = today;
   
   // 加载存储的日志数据和预设项目
   loadLogs();
@@ -390,8 +382,8 @@ document.addEventListener('DOMContentLoaded', function() {
   // 初始化项目选择下拉框
   updateProjectSelect();
   
-  // 切换到增加日志标签页
-  switchTab('add');
+  // 切换到待申请标签页
+  switchTab('pending');
   // 根据当前标签与总开关状态，统一更新底部“填充”按钮可见性
   updateApplyPresetsBtnVisibility();
 });
@@ -467,19 +459,6 @@ function bindEventListeners() {
     distributeNonPublicBtn.addEventListener('click', openDistributeNonPublicPage);
   }
   
-  // 添加日志按钮
-  if (addLogBtn) {
-    addLogBtn.addEventListener('click', showLogForm);
-  }
-  
-  // 取消添加日志按钮
-  if (cancelLogBtn) {
-    cancelLogBtn.addEventListener('click', hideLogForm);
-  }
-  
-  // 表单提交
-  logForm.addEventListener('submit', handleFormSubmit);
-  
   // 项目标签页切换
   projectTabs.addEventListener('click', (e) => {
     if (e.target.classList.contains('project-tab-btn')) {
@@ -487,12 +466,7 @@ function bindEventListeners() {
     }
   });
   
-  // 预设项目按钮
-  if (presetProjectsBtn) {
-    presetProjectsBtn.addEventListener('click', () => {
-      switchTab('preset');
-    });
-  }
+
 
   // 蓝图预设：捕获与应用按钮
   if (captureBlueprintBtn) {
@@ -731,11 +705,6 @@ function bindEventListeners() {
   }
   
   // 移除了模态框中的保存预设项目按钮，因为添加预设项目后会自动保存
-  
-  // 项目选择变化
-  if (projectSelect) {
-    projectSelect.addEventListener('change', handleProjectSelectChange);
-  }
   
   // 预设标签页中的添加按钮
   const addPresetProjectTabBtn = document.getElementById('add-preset-project-tab-btn');
@@ -1056,125 +1025,6 @@ function switchProjectFilter(projectName) {
   updateHoursStatistics();
 }
 
-// 显示日志表单
-function showLogForm() {
-  if (addLogBtn) {
-    addLogBtn.classList.add('hidden');
-  }
-  logForm.classList.remove('hidden');
-}
-
-// 隐藏日志表单
-function hideLogForm() {
-  logForm.classList.add('hidden');
-  if (addLogBtn) {
-    addLogBtn.classList.remove('hidden');
-  }
-  logForm.reset();
-  
-  // 设置日期为今天
-  const today = new Date().toISOString().split('T')[0];
-  document.getElementById('date').value = today;
-}
-
-// 处理表单提交
-function handleFormSubmit(event) {
-  event.preventDefault();
-  
-  // 获取表单数据
-  let project = projectSelect.value;
-  const taskName = document.getElementById('task-name').value.trim();
-  const content = document.getElementById('content').value.trim();
-  const hours = parseFloat(document.getElementById('hours').value);
-  const date = document.getElementById('date').value;
-  
-  // 验证所有字段是否已填写
-  if (!project) {
-    showErrorToast('请选择项目名称');
-    return;
-  }
-  
-  if (!taskName) {
-    showErrorToast('请输入任务名称');
-    return;
-  }
-  
-  if (!content) {
-    showErrorToast('请输入工作内容');
-    return;
-  }
-  
-  if (!hours || hours <= 0) {
-    showErrorToast('请输入有效的工时');
-    return;
-  }
-  
-  if (!date) {
-    showErrorToast('请选择日期');
-    return;
-  }
-
-  // 检查是否在编辑模式
-  const editingLogId = logForm.dataset.editingLogId;
-  
-  // 创建新的日志对象
-  const newLog = {
-    id: editingLogId ? parseInt(editingLogId) : Date.now(), // 如果是编辑模式，使用原来的ID
-    project,
-    taskName,
-    content,
-    hours,
-    date,
-    createdAt: new Date().toISOString()
-  };
-  
-  if (editingLogId) {
-    // 编辑模式：替换原有日志
-    const index = logs.pending.findIndex(log => log.id === parseInt(editingLogId));
-    if (index !== -1) {
-      logs.pending[index] = newLog;
-    }
-    // 清除编辑状态
-    delete logForm.dataset.editingLogId;
-  } else {
-    // 添加模式：添加到待填写日志列表
-    logs.pending.push(newLog);
-  }
-  
-  // 保存到存储
-  saveLogs();
-
-  // 保存当前项目选择
-  const selectedProject = projectSelect.value;
-
-  // 重置表单（但不重置项目选择）
-  logForm.reset();
-  projectSelect.value = selectedProject;
-
-  // 设置日期为今天
-  const today = new Date().toISOString().split('T')[0];
-  document.getElementById('date').value = today;
-  
-  // 显示成功提示
-  showToast(editingLogId ? '日志修改成功' : '日志已保存');
-  
-  // 更新项目标签
-  updateProjectTabs();
-  
-  // 重新渲染待填写日志列表
-  renderPendingLogs();
-  
-  // 如果是编辑模式，立即切换到待填写标签页
-  if (editingLogId) {
-    switchTab('pending');
-  }
-  // 注意：新增模式下不再自动跳转到待填写页面
-  // 用户可以手动点击"待填写"标签页查看新增的日志
-  
-  // 立即更新页面下方指示器中的工时统计
-  updateHoursStatistics();
-}
-
 // 将这些函数定义为全局函数
 window.editLog = function(id) {
   const log = logs.pending.find(log => log.id === id);
@@ -1221,25 +1071,19 @@ window.editLog = function(id) {
 };
 
 // 处理项目选择变化
-function handleProjectSelectChange() {
-  // 移除了与"其他"选项相关的处理逻辑
-}
-
-// 更新项目选择下拉框
+// 更新项目选择下拉框（用于模态框）
 function updateProjectSelect() {
-  // 确保projectSelect存在
-  if (!projectSelect) return;
+  // 确保modalProjectSelect存在
+  if (!modalProjectSelect) return;
   
-  projectSelect.innerHTML = '<option value="">请选择项目</option>';
+  modalProjectSelect.innerHTML = '<option value="">请选择项目</option>';
   
   presetProjects.forEach(project => {
     const option = document.createElement('option');
     option.value = project;
     option.textContent = project;
-    projectSelect.appendChild(option);
+    modalProjectSelect.appendChild(option);
   });
-  
-  // 移除了"其他"选项，只使用预设项目
 }
 
 // 更新工时统计

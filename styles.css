@@ -772,12 +772,7 @@ body {
   display: none;
 }
 
-/* 增加日志页面保存按钮更小的样式 */
-#log-form .btn-primary {
-  padding: 8px 16px;
-  font-size: 13px;
-  border-radius: 8px;
-}
+
 
 .restore-btn {
   color: #FF9800;
