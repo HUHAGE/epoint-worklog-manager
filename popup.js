@@ -384,8 +384,6 @@ document.addEventListener('DOMContentLoaded', function() {
   
   // 切换到待申请标签页
   switchTab('pending');
-  // 根据当前标签与总开关状态，统一更新底部“填充”按钮可见性
-  updateApplyPresetsBtnVisibility();
 });
 
 
@@ -1002,9 +1000,6 @@ function switchTab(tabName) {
       statusIndicator.style.display = 'flex';
     }
   }
-  
-  // 统一更新底部“填充”按钮可见性
-  updateApplyPresetsBtnVisibility();
   
   // 渲染对应标签页的内容
   renderLogs();
@@ -2359,8 +2354,6 @@ function savePresetAutoFillPresets() {
   try {
     presetAutoFillPresets = !!(autoFillPresetsCheckbox && autoFillPresetsCheckbox.checked);
     localStorage.setItem('presetAutoFillPresets', String(presetAutoFillPresets));
-    // 统一更新底部“填充”按钮可见性
-    updateApplyPresetsBtnVisibility();
     
     showToast(presetAutoFillPresets ? '已开启自动填充' : '已关闭自动填充');
   } catch (error) {
