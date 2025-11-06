@@ -64,6 +64,7 @@ const addNewLogBtn = document.getElementById('add-new-log-btn');
 const addLogModal = document.getElementById('add-log-modal');
 const modalCloseBtn = document.getElementById('modal-close-btn');
 const modalCancelBtn = document.getElementById('modal-cancel-btn');
+const modalSaveContinueBtn = document.getElementById('modal-save-continue-btn');
 const modalAddLogForm = document.getElementById('modal-add-log-form');
 const modalProjectSelect = document.getElementById('modal-project');
 const modalTaskNameInput = document.getElementById('modal-task-name');
@@ -524,6 +525,12 @@ function bindEventListeners() {
   
   if (modalCancelBtn) {
     modalCancelBtn.addEventListener('click', closeAddLogModal);
+  }
+  
+  if (modalSaveContinueBtn) {
+    modalSaveContinueBtn.addEventListener('click', () => {
+      saveLogAndContinue();
+    });
   }
   
   // 点击模态框外部关闭
@@ -2651,6 +2658,74 @@ function openAddLogWindow() {
 function closeAddLogModal() {
   addLogModal.style.display = 'none';
   modalAddLogForm.reset();
+}
+
+// 保存日志并继续函数
+function saveLogAndContinue() {
+  try {
+    const project = modalProjectSelect.value;
+    const taskName = modalTaskNameInput.value.trim();
+    const content = modalContentTextarea.value.trim();
+    const hours = parseFloat(modalHoursInput.value);
+    const date = modalDateInput.value;
+
+    // 验证输入
+    if (!project) {
+      showErrorToast('请选择项目名称');
+      return;
+    }
+    if (!taskName) {
+      showErrorToast('请输入任务名称');
+      return;
+    }
+    if (!content) {
+      showErrorToast('请输入工作内容');
+      return;
+    }
+    if (!hours || hours <= 0) {
+      showErrorToast('请输入有效的工作时长');
+      return;
+    }
+    if (!date) {
+      showErrorToast('请选择工作日期');
+      return;
+    }
+
+    // 创建新日志
+    const newLog = {
+      id: Date.now().toString(),
+      project: project,
+      taskName: taskName,
+      content: content,
+      hours: hours,
+      date: date,
+      status: 'pending'
+    };
+
+    // 添加到待填写日志列表
+    logs.pending.push(newLog);
+    saveLogs();
+    renderPendingLogs();
+    updateHoursStatistics();
+    
+    // 保存当前项目选择
+    const currentProject = modalProjectSelect.value;
+    
+    // 清空表单，但保留项目选择
+    modalTaskNameInput.value = '';
+    modalContentTextarea.value = '';
+    modalHoursInput.value = '2'; // 重置为默认工时
+    
+    // 恢复项目选择
+    modalProjectSelect.value = currentProject;
+    
+    // 显示成功消息
+    showToast('日志添加成功！可继续添加下一条日志。');
+    
+  } catch (error) {
+    console.error('保存日志失败:', error);
+    showErrorToast('保存日志失败，请重试');
+  }
 }
 
 // ===================== 任务审核人预设：存储与渲染 =====================
