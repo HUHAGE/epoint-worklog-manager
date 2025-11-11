@@ -1211,9 +1211,6 @@ function renderPendingLogs() {
         <div class="log-date">${formatDate(log.date)}</div>
         <div class="log-hours">${log.hours}h</div>
         <div class="log-actions">
-          <div class="action-icon edit-btn" title="编辑">
-            <img src="images/表格-修改.png" width="16" height="16" alt="编辑">
-          </div>
           <div class="action-icon delete-btn" title="删除">
             <img src="images/表格-删除.png" width="16" height="16" alt="删除">
           </div>
@@ -1255,9 +1252,7 @@ function renderPendingLogs() {
     const deleteBtn = logItem.querySelector('.delete-btn');
     
     if (status === 'pending') {
-      const editBtn = logItem.querySelector('.edit-btn');
       const selectCheckbox = logItem.querySelector('.log-select-checkbox');
-      if (editBtn) editBtn.addEventListener('click', () => editLog(log.id));
       if (fillBtn) fillBtn.addEventListener('click', function() { window.fillLog(log.id); });
       if (deleteBtn) deleteBtn.addEventListener('click', () => deleteLog(log.id, 'pending'));
       if (selectCheckbox) {
