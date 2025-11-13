@@ -1083,7 +1083,7 @@ body {
 }
 
 .log-item .delete-btn {
-  color: #e53e3e;
+  color: #3182ce;
   background-color: transparent;
   width: 30px;
   height: 30px;
@@ -1094,31 +1094,48 @@ body {
 }
 
 .log-item .delete-btn:hover {
-  background-color: rgba(229, 62, 62, 0.1);
+  background-color: rgba(49, 130, 206, 0.1);
   transform: translateY(-1px) scale(1.05);
-  box-shadow: 0 4px 12px rgba(229, 62, 62, 0.2), 0 1px 3px rgba(0, 0, 0, 0.1);
+  box-shadow: 0 4px 12px rgba(49, 130, 206, 0.2), 0 1px 3px rgba(0, 0, 0, 0.1);
 }
 
-/* 配置页面删除按钮去掉背景色（增强覆盖） */
-#preset-projects-tab-list .delete-btn,
-#blueprint-presets-list .delete-btn,
-#stagedemand-presets-list .delete-btn,
-#taskreviewer-presets-list .delete-btn,
-.config-card .delete-btn {
-  background: none !important;
-  background-color: transparent !important;
-  box-shadow: none !important;
-  border-color: transparent;
+/* 配置页面删除按钮使用action-icon样式 */
+#preset-projects-tab-list .action-icon.delete-btn,
+#blueprint-presets-list .action-icon.delete-btn,
+#stagedemand-presets-list .action-icon.delete-btn,
+#taskreviewer-presets-list .action-icon.delete-btn,
+.config-card .action-icon.delete-btn {
+  color: #3182ce;
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.9), rgba(255, 255, 255, 0.7));
+  border: 1px solid rgba(255, 255, 255, 0.4);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1), 0 1px 2px rgba(0, 0, 0, 0.05);
+  backdrop-filter: blur(4px);
+  width: 30px;
+  height: 30px;
+  padding: 6px;
+  border-radius: 6px;
 }
 
-#preset-projects-tab-list .delete-btn:hover,
-#blueprint-presets-list .delete-btn:hover,
-#stagedemand-presets-list .delete-btn:hover,
-#taskreviewer-presets-list .delete-btn:hover,
-.config-card .delete-btn:hover {
-  background: none !important;
-  background-color: transparent !important;
-  box-shadow: none !important;
+#preset-projects-tab-list .action-icon.delete-btn svg,
+#blueprint-presets-list .action-icon.delete-btn svg,
+#stagedemand-presets-list .action-icon.delete-btn svg,
+#taskreviewer-presets-list .action-icon.delete-btn svg,
+.config-card .action-icon.delete-btn svg {
+  width: 16px;
+  height: 16px;
+  stroke: #3182ce;
+  fill: none;
+  display: block;
+}
+
+#preset-projects-tab-list .action-icon.delete-btn:hover,
+#blueprint-presets-list .action-icon.delete-btn:hover,
+#stagedemand-presets-list .action-icon.delete-btn:hover,
+#taskreviewer-presets-list .action-icon.delete-btn:hover,
+.config-card .action-icon.delete-btn:hover {
+  background-color: rgba(49, 130, 206, 0.1);
+  transform: translateY(-1px) scale(1.05);
+  box-shadow: 0 4px 12px rgba(49, 130, 206, 0.2), 0 1px 3px rgba(0, 0, 0, 0.1);
 }
 
 /* 隐藏配置页面的应用按钮 */
@@ -1318,15 +1335,16 @@ body {
 /* 预设项目列表样式 */
 .preset-project-item {
   width: calc(50% - 3px);
-  margin-bottom: 3px; /* 进一步缩小列表项垂直外边距 */
-  padding: 4px; /* 进一步缩小内边距，整体更紧凑 */
+  margin-bottom: 3px;
+  padding: 6px; /* 增加内边距，为删除按钮提供更多空间 */
   background-color: #fff;
   border-radius: 4px;
   box-shadow: 0 1px 3px rgba(0,0,0,0.1);
   box-sizing: border-box;
   display: flex;
   align-items: center;
-  gap: 4px; /* 进一步缩小内部元素间距 */
+  gap: 8px; /* 增加内部元素间距，确保删除按钮不会被挤压 */
+  min-height: 42px; /* 确保有足够的高度容纳30px的删除按钮 */
 }
 
 .preset-project-input {
@@ -1344,10 +1362,45 @@ body {
   box-shadow: 0 0 0 2px rgba(102, 126, 234, 0.2);
 }
 
-.delete-btn {
-  color: #F44336;
-  background-color: rgba(244, 67, 54, 0.1);
-  width: 24px; /* 缩小删除按钮尺寸 */
+/* 配置页面删除按钮 - 使用action-icon样式 */
+.action-icon.delete-btn {
+  color: #3182ce;
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.9), rgba(255, 255, 255, 0.7));
+  border: 1px solid rgba(255, 255, 255, 0.4);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1), 0 1px 2px rgba(0, 0, 0, 0.05);
+  backdrop-filter: blur(4px);
+  width: 30px;
+  height: 30px;
+  padding: 6px;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 0;
+  vertical-align: middle;
+  flex-shrink: 0;
+}
+
+.action-icon.delete-btn svg {
+  width: 16px;
+  height: 16px;
+  stroke: #3182ce;
+  fill: none;
+}
+
+.action-icon.delete-btn:hover {
+  background-color: rgba(49, 130, 206, 0.1);
+  transform: translateY(-1px) scale(1.05);
+  box-shadow: 0 4px 12px rgba(49, 130, 206, 0.2), 0 1px 3px rgba(0, 0, 0, 0.1);
+}
+
+/* 保留原有的通用删除按钮样式作为后备 */
+.delete-btn:not(.action-icon) {
+  color: #3182ce;
+  background-color: rgba(49, 130, 206, 0.1);
+  width: 24px;
   height: 24px;
   padding: 5px;
   border-radius: 4px;
@@ -1358,12 +1411,19 @@ body {
   justify-content: center;
   line-height: 1;
   border: none;
-  font-size: 14px; /* 缩小图标/文本大小 */
+  font-size: 14px;
   font-weight: normal;
 }
 
-.delete-btn:hover {
-  background-color: rgba(244, 67, 54, 0.2);
+.delete-btn:not(.action-icon) svg {
+  width: 16px;
+  height: 16px;
+  stroke: currentColor;
+  fill: none;
+}
+
+.delete-btn:not(.action-icon):hover {
+  background-color: rgba(49, 130, 206, 0.2);
   transform: translateY(-1px);
 }
 

@@ -549,21 +549,39 @@ function bindEventListeners() {
 
       // 检查是否为编辑模式
       const editingLogId = modalAddLogForm.dataset.editingLogId;
+      const editingLogStatus = modalAddLogForm.dataset.editingLogStatus;
       
       if (editingLogId) {
         // 编辑现有日志
-        const logIndex = logs.pending.findIndex(log => log.id === editingLogId);
-        if (logIndex !== -1) {
-          logs.pending[logIndex] = {
-            ...logs.pending[logIndex],
-            project: project,
-            taskName: taskName,
-            content: content,
-            hours: hours,
-            date: date
-          };
+        if (editingLogStatus === 'filled') {
+          // 编辑已填写日志
+          const logIndex = logs.filled.findIndex(log => log.id === editingLogId);
+          if (logIndex !== -1) {
+            logs.filled[logIndex] = {
+              ...logs.filled[logIndex],
+              project: project,
+              taskName: taskName,
+              content: content,
+              hours: hours,
+              date: date
+            };
+          }
+        } else {
+          // 编辑待填写日志
+          const logIndex = logs.pending.findIndex(log => log.id === editingLogId);
+          if (logIndex !== -1) {
+            logs.pending[logIndex] = {
+              ...logs.pending[logIndex],
+              project: project,
+              taskName: taskName,
+              content: content,
+              hours: hours,
+              date: date
+            };
+          }
         }
         delete modalAddLogForm.dataset.editingLogId;
+        delete modalAddLogForm.dataset.editingLogStatus;
         showToast('日志更新成功！');
       } else {
         // 创建新日志
@@ -582,6 +600,7 @@ function bindEventListeners() {
 
       saveLogs();
       renderPendingLogs();
+      renderFilledLogs();
       updateHoursStatistics();
       
       // 关闭模态框
@@ -1021,8 +1040,15 @@ function switchProjectFilter(projectName) {
 }
 
 // 将这些函数定义为全局函数
-window.editLog = function(id) {
-  const log = logs.pending.find(log => log.id === id);
+window.editLog = function(id, status = 'pending') {
+  // 根据状态查找日志
+  let log;
+  if (status === 'pending') {
+    log = logs.pending.find(log => log.id === id);
+  } else {
+    log = logs.filled.find(log => log.id === id);
+  }
+  
   if (!log) return;
   
   // 获取当前日期作为默认值
@@ -1048,8 +1074,9 @@ window.editLog = function(id) {
   // 打开模态框
   addLogModal.style.display = 'block';
   
-  // 设置编辑模式标记
+  // 设置编辑模式标记，包含状态信息
   modalAddLogForm.dataset.editingLogId = id;
+  modalAddLogForm.dataset.editingLogStatus = status;
   
   // 更新模态框标题为编辑模式
   const modalTitle = addLogModal.querySelector('.modal-header h3');
@@ -1211,11 +1238,14 @@ function renderPendingLogs() {
         <div class="log-date">${formatDate(log.date)}</div>
         <div class="log-hours">${log.hours}h</div>
         <div class="log-actions">
+          <div class="action-icon edit-btn" title="修改">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path></svg>
+          </div>
           <div class="action-icon delete-btn" title="删除">
-            <img src="images/表格-删除.png" width="16" height="16" alt="删除">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path><line x1="10" y1="11" x2="10" y2="17"></line><line x1="14" y1="11" x2="14" y2="17"></line></svg>
           </div>
           <div class="action-icon fill-btn" title="填充">
-            <img src="images/表格-提交.png" width="16" height="16" alt="填充">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 11 12 14 22 4"></polyline><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"></path></svg>
           </div>
         </div>`;
     const actionsHtmlFilled = `
@@ -1223,11 +1253,14 @@ function renderPendingLogs() {
         <div class="log-date">${formatDate(log.date)}</div>
         <div class="log-hours">${log.hours}h</div>
         <div class="log-actions">
+          <div class="action-icon edit-btn" title="修改">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path></svg>
+          </div>
           <div class="action-icon delete-btn" title="删除">
-            <img src="images/表格-删除.png" width="16" height="16" alt="删除">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path><line x1="10" y1="11" x2="10" y2="17"></line><line x1="14" y1="11" x2="14" y2="17"></line></svg>
           </div>
           <div class="action-icon fill-btn" title="填充">
-            <img src="images/表格-提交.png" width="16" height="16" alt="填充">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 11 12 14 22 4"></polyline><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"></path></svg>
           </div>
         </div>`;
 
@@ -1236,11 +1269,14 @@ function renderPendingLogs() {
         <div class=\"log-date\">${formatDate(log.date)}</div>
         <div class=\"log-hours\">${log.hours}h</div>
         <div class=\"log-actions\">
+          <div class=\"action-icon edit-btn\" title=\"修改\">
+            <svg width=\"16\" height=\"16\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><path d=\"M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7\"></path><path d=\"M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z\"></path></svg>
+          </div>
           <div class=\"action-icon delete-btn\" title=\"删除\">
-            <img src=\"images/表格-删除.png\" width=\"16\" height=\"16\" alt=\"删除\">
+            <svg width=\"16\" height=\"16\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><polyline points=\"3 6 5 6 21 6\"></polyline><path d=\"M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2\"></path><line x1=\"10\" y1=\"11\" x2=\"10\" y2=\"17\"></line><line x1=\"14\" y1=\"11\" x2=\"14\" y2=\"17\"></line></svg>
           </div>
           <div class=\"action-icon fill-btn\" title=\"填充\">
-            <img src=\"images/表格-提交.png\" width=\"16\" height=\"16\" alt=\"填充\">
+            <svg width=\"16\" height=\"16\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><polyline points=\"9 11 12 14 22 4\"></polyline><path d=\"M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11\"></path></svg>
           </div>
         </div>`}
       </div>
@@ -1250,11 +1286,13 @@ function renderPendingLogs() {
     // 添加事件监听器
     const fillBtn = logItem.querySelector('.fill-btn');
     const deleteBtn = logItem.querySelector('.delete-btn');
+    const editBtn = logItem.querySelector('.edit-btn');
     
     if (status === 'pending') {
       const selectCheckbox = logItem.querySelector('.log-select-checkbox');
       if (fillBtn) fillBtn.addEventListener('click', function() { window.fillLog(log.id); });
       if (deleteBtn) deleteBtn.addEventListener('click', () => deleteLog(log.id, 'pending'));
+      if (editBtn) editBtn.addEventListener('click', () => editLog(log.id, 'pending'));
       if (selectCheckbox) {
         selectCheckbox.addEventListener('change', (e) => {
           const id = log.id;
@@ -1267,6 +1305,7 @@ function renderPendingLogs() {
       if (restoreBtn) restoreBtn.addEventListener('click', () => restoreLog(log.id));
       if (deleteBtn) deleteBtn.addEventListener('click', () => deleteLog(log.id, 'filled'));
       if (fillBtn) fillBtn.addEventListener('click', () => fillLog(log.id));
+      if (editBtn) editBtn.addEventListener('click', () => editLog(log.id, 'filled'));
     }
     
     pendingLogsList.appendChild(logItem);
@@ -1329,11 +1368,14 @@ function renderFilledLogs() {
           <div class=\"log-date\">${formatDate(log.date)}</div>
           <div class=\"log-hours\">${log.hours}h</div>
           <div class=\"log-actions\">
+            <div class=\"action-icon edit-btn\" title=\"修改\">
+              <svg width=\"16\" height=\"16\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><path d=\"M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7\"></path><path d=\"M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z\"></path></svg>
+            </div>
             <div class=\"action-icon delete-btn\" title=\"删除\">
-              <img src=\"images/表格-删除.png\" width=\"16\" height=\"16\" alt=\"删除\">
+              <svg width=\"16\" height=\"16\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><polyline points=\"3 6 5 6 21 6\"></polyline><path d=\"M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2\"></path><line x1=\"10\" y1=\"11\" x2=\"10\" y2=\"17\"></line><line x1=\"14\" y1=\"11\" x2=\"14\" y2=\"17\"></line></svg>
             </div>
             <div class=\"action-icon fill-btn\" title=\"填充\">
-              <img src=\"images/表格-提交.png\" width=\"16\" height=\"16\" alt=\"填充\">
+              <svg width=\"16\" height=\"16\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><polyline points=\"9 11 12 14 22 4\"></polyline><path d=\"M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11\"></path></svg>
             </div>
           </div>
         </div>
@@ -1344,10 +1386,12 @@ function renderFilledLogs() {
     // 添加事件监听器
     const deleteBtn = logItem.querySelector('.delete-btn');
     const fillBtn = logItem.querySelector('.fill-btn');
+    const editBtn = logItem.querySelector('.edit-btn');
     const selectCheckbox = logItem.querySelector('.log-select-checkbox');
     
     deleteBtn.addEventListener('click', () => deleteLog(log.id, 'filled'));
     fillBtn.addEventListener('click', () => fillLog(log.id));
+    if (editBtn) editBtn.addEventListener('click', () => editLog(log.id, 'filled'));
 
     // 选择复选框事件
     if (selectCheckbox) {
@@ -1992,8 +2036,8 @@ function renderPresetProjectsList() {
     projectInput.dataset.index = index;
     
     const deleteBtn = document.createElement('button');
-    deleteBtn.className = 'delete-btn';
-    deleteBtn.innerHTML = '<img src="images/表格-删除.png" width="16" height="16" alt="删除">';
+    deleteBtn.className = 'action-icon delete-btn';
+    deleteBtn.innerHTML = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path><line x1="10" y1="11" x2="10" y2="17"></line><line x1="14" y1="11" x2="14" y2="17"></line></svg>';
     deleteBtn.dataset.index = index;
     deleteBtn.title = '删除';
     
@@ -2168,19 +2212,19 @@ function createLogElement(log) {
   // 编辑图标
   const editIcon = document.createElement('div');
   editIcon.className = 'action-icon';
-  editIcon.innerHTML = '<img src="images/表格-修改.png" width="16" height="16" alt="编辑">';
+  editIcon.innerHTML = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path></svg>';
   editIcon.title = '编辑';
   
   // 填充图标
   const submitIcon = document.createElement('div');
   submitIcon.className = 'action-icon';
-  submitIcon.innerHTML = '<img src="images/表格-提交.png" width="16" height="16" alt="填充">';
+  submitIcon.innerHTML = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 11 12 14 22 4"></polyline><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"></path></svg>';
   submitIcon.title = '填充';
   
   // 删除图标
   const deleteIcon = document.createElement('div');
   deleteIcon.className = 'action-icon';
-  deleteIcon.innerHTML = '<img src="images/表格-删除.png" width="16" height="16" alt="删除">';
+  deleteIcon.innerHTML = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path><line x1="10" y1="11" x2="10" y2="17"></line><line x1="14" y1="11" x2="14" y2="17"></line></svg>';
   deleteIcon.title = '删除';
   
   actions.appendChild(editIcon);
@@ -2435,9 +2479,9 @@ function renderBlueprintPresetsList() {
     info.appendChild(spanProj);
     info.appendChild(spanName);
     const delBtn = document.createElement('button');
-    delBtn.className = 'delete-btn';
+    delBtn.className = 'action-icon delete-btn';
     delBtn.type = 'button';
-    delBtn.innerHTML = '<img src="images/表格-删除.png" width="16" height="16" alt="删除">';
+    delBtn.innerHTML = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path><line x1="10" y1="11" x2="10" y2="17"></line><line x1="14" y1="11" x2="14" y2="17"></line></svg>';
     delBtn.title = '删除';
     delBtn.dataset.key = projectKey;
     delBtn.dataset.type = 'blueprint';
@@ -2568,6 +2612,7 @@ function closeAddLogModal() {
   
   // 清除编辑模式标记
   delete modalAddLogForm.dataset.editingLogId;
+  delete modalAddLogForm.dataset.editingLogStatus;
 }
 
 // 保存日志并继续函数
@@ -2687,9 +2732,9 @@ function renderTaskReviewerPresetsList() {
     info.appendChild(spanProj);
     info.appendChild(spanName);
     const delBtn = document.createElement('button');
-    delBtn.className = 'delete-btn';
+    delBtn.className = 'action-icon delete-btn';
     delBtn.type = 'button';
-    delBtn.innerHTML = '<img src="images/表格-删除.png" width="16" height="16" alt="删除">';
+    delBtn.innerHTML = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path><line x1="10" y1="11" x2="10" y2="17"></line><line x1="14" y1="11" x2="14" y2="17"></line></svg>';
     delBtn.title = '删除';
     delBtn.dataset.key = projectKey;
     delBtn.dataset.type = 'taskreviewer';
@@ -3055,9 +3100,9 @@ function renderStageDemandPresetsList() {
     info.appendChild(spanProj);
     info.appendChild(spanName);
     const delBtn = document.createElement('button');
-    delBtn.className = 'delete-btn';
+    delBtn.className = 'action-icon delete-btn';
     delBtn.type = 'button';
-    delBtn.innerHTML = '<img src="images/表格-删除.png" width="16" height="16" alt="删除">';
+    delBtn.innerHTML = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path><line x1="10" y1="11" x2="10" y2="17"></line><line x1="14" y1="11" x2="14" y2="17"></line></svg>';
     delBtn.title = '删除';
     delBtn.dataset.key = projectKey;
     delBtn.dataset.type = 'stagedemand';
