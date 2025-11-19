@@ -11,18 +11,29 @@
     wrapper.style.left = '50%';
     wrapper.style.transform = 'translateX(-50%)';
     wrapper.style.zIndex = '9999';
+    if (!document.getElementById('oneKeySplitStyles')) {
+      const style = document.createElement('style');
+      style.id = 'oneKeySplitStyles';
+      style.textContent = '#oneKeySplitBtn{padding:12px 24px;border-radius:12px;border:1px solid rgba(255,255,255,0.18);cursor:pointer;font-size:15px;font-weight:600;color:#fff;background:linear-gradient(180deg,rgba(255,255,255,0.12) 0%,rgba(255,255,255,0) 40%),linear-gradient(135deg,#6E34FF 0%,#9E46FF 60%,#C77DFF 100%);box-shadow:0 8px 20px rgba(126,34,206,0.30),0 2px 6px rgba(0,0,0,0.12),inset 0 1px 0 rgba(255,255,255,0.25),inset 0 -1px 0 rgba(0,0,0,0.15);backdrop-filter:saturate(1.2);transition:transform .15s ease,box-shadow .2s ease,filter .2s ease;}#oneKeySplitBtn:hover{transform:translateY(-1px);box-shadow:0 12px 28px rgba(126,34,206,0.45),0 4px 10px rgba(0,0,0,0.12),inset 0 1px 0 rgba(255,255,255,0.35);filter:brightness(1.06);}#oneKeySplitBtn:active{transform:scale(0.99);}#oneKeySplitBtn .icon{display:inline-block;margin-right:8px;vertical-align:middle;line-height:0;}';
+      document.head.appendChild(style);
+    }
     const btn = document.createElement('button');
     btn.id = 'oneKeySplitBtn';
     btn.textContent = '一键发放';
-    btn.style.padding = '10px 18px';
-    btn.style.borderRadius = '999px';
-    btn.style.border = 'none';
+    btn.style.padding = '12px 24px';
+    btn.style.borderRadius = '12px';
+    btn.style.border = '1px solid rgba(255,255,255,0.18)';
     btn.style.cursor = 'pointer';
-    btn.style.fontSize = '14px';
+    btn.style.fontSize = '15px';
+    btn.style.fontWeight = '600';
     btn.style.color = '#fff';
-    btn.style.boxShadow = '0 6px 18px rgba(0,0,0,0.15)';
-    btn.style.background = 'linear-gradient(135deg, #FF7A59 0%, #FF4D4F 50%, #FF9A8F 100%)';
+    btn.style.boxShadow = '0 8px 20px rgba(126,34,206,0.30),0 2px 6px rgba(0,0,0,0.12), inset 0 1px 0 rgba(255,255,255,0.25), inset 0 -1px 0 rgba(0,0,0,0.15)';
+    btn.style.background = 'linear-gradient(180deg, rgba(255,255,255,0.12) 0%, rgba(255,255,255,0) 40%), linear-gradient(135deg, #6E34FF 0%, #9E46FF 60%, #C77DFF 100%)';
     btn.onclick = runOneKeySplit;
+    const icon = document.createElement('span');
+    icon.className = 'icon';
+    icon.innerHTML = '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M13 2L3 14H12L11 22L21 10H12L13 2Z" fill="white" opacity="0.95"/></svg>';
+    btn.prepend(icon);
     wrapper.appendChild(btn);
     document.body.appendChild(wrapper);
   }
