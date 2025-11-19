@@ -1005,7 +1005,7 @@ body {
 .log-project-tag:hover::after {
   content: attr(data-full-name); /* 显示完整项目名称 */
   position: absolute;
-  bottom: 100%;
+  top: 100%; /* 改为在下方显示 */
   left: 50%;
   transform: translateX(-50%);
   background: rgba(0, 0, 0, 0.8);
@@ -1014,7 +1014,7 @@ body {
   border-radius: 4px;
   font-size: 11px;
   white-space: nowrap;
-  z-index: 1000;
+  z-index: 9999; /* 保持高z-index确保显示在最上层 */
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
 }
 
