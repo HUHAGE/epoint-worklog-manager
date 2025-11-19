@@ -505,14 +505,8 @@ function bindEventListeners() {
     });
   }
   
-  // 点击模态框外部关闭
-  if (addLogModal) {
-    addLogModal.addEventListener('click', (e) => {
-      if (e.target === addLogModal) {
-        closeAddLogModal();
-      }
-    });
-  }
+  // 模态框只能通过关闭按钮关闭，不允许点击外部区域关闭
+  // 移除了点击模态框外部关闭的功能
   
   // 模态框表单提交
   if (modalAddLogForm) {
