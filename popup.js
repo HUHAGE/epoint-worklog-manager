@@ -1265,7 +1265,7 @@ function renderPendingLogs() {
         </div>`;
 
     logItem.innerHTML = `
-      <div class=\"log-item-header\">\n        <span class=\"log-task-title\">${escapeHtml(log.taskName)}</span>\n        <span class=\"log-project-tag\">${escapeHtml(log.project.slice(0,3))}</span>\n        ${status === 'pending' ? actionsHtmlPending : `
+      <div class=\"log-item-header\">\n        <span class=\"log-task-title\">${escapeHtml(log.taskName)}</span>\n        <span class=\"log-project-tag\" data-full-name=\"${escapeHtml(log.project)}\">${escapeHtml(log.project.slice(0,3))}</span>\n        ${status === 'pending' ? actionsHtmlPending : `
         <div class=\"log-date\">${formatDate(log.date)}</div>
         <div class=\"log-hours\">${log.hours}h</div>
         <div class=\"log-actions\">
@@ -1364,7 +1364,7 @@ function renderFilledLogs() {
           <span class=\"log-task-title\">${escapeHtml(log.taskName)}</span>
         </div>
         <div class=\"log-header-right\">
-          <span class=\"log-project-tag\">${escapeHtml(log.project.slice(0,3))}</span>
+          <span class=\"log-project-tag\" data-full-name=\"${escapeHtml(log.project)}\">${escapeHtml(log.project.slice(0,3))}</span>
           <div class=\"log-date\">${formatDate(log.date)}</div>
           <div class=\"log-hours\">${log.hours}h</div>
           <div class=\"log-actions\">
