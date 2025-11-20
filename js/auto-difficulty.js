@@ -191,7 +191,50 @@
     }
   }
 
+  async function ensureDifficultySet() {
+    const miniRate = typeof mini !== 'undefined' ? mini.get('difficultydegree') : null;
+    if (!miniRate) return false;
+    
+    try {
+      const currentValue = miniRate.getValue ? miniRate.getValue() : miniRate.value;
+      if (currentValue == 4) return true;
+      
+      const el = miniRate.getEl ? miniRate.getEl() : miniRate.el;
+      if (!el) return false;
+      
+      const selectors = ['li', 'a', 'i', 'span', '.mini-rate-item'];
+      let stars = null;
+      
+      for (const selector of selectors) {
+        const elements = el.querySelectorAll(selector);
+        if (elements.length >= 5) {
+          stars = elements;
+          break;
+        }
+      }
+      
+      if (stars && stars.length >= 4) {
+        stars[3].click();
+        await sleep(300);
+      }
+      
+      try {
+        miniRate.setValue(4);
+        await sleep(200);
+        const finalValue = miniRate.getValue ? miniRate.getValue() : miniRate.value;
+        return finalValue == 4;
+      } catch (_) {
+        return false;
+      }
+    } catch (_) {
+      return false;
+    }
+  }
+
   async function triggerSave() {
+    await ensureDifficultySet();
+    await sleep(300);
+    
     if (typeof window.saveMissionApply === 'function') {
       try { window.saveMissionApply(); } catch (_) {}
       await sleep(1800);
