@@ -682,7 +682,7 @@ body {
   border: 1px solid rgba(226, 232, 240, 0.6);
   transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   min-height: 44px;
-  overflow: hidden;
+  overflow: visible;
   backdrop-filter: blur(10px);
   position: relative;
   flex-wrap: nowrap;
@@ -712,7 +712,7 @@ body {
   gap: 6px;
   flex: 1;
   min-width: 0;
-  overflow: hidden;
+  overflow: visible;
   flex-wrap: nowrap;
 }
 
@@ -724,26 +724,46 @@ body {
 }
 
 .btn-add-log {
-  padding: 3px 6px;
-  font-size: 10px;
-  font-weight: 500;
-  border-radius: 3px;
-  background: linear-gradient(135deg, #4CAF50 0%, #45a049 100%);
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
   color: white;
   border: none;
   cursor: pointer;
   transition: transform 0.2s, box-shadow 0.2s;
-  display: flex;
+  display: inline-flex;
   align-items: center;
-  gap: 2px;
-  white-space: nowrap;
-  height: 30px; /* 降低按钮高度 */
-  width: 65px;
+  justify-content: center;
+  position: relative;
+  overflow: hidden;
+  flex-shrink: 0;
+  padding: 0;
 }
 
 .btn-add-log:hover {
   transform: translateY(-1px);
-  box-shadow: 0 2px 8px rgba(76, 175, 80, 0.3);
+  box-shadow: 0 6px 16px rgba(102, 126, 234, 0.4);
+}
+
+.btn-add-log::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.35), transparent);
+  transition: left 0.5s;
+}
+
+.btn-add-log:hover::before {
+  left: 100%;
+}
+
+.btn-add-log .btn-icon {
+  width: 16px;
+  height: 16px;
 }
 
 /* 响应式布局 - 确保在窄屏下不被遮挡 */
@@ -857,11 +877,18 @@ body {
   padding-right: 12px;
 }
 
-/* 项目筛选在一行内自适应占据剩余空间 */
 #pending-project-filter.filter-select {
-  flex: 1 1 auto;
-  min-width: 120px;
-  max-width: none;
+  width: 100px;
+  min-width: 90px;
+  max-width: 120px;
+  flex: 0 0 100px;
+}
+
+#pending-status-filter.filter-select {
+  width: 80px;
+  min-width: 80px;
+  max-width: 80px;
+  flex: 0 0 80px;
 }
 
 .filter-today-btn {
