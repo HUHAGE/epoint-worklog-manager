@@ -2217,6 +2217,31 @@ input:checked + .slider:before {
   margin-left: 6px;
 }
 
+/* 首页底部三个快捷按钮的柔和背景色区分 */
+#write-log-btn.btn-apply-non-public.text-btn {
+  background: linear-gradient(135deg, #8b5cf6, #7c3aed);
+  color: #ffffff;
+}
+#write-log-btn.btn-apply-non-public.text-btn:hover {
+  background: linear-gradient(135deg, #7c3aed, #6d28d9);
+}
+
+#apply-non-public-btn.btn-apply-non-public.text-btn {
+  background: linear-gradient(135deg, #38bdf8, #0ea5e9);
+  color: #ffffff;
+}
+#apply-non-public-btn.btn-apply-non-public.text-btn:hover {
+  background: linear-gradient(135deg, #0ea5e9, #0284c7);
+}
+
+#distribute-non-public-btn.btn-apply-non-public.text-btn {
+  background: linear-gradient(135deg, #34d399, #10b981);
+  color: #ffffff;
+}
+#distribute-non-public-btn.btn-apply-non-public.text-btn:hover {
+  background: linear-gradient(135deg, #10b981, #059669);
+}
+
 /* 模态框样式 */
 .modal {
   display: none;
