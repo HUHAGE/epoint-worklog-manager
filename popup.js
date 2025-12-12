@@ -66,6 +66,8 @@ const modalTaskNameInput = document.getElementById('modal-task-name');
 const modalContentTextarea = document.getElementById('modal-content');
 const modalHoursInput = document.getElementById('modal-hours');
 const modalDateInput = document.getElementById('modal-date');
+const copyTaskToContentBtn = document.getElementById('copy-task-to-content-btn');
+const clearHoursBtn = document.getElementById('clear-hours-btn');
 // 自动填充总开关与按钮 UI 引用
 const autoFillPresetsCheckbox = document.getElementById('auto-fill-presets-checkbox');
 const applyPresetsBtn = document.getElementById('apply-presets-btn');
@@ -502,6 +504,26 @@ function bindEventListeners() {
   if (modalSaveContinueBtn) {
     modalSaveContinueBtn.addEventListener('click', () => {
       saveLogAndContinue();
+    });
+  }
+  if (copyTaskToContentBtn) {
+    copyTaskToContentBtn.addEventListener('click', () => {
+      const v = (modalTaskNameInput && modalTaskNameInput.value || '').trim();
+      if (!v) {
+        showErrorToast('请输入任务名称');
+        return;
+      }
+      if (modalContentTextarea) {
+        modalContentTextarea.value = v;
+        showToast('已复制任务名称到工作内容');
+      }
+    });
+  }
+  if (clearHoursBtn) {
+    clearHoursBtn.addEventListener('click', () => {
+      if (modalHoursInput) {
+        modalHoursInput.value = '';
+      }
     });
   }
   
