@@ -190,22 +190,31 @@ function updateStatusIndicator(isLogPage) {
   const statusHours = document.querySelector('.status-hours');
   const statusFilledHours = document.querySelector('.status-filled-hours');
   const filledHoursValue = document.querySelector('.filled-hours-value');
+  const statusIndicator = document.querySelector('.status-indicator');
 
   // 计算待填写和已填写的工时总和
   const pendingHours = calculateTotalHours(logs.pending, activeProjectFilter, typeof activePendingDateFilter !== 'undefined' ? activePendingDateFilter : '');
   const filledHours = calculateTotalHours(logs.filled, typeof activeFilledProjectFilter !== 'undefined' ? activeFilledProjectFilter : 'all', typeof activeFilledDateFilter !== 'undefined' ? activeFilledDateFilter : '');
 
   // 根据当前标签页显示不同的工时信息
+  if (activeTab === 'pending' && typeof activePendingStatusFilter !== 'undefined' && activePendingStatusFilter === 'all') {
+    if (statusHours) statusHours.style.display = 'none';
+    if (statusFilledHours) statusFilledHours.style.display = 'none';
+    if (statusIndicator) statusIndicator.style.display = 'none';
+    return;
+  }
   if (activeTab === 'filled') {
     // 在已填写标签页显示已填工时
     filledHoursValue.textContent = filledHours.toFixed(1);
     statusHours.style.display = 'none';
     statusFilledHours.style.display = 'flex';
+    if (statusIndicator) statusIndicator.style.display = 'flex';
   } else {
     // 在其他标签页显示待填工时
     hoursValue.textContent = pendingHours.toFixed(1);
     statusHours.style.display = 'flex';
     statusFilledHours.style.display = 'none';
+    if (statusIndicator) statusIndicator.style.display = 'flex';
   }
 }
 
@@ -1131,6 +1140,7 @@ function updateHoursStatistics() {
   const filledHoursValue = document.querySelector('.filled-hours-value');
   const statusHours = document.querySelector('.status-hours');
   const statusFilledHours = document.querySelector('.status-filled-hours');
+  const statusIndicator = document.querySelector('.status-indicator');
 
   // 计算两类工时
   const pendingHours = calculateTotalHours(
@@ -1148,6 +1158,7 @@ function updateHoursStatistics() {
   if (activeTab === 'preset') {
     if (statusHours) statusHours.style.display = 'none';
     if (statusFilledHours) statusFilledHours.style.display = 'none';
+    if (statusIndicator) statusIndicator.style.display = 'none';
     return;
   }
 
@@ -1157,13 +1168,13 @@ function updateHoursStatistics() {
       if (filledHoursValue) filledHoursValue.textContent = filledHours.toFixed(1);
       if (statusHours) statusHours.style.display = 'none';
       if (statusFilledHours) statusFilledHours.style.display = 'flex';
+      if (statusIndicator) statusIndicator.style.display = 'flex';
       return;
     }
     if (activePendingStatusFilter === 'all') {
-      if (hoursValue) hoursValue.textContent = pendingHours.toFixed(1);
-      if (filledHoursValue) filledHoursValue.textContent = filledHours.toFixed(1);
-      if (statusHours) statusHours.style.display = 'flex';
-      if (statusFilledHours) statusFilledHours.style.display = 'flex';
+      if (statusHours) statusHours.style.display = 'none';
+      if (statusFilledHours) statusFilledHours.style.display = 'none';
+      if (statusIndicator) statusIndicator.style.display = 'none';
       return;
     }
   }
@@ -1171,6 +1182,7 @@ function updateHoursStatistics() {
   if (hoursValue) hoursValue.textContent = pendingHours.toFixed(1);
   if (statusHours) statusHours.style.display = 'flex';
   if (statusFilledHours) statusFilledHours.style.display = 'none';
+  if (statusIndicator) statusIndicator.style.display = 'flex';
 }
 
 // 更新项目标签
