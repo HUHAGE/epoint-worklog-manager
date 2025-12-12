@@ -1798,6 +1798,7 @@ input:checked + .slider:before {
   border-radius: 20px;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
   font-size: 12px;
+  font-weight: 700;
   z-index: 1000;
   transition: all 0.3s ease;
 }
@@ -1829,12 +1830,12 @@ input:checked + .slider:before {
 }
 
 .hours-value {
-  font-weight: 600;
+  font-weight: 700;
   color: #4CAF50;
 }
 
 .filled-hours-value {
-  font-weight: 600;
+  font-weight: 700;
   color: #4CAF50;
 }
 
@@ -2072,7 +2073,7 @@ input:checked + .slider:before {
   border-radius: 16px;
   padding: 0 16px;
   font-size: 12px;
-  font-weight: 500;
+  font-weight: 700;
   background: linear-gradient(135deg, #667eea, #764ba2);
   box-shadow: 
     0 4px 8px rgba(102, 126, 234, 0.3),
@@ -2349,4 +2350,27 @@ textarea.form-control {
   background: linear-gradient(135deg, #5a67d8 0%, #6b46c1 100%);
   transform: translateY(-1px);
   box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
+}
+
+html, body {
+  scrollbar-width: thin;
+  scrollbar-color: #764ba2 rgba(102, 126, 234, 0.12);
+}
+
+*::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+*::-webkit-scrollbar-track {
+  background: rgba(102, 126, 234, 0.08);
+}
+
+*::-webkit-scrollbar-thumb {
+  background: linear-gradient(180deg, #667eea, #764ba2);
+  border-radius: 6px;
+}
+
+*::-webkit-scrollbar-thumb:hover {
+  background: linear-gradient(180deg, #768eea, #865ba2);
 }
