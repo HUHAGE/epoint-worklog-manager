@@ -31,12 +31,11 @@
     <div class="tab-content">
       <!-- 待填写标签页 -->
       <div id="pending-tab" class="tab-pane active">
-        <div class="logs-container">
-          <div class="project-tabs">
-            <div class="filter-bar" id="pending-filter-bar">
-              <div class="filter-controls">
-                <select id="pending-status-filter" class="filter-select">
-                  <option value="pending" selected>未申请</option>
+        <div class="project-tabs">
+          <div class="filter-bar" id="pending-filter-bar">
+            <div class="filter-controls">
+              <select id="pending-status-filter" class="filter-select">
+                <option value="pending" selected>未申请</option>
                   <option value="filled">已申请</option>
                   <option value="all">全部</option>
                 </select>
@@ -55,14 +54,12 @@
           <div id="pending-logs-list" class="logs-list">
             <!-- 日志列表将通过JavaScript动态生成 -->
           </div>
-        </div>
       </div>
 
       
 
       <!-- 配置标签页 -->
       <div id="preset-tab" class="tab-pane">
-        <div class="config-container">
           <!-- 自动填充卡片 -->
           <div class="config-card">
             <h3>自动填充</h3>
@@ -180,7 +177,6 @@
             <button id="feedback-btn" class="btn-secondary">问题反馈</button>
           </div>
 
-        </div>
       </div>
     </div>
   </div>
@@ -201,11 +197,11 @@
   <div id="toast-container" class="toast-container"></div>
   <div class="status-indicator">
       <div class="status-hours">
-        <span class="hours-label">待填工时：</span>
+        <span class="hours-label">工时：</span>
         <span class="hours-value">0</span>
       </div>
       <div class="status-filled-hours" style="display: none;">
-        <span class="filled-hours-label">已填工时：</span>
+        <span class="filled-hours-label">工时：</span>
         <span class="filled-hours-value">0</span>
       </div>
     </div>
