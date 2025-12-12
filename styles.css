@@ -1104,7 +1104,7 @@ body {
 .log-actions {
   display: flex;
   align-items: center;
-  gap: 6px;
+  gap: 4px;
 }
 
 /* 隐藏头部区域内的操作按钮，统一在内容行展示 */
@@ -1113,115 +1113,53 @@ body {
 }
 
 .action-icon {
-  width: 30px; /* 调整按钮宽度 */
-  height: 30px; /* 调整按钮高度 */
-  padding: 6px; /* 调整内边距 */
-  border-radius: 6px;
+  width: 24px;
+  height: 24px;
+  padding: 4px;
+  border-radius: 8px;
   cursor: pointer;
-  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  transition: all 0.2s ease;
   display: flex;
   align-items: center;
   justify-content: center;
-  margin: 0; /* 确保没有外边距 */
-  vertical-align: middle; /* 确保垂直对齐 */
-  flex-shrink: 0; /* 防止按钮收缩 */
-  background: linear-gradient(135deg, rgba(255, 255, 255, 0.9), rgba(255, 255, 255, 0.7));
-  border: 1px solid rgba(255, 255, 255, 0.4);
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1), 0 1px 2px rgba(0, 0, 0, 0.05);
-  backdrop-filter: blur(4px);
+  margin: 0;
+  vertical-align: middle;
+  flex-shrink: 0;
+  background: transparent;
+  border: 1px solid transparent;
 }
 
 .action-icon svg,
 .action-icon img {
-  width: 16px; /* 调整图标大小 */
-  height: 16px; /* 调整图标大小 */
+  width: 16px;
+  height: 16px;
 }
 
 .edit-btn {
-  color: #3182ce;
+  color: #4f46e5;
   background-color: transparent;
-  width: 30px;
-  height: 30px;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  border-radius: 6px;
 }
-
-.edit-btn svg,
-.edit-btn img {
-  width: 18px;
-  height: 18px;
-}
-
 .edit-btn:hover {
-  background-color: rgba(49, 130, 206, 0.1);
-  transform: translateY(-1px) scale(1.05);
-  box-shadow: 0 4px 12px rgba(49, 130, 206, 0.2), 0 1px 3px rgba(0, 0, 0, 0.1);
+  background-color: rgba(79, 70, 229, 0.08);
+  border-color: rgba(79, 70, 229, 0.2);
 }
 
 .fill-btn {
-  color: #ffffff;
-  background: linear-gradient(135deg, #10b981 0%, #059669 100%);
-  border: none; /* 去掉绿色边框 */
-  box-shadow: 
-    0 4px 12px rgba(16, 185, 129, 0.4), 
-    0 2px 6px rgba(0, 0, 0, 0.1),
-    inset 0 1px 0 rgba(255, 255, 255, 0.2);
-  position: relative;
-  overflow: hidden;
+  color: #10b981;
+  background-color: transparent;
 }
-
-.fill-btn::before {
-  content: '';
-  position: absolute;
-  top: 0;
-  left: -100%;
-  width: 100%;
-  height: 100%;
-  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.3), transparent);
-  transition: left 0.6s;
-}
-
-.fill-btn:hover::before {
-  left: 100%;
-}
-
 .fill-btn:hover {
-  background: linear-gradient(135deg, #059669 0%, #047857 100%);
-  transform: translateY(-1px) scale(1.05);
-  box-shadow: 
-    0 8px 20px rgba(16, 185, 129, 0.5), 
-    0 4px 12px rgba(0, 0, 0, 0.2),
-    inset 0 1px 0 rgba(255, 255, 255, 0.3);
-}
-
-/* 保持填充按钮内图标的尺寸与其它按钮一致，并增强可见性 */
-.fill-btn svg,
-.fill-btn img {
-  width: 18px;
-  height: 18px;
-  filter: drop-shadow(0 1px 2px rgba(0, 0, 0, 0.4));
-  position: relative;
-  z-index: 1;
-  stroke: #ffffff !important;
+  background-color: rgba(16, 185, 129, 0.08);
+  border-color: rgba(16, 185, 129, 0.2);
 }
 
 .log-item .delete-btn {
-  color: #3182ce;
+  color: #ef4444;
   background-color: transparent;
-  width: 30px;
-  height: 30px;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  border-radius: 6px;
 }
-
 .log-item .delete-btn:hover {
-  background-color: rgba(49, 130, 206, 0.1);
-  transform: translateY(-1px) scale(1.05);
-  box-shadow: 0 4px 12px rgba(49, 130, 206, 0.2), 0 1px 3px rgba(0, 0, 0, 0.1);
+  background-color: rgba(239, 68, 68, 0.08);
+  border-color: rgba(239, 68, 68, 0.2);
 }
 
 /* 配置页面删除按钮使用action-icon样式 */
@@ -1230,17 +1168,13 @@ body {
 #stagedemand-presets-list .action-icon.delete-btn,
 #taskreviewer-presets-list .action-icon.delete-btn,
 .config-card .action-icon.delete-btn {
-  color: #3182ce;
-  background: linear-gradient(135deg, rgba(255, 255, 255, 0.9), rgba(255, 255, 255, 0.7));
-  border: 1px solid rgba(255, 255, 255, 0.4);
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1), 0 1px 2px rgba(0, 0, 0, 0.05);
-  backdrop-filter: blur(4px);
-  width: 30px;
-  height: 30px;
-  padding: 6px;
-  border-radius: 6px;
+  color: #ef4444;
+  background-color: transparent;
+  width: 24px;
+  height: 24px;
+  padding: 4px;
+  border-radius: 8px;
 }
-
 #preset-projects-tab-list .action-icon.delete-btn svg,
 #blueprint-presets-list .action-icon.delete-btn svg,
 #stagedemand-presets-list .action-icon.delete-btn svg,
@@ -1248,19 +1182,17 @@ body {
 .config-card .action-icon.delete-btn svg {
   width: 16px;
   height: 16px;
-  stroke: #3182ce;
+  stroke: currentColor;
   fill: none;
   display: block;
 }
-
 #preset-projects-tab-list .action-icon.delete-btn:hover,
 #blueprint-presets-list .action-icon.delete-btn:hover,
 #stagedemand-presets-list .action-icon.delete-btn:hover,
 #taskreviewer-presets-list .action-icon.delete-btn:hover,
 .config-card .action-icon.delete-btn:hover {
-  background-color: rgba(49, 130, 206, 0.1);
-  transform: translateY(-1px) scale(1.05);
-  box-shadow: 0 4px 12px rgba(49, 130, 206, 0.2), 0 1px 3px rgba(0, 0, 0, 0.1);
+  background-color: rgba(239, 68, 68, 0.08);
+  border-color: rgba(239, 68, 68, 0.2);
 }
 
 /* 隐藏配置页面的应用按钮 */
@@ -1494,19 +1426,17 @@ body {
   box-shadow: 0 0 0 2px rgba(102, 126, 234, 0.2);
 }
 
-/* 配置页面删除按钮 - 使用action-icon样式 */
+/* 配置与列表通用的删除按钮样式（与其他按钮一致的简洁风格） */
 .action-icon.delete-btn {
-  color: #3182ce;
-  background: linear-gradient(135deg, rgba(255, 255, 255, 0.9), rgba(255, 255, 255, 0.7));
-  border: 1px solid rgba(255, 255, 255, 0.4);
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1), 0 1px 2px rgba(0, 0, 0, 0.05);
-  backdrop-filter: blur(4px);
-  width: 30px;
-  height: 30px;
-  padding: 6px;
-  border-radius: 6px;
+  color: #ef4444;
+  background-color: transparent;
+  border: 1px solid transparent;
+  width: 24px;
+  height: 24px;
+  padding: 4px;
+  border-radius: 8px;
   cursor: pointer;
-  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  transition: all 0.2s ease;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -1518,14 +1448,13 @@ body {
 .action-icon.delete-btn svg {
   width: 16px;
   height: 16px;
-  stroke: #3182ce;
+  stroke: currentColor;
   fill: none;
 }
 
 .action-icon.delete-btn:hover {
-  background-color: rgba(49, 130, 206, 0.1);
-  transform: translateY(-1px) scale(1.05);
-  box-shadow: 0 4px 12px rgba(49, 130, 206, 0.2), 0 1px 3px rgba(0, 0, 0, 0.1);
+  background-color: rgba(239, 68, 68, 0.08);
+  border-color: rgba(239, 68, 68, 0.2);
 }
 
 /* 保留原有的通用删除按钮样式作为后备 */
