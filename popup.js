@@ -409,6 +409,19 @@ function bindEventListeners() {
     });
   });
   
+  const headerConfigBtn = document.getElementById('header-config-btn');
+  if (headerConfigBtn) {
+    headerConfigBtn.addEventListener('click', () => {
+      switchTab('preset');
+    });
+  }
+  const closeConfigBtn = document.getElementById('close-config-btn');
+  if (closeConfigBtn) {
+    closeConfigBtn.addEventListener('click', () => {
+      switchTab('pending');
+    });
+  }
+  
   // 添加问题反馈按钮事件监听器
   const feedbackBtn = document.getElementById('feedback-btn');
   if (feedbackBtn) {
@@ -1043,6 +1056,11 @@ function switchTab(tabName) {
       // 在其他标签页显示状态指示器
       statusIndicator.style.display = 'flex';
     }
+  }
+
+  const closeConfigBtn = document.getElementById('close-config-btn');
+  if (closeConfigBtn) {
+    closeConfigBtn.style.display = tabName === 'preset' ? 'flex' : 'none';
   }
   
   // 渲染对应标签页的内容
