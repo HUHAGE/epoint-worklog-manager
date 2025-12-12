@@ -155,7 +155,7 @@ body {
 .tab-content {
   flex: 1;
   overflow-y: auto;
-  padding: 10px;
+  padding: 10px 10px 120px 10px;
 }
 
 .tab-pane {
@@ -632,18 +632,11 @@ body {
 }
 
 .project-tabs {
-  /* display: flex;
-  flex-wrap: wrap;
-  gap: 3px; 
-  margin-bottom: 8px; 
-  border-bottom: 1px solid #eee;
-  padding: 5px; 
   position: sticky;
   top: 0;
   background-color: #fff;
   z-index: 100;
   box-shadow: 0 1px 3px rgba(0,0,0,0.1);
-  height: 55px; */
 }
 
 .project-tab-btn {
@@ -684,7 +677,9 @@ body {
   min-height: 44px;
   overflow: visible;
   backdrop-filter: blur(10px);
-  position: relative;
+  position: sticky;
+  top: 0;
+  z-index: 100;
   flex-wrap: nowrap;
 }
 
