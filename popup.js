@@ -67,6 +67,8 @@ const modalContentTextarea = document.getElementById('modal-content');
 const modalHoursInput = document.getElementById('modal-hours');
 const modalDateInput = document.getElementById('modal-date');
 const copyTaskToContentBtn = document.getElementById('copy-task-to-content-btn');
+const autoCopyTaskContentSwitch = document.getElementById('auto-copy-task-to-content-switch');
+const autoCopySwitchLabel = document.getElementById('auto-copy-switch-label');
 const clearHoursBtn = document.getElementById('clear-hours-btn');
 // 自动填充总开关与按钮 UI 引用
 const autoFillPresetsCheckbox = document.getElementById('auto-fill-presets-checkbox');
@@ -528,6 +530,22 @@ function bindEventListeners() {
       saveLogAndContinue();
     });
   }
+  // 自动复制开关交互
+  if (autoCopyTaskContentSwitch) {
+    const updateContentRequired = () => {
+      const enabled = !!autoCopyTaskContentSwitch.checked;
+      if (modalContentTextarea) {
+        modalContentTextarea.placeholder = enabled ? '可不填写，保存时将使用任务名称' : '请输入工作内容';
+        // 根据开关状态动态控制必填
+        try { modalContentTextarea.required = !enabled; } catch (e) {}
+      }
+      if (autoCopySwitchLabel) {
+        autoCopySwitchLabel.textContent = enabled ? '自动复制任务名称' : '手动填写工作内容';
+      }
+    };
+    autoCopyTaskContentSwitch.addEventListener('change', updateContentRequired);
+    updateContentRequired();
+  }
   if (copyTaskToContentBtn) {
     copyTaskToContentBtn.addEventListener('click', () => {
       const v = (modalTaskNameInput && modalTaskNameInput.value || '').trim();
@@ -559,7 +577,7 @@ function bindEventListeners() {
       
       const project = modalProjectSelect.value;
       const taskName = modalTaskNameInput.value.trim();
-      const content = modalContentTextarea.value.trim();
+      let content = modalContentTextarea.value.trim();
       const hours = parseFloat(modalHoursInput.value);
       const date = modalDateInput.value;
 
@@ -571,6 +589,16 @@ function bindEventListeners() {
       if (!taskName) {
         showErrorToast('请输入任务名称');
         return;
+      }
+      // 自动复制任务名称到工作内容（当开关开启且内容为空）
+      const autoCopyEnabled = autoCopyTaskContentSwitch ? !!autoCopyTaskContentSwitch.checked : true;
+      if (!content && autoCopyEnabled) {
+        if (!taskName) {
+          showErrorToast('任务名称为空，无法自动复制');
+          return;
+        }
+        content = taskName;
+        if (modalContentTextarea) { modalContentTextarea.value = content; }
       }
       if (!content) {
         showErrorToast('请输入工作内容');
@@ -2677,7 +2705,7 @@ function saveLogAndContinue() {
   try {
     const project = modalProjectSelect.value;
     const taskName = modalTaskNameInput.value.trim();
-    const content = modalContentTextarea.value.trim();
+    let content = modalContentTextarea.value.trim();
     const hours = parseFloat(modalHoursInput.value);
     const date = modalDateInput.value;
 
@@ -2689,6 +2717,16 @@ function saveLogAndContinue() {
     if (!taskName) {
       showErrorToast('请输入任务名称');
       return;
+    }
+    // 自动复制任务名称到工作内容（当开关开启且内容为空）
+    const autoCopyEnabled = autoCopyTaskContentSwitch ? !!autoCopyTaskContentSwitch.checked : true;
+    if (!content && autoCopyEnabled) {
+      if (!taskName) {
+        showErrorToast('任务名称为空，无法自动复制');
+        return;
+      }
+      content = taskName;
+      if (modalContentTextarea) { modalContentTextarea.value = content; }
     }
     if (!content) {
       showErrorToast('请输入工作内容');

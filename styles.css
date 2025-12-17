@@ -476,6 +476,14 @@ body {
   flex: 1;
 }
 
+/* 新增：将自动复制开关及文字靠右显示 */
+.modal-body .auto-copy-toggle {
+  margin-left: auto;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+
 /* 模态框按钮样式 - 专业质感 */
 .modal-footer .btn {
   padding: 10px 16px;

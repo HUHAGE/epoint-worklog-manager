@@ -223,9 +223,15 @@
           <div class="form-group">
             <div class="label-inline">
               <label for="modal-content">工作内容</label>
-              <button type="button" class="btn btn-primary" id="copy-task-to-content-btn">复制任务名称</button>
+              <div class="auto-copy-toggle">
+                <label class="apple-switch" title="开启后保存时自动将任务名称复制到工作内容">
+                  <input type="checkbox" id="auto-copy-task-to-content-switch" checked>
+                  <span class="slider"></span>
+                </label>
+                <span id="auto-copy-switch-label">自动复制任务名称</span>
+              </div>
             </div>
-            <textarea id="modal-content" class="form-control" placeholder="请输入工作内容" rows="3" required></textarea>
+            <textarea id="modal-content" class="form-control" placeholder="可不填写，保存时将使用任务名称" rows="3"></textarea>
           </div>
           <div class="form-row">
             <div class="form-group col-half">
