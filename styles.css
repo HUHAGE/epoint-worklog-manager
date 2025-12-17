@@ -178,7 +178,7 @@ body {
 /* 配置页右上角关闭按钮 */
 .close-config-btn {
   position: fixed;
-  top: 12px;
+  top: 8px;
   right: 12px;
   width: 32px;
   height: 32px;

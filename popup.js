@@ -1102,6 +1102,10 @@ function switchTab(tabName) {
   if (closeConfigBtn) {
     closeConfigBtn.style.display = tabName === 'preset' ? 'flex' : 'none';
   }
+  const headerConfigBtn = document.getElementById('header-config-btn');
+  if (headerConfigBtn) {
+    headerConfigBtn.style.display = tabName === 'preset' ? 'none' : 'inline-flex';
+  }
   
   // 渲染对应标签页的内容
   renderLogs();
