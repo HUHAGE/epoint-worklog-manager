@@ -212,9 +212,8 @@
         <div class="modal-body">
           <div class="form-group">
             <label for="modal-project">项目名称</label>
-            <select id="modal-project" class="form-control" required>
-              <option value="">请选择项目</option>
-            </select>
+            <input type="text" id="modal-project" class="form-control" list="modal-project-list" placeholder="请选择或输入项目名称" required>
+            <datalist id="modal-project-list"></datalist>
           </div>
           <div class="form-group">
             <label for="modal-task-name">任务名称</label>

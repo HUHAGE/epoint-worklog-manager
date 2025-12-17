@@ -62,6 +62,7 @@ const modalCancelBtn = document.getElementById('modal-cancel-btn');
 const modalSaveContinueBtn = document.getElementById('modal-save-continue-btn');
 const modalAddLogForm = document.getElementById('modal-add-log-form');
 const modalProjectSelect = document.getElementById('modal-project');
+const modalProjectDatalist = document.getElementById('modal-project-list');
 const modalTaskNameInput = document.getElementById('modal-task-name');
 const modalContentTextarea = document.getElementById('modal-content');
 const modalHoursInput = document.getElementById('modal-hours');
@@ -575,11 +576,11 @@ function bindEventListeners() {
     modalAddLogForm.addEventListener('submit', (e) => {
       e.preventDefault();
       
-      const project = modalProjectSelect.value;
-      const taskName = modalTaskNameInput.value.trim();
-      let content = modalContentTextarea.value.trim();
-      const hours = parseFloat(modalHoursInput.value);
-      const date = modalDateInput.value;
+    const project = modalProjectSelect.value;
+    const taskName = modalTaskNameInput.value.trim();
+    let content = modalContentTextarea.value.trim();
+    const hours = parseFloat(modalHoursInput.value);
+    const date = modalDateInput.value;
 
       // 验证输入
       if (!project) {
@@ -611,6 +612,17 @@ function bindEventListeners() {
       if (!date) {
         showErrorToast('请选择工作日期');
         return;
+      }
+
+      // 若项目不在预设列表中，自动加入并持久化
+      const projName = (project || '').trim();
+      if (projName && !presetProjects.includes(projName)) {
+        presetProjects.push(projName);
+        try {
+          localStorage.setItem('presetProjects', JSON.stringify(presetProjects));
+        } catch (err) {}
+        updateProjectSelect();
+        try { renderPresetProjectsList(); } catch (e) {}
       }
 
       // 检查是否为编辑模式
@@ -1133,14 +1145,15 @@ window.editLog = function(id, status = 'pending') {
     ...presetProjects // 添加预设项目
   ]);
   
-  // 清空并重新填充项目下拉列表
-  modalProjectSelect.innerHTML = '<option value="">请选择项目</option>';
-  projectsSet.forEach(project => {
-    const option = document.createElement('option');
-    option.value = project;
-    option.textContent = project;
-    modalProjectSelect.appendChild(option);
-  });
+  // 清空并重新填充项目候选列表（datalist）
+  if (modalProjectDatalist) {
+    modalProjectDatalist.innerHTML = '';
+    projectsSet.forEach(project => {
+      const option = document.createElement('option');
+      option.value = project;
+      modalProjectDatalist.appendChild(option);
+    });
+  }
   
   // 打开模态框
   addLogModal.style.display = 'block';
@@ -1166,16 +1179,14 @@ window.editLog = function(id, status = 'pending') {
 // 处理项目选择变化
 // 更新项目选择下拉框（用于模态框）
 function updateProjectSelect() {
-  // 确保modalProjectSelect存在
-  if (!modalProjectSelect) return;
+  // 确保modalProjectDatalist存在
+  if (!modalProjectDatalist) return;
   
-  modalProjectSelect.innerHTML = '<option value="">请选择项目</option>';
-  
+  modalProjectDatalist.innerHTML = '';
   presetProjects.forEach(project => {
     const option = document.createElement('option');
     option.value = project;
-    option.textContent = project;
-    modalProjectSelect.appendChild(option);
+    modalProjectDatalist.appendChild(option);
   });
 }
 
@@ -2658,14 +2669,15 @@ function openAddLogWindow() {
       ...presetProjects // 添加预设项目
     ]);
     
-    // 清空并重新填充项目下拉列表
-    modalProjectSelect.innerHTML = '<option value="">请选择项目</option>';
-    projectsSet.forEach(project => {
-      const option = document.createElement('option');
-      option.value = project;
-      option.textContent = project;
-      modalProjectSelect.appendChild(option);
-    });
+    // 清空并重新填充项目候选列表（datalist）
+    if (modalProjectDatalist) {
+      modalProjectDatalist.innerHTML = '';
+      projectsSet.forEach(project => {
+        const option = document.createElement('option');
+        option.value = project;
+        modalProjectDatalist.appendChild(option);
+      });
+    }
 
     // 设置默认日期和工时
     modalDateInput.value = today;
@@ -2739,6 +2751,17 @@ function saveLogAndContinue() {
     if (!date) {
       showErrorToast('请选择工作日期');
       return;
+    }
+
+    // 若项目不在预设列表中，自动加入并持久化
+    const projName = (project || '').trim();
+    if (projName && !presetProjects.includes(projName)) {
+      presetProjects.push(projName);
+      try {
+        localStorage.setItem('presetProjects', JSON.stringify(presetProjects));
+      } catch (err) {}
+      updateProjectSelect();
+      try { renderPresetProjectsList(); } catch (e) {}
     }
 
     // 创建新日志
