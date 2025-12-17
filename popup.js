@@ -2165,11 +2165,14 @@ function renderPresetProjectsList() {
     
     // 添加删除事件监听
     deleteBtn.addEventListener('click', (e) => {
-      const index = parseInt(e.target.dataset.index);
-      presetProjects.splice(index, 1);
-      renderPresetProjectsList();
-      // 删除预设项目后自动保存
-      savePresetProjects();
+      const idxStr = e.currentTarget && e.currentTarget.dataset ? e.currentTarget.dataset.index : undefined;
+      const index = parseInt(idxStr, 10);
+      if (Number.isInteger(index) && index >= 0 && index < presetProjects.length) {
+        presetProjects.splice(index, 1);
+        renderPresetProjectsList();
+        // 删除预设项目后自动保存
+        savePresetProjects();
+      }
     });
   });
 }
