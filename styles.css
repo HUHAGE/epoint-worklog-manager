@@ -167,6 +167,15 @@ body {
   padding: 10px 10px 120px 10px;
 }
 
+.tab-content::-webkit-scrollbar {
+  width: 0;
+  height: 0;
+}
+.tab-content {
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+
 .tab-pane {
   display: none;
 }
@@ -835,14 +844,14 @@ body {
   .filter-select {
     min-width: 60px;
     max-width: 80px;
-    font-size: 11px;
+    font-size: 12px;
   }
   
   .filter-date {
     width: 110px;
     min-width: 110px;
     max-width: 110px;
-    font-size: 11px;
+    font-size: 12px;
   }
   
   .filter-today-btn {
@@ -878,7 +887,7 @@ body {
 .filter-date {
   height: 32px;
   padding: 6px 10px;
-  font-size: 12px;
+  font-size: 13px;
   border: 2px solid #e2e8f0;
   border-radius: 8px;
   background: linear-gradient(135deg, #ffffff 0%, #f8fafc 100%);
@@ -1064,7 +1073,7 @@ body {
 }
 
 .accordion-count {
-  font-size: 12px;
+  font-size: 13px;
   color: #718096;
 }
 
@@ -1517,6 +1526,15 @@ body {
   flex-wrap: wrap;
   gap: 3px; /* 进一步缩小行/列间距，更加紧凑 */
   width: 100%;
+}
+
+.preset-projects-list::-webkit-scrollbar {
+  width: 0;
+  height: 0;
+}
+.preset-projects-list {
+  scrollbar-width: none;
+  -ms-overflow-style: none;
 }
 
 /* 预设项目列表样式 */
