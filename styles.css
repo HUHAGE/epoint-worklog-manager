@@ -1104,29 +1104,43 @@ body {
 }
 
 .log-item {
-  background: linear-gradient(135deg, rgba(255, 255, 255, 0.95) 0%, rgba(248, 250, 252, 0.95) 100%);
+  background: linear-gradient(135deg, #eef2ff 0%, #e0e7ff 50%, #ede9fe 100%);
   border-radius: 12px;
-  box-shadow: 
-    0 4px 16px rgba(0, 0, 0, 0.08),
-    0 1px 3px rgba(0, 0, 0, 0.04),
-    inset 0 1px 0 rgba(255, 255, 255, 0.6);
-  padding: 12px 16px; /* 调整内边距 */
-  margin-bottom: 8px; /* 调整外边距 */
-  min-height: 70px; /* 保持原有高度 */
-  height: auto; /* 根据内容自适应高度 */
+  box-shadow: 0 6px 18px rgba(102, 126, 234, 0.15), 0 2px 6px rgba(118, 75, 162, 0.10), inset 0 1px 0 rgba(255, 255, 255, 0.6);
+  padding: 12px 16px;
+  margin-bottom: 8px;
+  min-height: 70px;
+  height: auto;
   display: flex;
   flex-direction: column;
   justify-content: space-between;
   transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-  border: 1px solid rgba(226, 232, 240, 0.4);
+  border: none;
   position: relative;
   overflow: hidden;
   backdrop-filter: blur(8px);
-  width: 380px; /* 固定一致的卡片宽度 */
-  box-sizing: border-box; /* 宽度包含内边距与边框，避免超出 */
+  width: 380px;
+  box-sizing: border-box;
   margin-left: auto;
   margin-right: auto;
   padding-bottom: 0;
+}
+
+.log-item::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.35), transparent 30%);
+  pointer-events: none;
+}
+
+.log-item:hover {
+  transform: translateY(-2px) scale(1.01);
+  box-shadow: 0 10px 24px rgba(102, 126, 234, 0.20), 0 3px 10px rgba(118, 75, 162, 0.14), inset 0 1px 0 rgba(255, 255, 255, 0.6);
+}
+
+.log-item[class*="project-color-"] {
+  background: linear-gradient(135deg, #eef2ff 0%, #e0e7ff 50%, #ede9fe 100%) !important;
 }
 
 .log-item-header {
