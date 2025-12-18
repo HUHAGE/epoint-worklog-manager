@@ -546,6 +546,12 @@ body {
   justify-content: flex-start;
 }
 
+/* 导入导出按钮居中 */
+.config-card .form-group:has(#export-logs-btn),
+.config-card .form-group:has(#import-logs-btn) {
+  justify-content: center;
+}
+
 /* 按钮样式 */
 .config-card button {
   padding: 10px 16px;
@@ -586,6 +592,21 @@ body {
   background-position: right 12px center;
   background-size: 16px;
   padding-right: 40px;
+}
+
+.config-card .filter-select {
+  -webkit-appearance: none;
+  appearance: none;
+  height: 28px;
+  padding: 4px 8px;
+  font-size: 12px;
+  border-radius: 6px;
+  background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%234a5568' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6 9 12 15 18 9'%3e%3c/polyline%3e%3c/svg%3e");
+  background-position: right 8px center;
+  background-size: 14px;
+  padding-right: 28px;
+  text-align: center;
+  text-align-last: center;
 }
 
 .config-card select:hover {
@@ -853,6 +874,12 @@ body {
     max-width: 120px;
     font-size: 12px;
   }
+  #export-date-start.filter-date,
+  #export-date-end.filter-date {
+    width: 120px;
+    min-width: 120px;
+    max-width: 120px;
+  }
   
   .filter-today-btn {
     padding: 3px 6px;
@@ -881,20 +908,26 @@ body {
     min-width: 110px;
     max-width: 110px;
   }
+  #export-date-start.filter-date,
+  #export-date-end.filter-date {
+    width: 110px;
+    min-width: 110px;
+    max-width: 110px;
+  }
 }
 
 .filter-select,
 .filter-date {
-  height: 32px;
-  padding: 6px 10px;
-  font-size: 13px;
+  height: 28px;
+  padding: 4px 8px;
+  font-size: 12px;
   border: 2px solid #e2e8f0;
-  border-radius: 8px;
+  border-radius: 6px;
   background: linear-gradient(135deg, #ffffff 0%, #f8fafc 100%);
   transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   color: #4a5568;
-  min-width: 80px;
-  max-width: 120px;
+  min-width: 70px;
+  max-width: 110px;
   flex-shrink: 1;
   appearance: none;
   background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%234a5568' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6 9 12 15 18 9'%3e%3c/polyline%3e%3c/svg%3e");
@@ -904,6 +937,15 @@ body {
   padding-right: 28px;
   font-weight: 500;
   box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.05);
+  box-sizing: border-box;
+}
+
+.filter-select {
+  text-align: center;
+  text-align-last: center;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .filter-select:focus,
@@ -922,19 +964,26 @@ body {
 }
 
 .filter-date {
-  width: 130px;
-  min-width: 130px;
-  max-width: 130px;
+  width: 120px;
+  min-width: 120px;
+  max-width: 120px;
   flex-shrink: 0;
   background-image: none;
   background-size: auto;
   padding-right: 12px;
 }
 
+#export-date-start.filter-date,
+#export-date-end.filter-date {
+  width: 140px;
+  min-width: 140px;
+  max-width: 160px;
+}
+
 .config-card .form-group.export-filters-row {
   justify-content: flex-start;
   flex-wrap: wrap;
-  gap: 8px;
+  gap: 6px;
 }
 
 .config-card .export-date-dash {
@@ -977,19 +1026,19 @@ body {
 
 #export-project-filter.filter-select {
   box-sizing: border-box;
-  width: 140px;
-  min-width: 120px;
-  max-width: 180px;
-  flex: 0 0 140px;
+  width: 120px;
+  min-width: 110px;
+  max-width: 160px;
+  flex: 0 0 120px;
   padding-right: 32px;
 }
 
 #export-status-filter.filter-select {
   box-sizing: border-box;
-  width: 110px;
-  min-width: 100px;
-  max-width: 140px;
-  flex: 0 0 110px;
+  width: 90px;
+  min-width: 80px;
+  max-width: 110px;
+  flex: 0 0 90px;
   padding-right: 28px;
 }
 
@@ -2250,6 +2299,10 @@ input:checked + .slider:before {
   flex-direction: row;
   gap: 12px;
   align-items: center;
+}
+
+.container:has(#preset-tab.active) ~ .apply-non-public-container {
+  display: none;
 }
 
 /* 按钮图标样式 */
