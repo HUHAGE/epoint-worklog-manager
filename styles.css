@@ -1083,11 +1083,15 @@ body {
 
 .accordion-content {
   display: none;
-  padding: 8px 0 12px;
+  padding: 8px 10px 12px;
 }
 
 .accordion-item.open .accordion-content {
   display: block;
+}
+
+.accordion-content .log-item {
+  width: 360px;
 }
 
 .log-item {
