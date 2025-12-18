@@ -362,10 +362,6 @@ body {
 .config-card .form-group:has(#stagedemand-presets-list),
 .config-card .form-group:has(#taskreviewer-presets-list) {
   justify-content: flex-start;
-  background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%);
-  padding: 16px;
-  border-radius: 12px;
-  border: 1px solid #e2e8f0;
   margin-bottom: 16px;
 }
 
@@ -605,6 +601,14 @@ body {
   transition: all 0.2s ease;
   font-weight: 500;
   flex-shrink: 0; /* 防止按钮被压缩 */
+}
+
+/* 配置页捕获按钮与添加项目按钮一致的高度 */
+.btn-capture {
+  padding: 4px 10px;
+  font-size: 11px;
+  height: 35px;
+  line-height: 1;
 }
 
 .preset-btn {
@@ -1204,8 +1208,8 @@ body {
   background-color: transparent;
 }
 .log-item .delete-btn:hover {
-  background-color: rgba(239, 68, 68, 0.08);
-  border-color: rgba(239, 68, 68, 0.2);
+  background-color: transparent;
+  border-color: transparent;
 }
 
 /* 配置页面删除按钮使用action-icon样式 */
@@ -1237,8 +1241,8 @@ body {
 #stagedemand-presets-list .action-icon.delete-btn:hover,
 #taskreviewer-presets-list .action-icon.delete-btn:hover,
 .config-card .action-icon.delete-btn:hover {
-  background-color: rgba(239, 68, 68, 0.08);
-  border-color: rgba(239, 68, 68, 0.2);
+  background-color: transparent;
+  border-color: transparent;
 }
 
 /* 隐藏配置页面的应用按钮 */
@@ -1472,8 +1476,20 @@ body {
   box-shadow: 0 0 0 2px rgba(102, 126, 234, 0.2);
 }
 
+
+/* 预设列表中的删除按钮，强制背景透明 */
+.preset-project-item .action-icon.delete-btn,
+#blueprint-presets-list .action-icon.delete-btn,
+#stagedemand-presets-list .action-icon.delete-btn,
+#taskreviewer-presets-list .action-icon.delete-btn {
+  background: transparent !important;
+  border-color: transparent !important;
+  box-shadow: none !important;
+}
+
 /* 配置与列表通用的删除按钮样式（与其他按钮一致的简洁风格） */
 .action-icon.delete-btn {
+
   color: #ef4444;
   background-color: transparent;
   border: 1px solid transparent;
@@ -1499,14 +1515,14 @@ body {
 }
 
 .action-icon.delete-btn:hover {
-  background-color: rgba(239, 68, 68, 0.08);
-  border-color: rgba(239, 68, 68, 0.2);
+  background-color: transparent;
+  border-color: transparent;
 }
 
 /* 保留原有的通用删除按钮样式作为后备 */
 .delete-btn:not(.action-icon) {
   color: #3182ce;
-  background-color: rgba(49, 130, 206, 0.1);
+  background-color: transparent;
   width: 24px;
   height: 24px;
   padding: 5px;
@@ -1530,7 +1546,7 @@ body {
 }
 
 .delete-btn:not(.action-icon):hover {
-  background-color: rgba(49, 130, 206, 0.2);
+  background-color: transparent;
   transform: translateY(-1px);
 }
 
