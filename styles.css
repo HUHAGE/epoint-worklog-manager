@@ -1017,8 +1017,77 @@ body {
 .logs-list {
   display: flex;
   flex-direction: column;
-  gap: 6px; /* 减小列表项间距 */
-  align-items: center; /* 居中并确保宽度一致 */
+  gap: 6px;
+  align-items: center;
+}
+
+.accordion-item {
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.95) 0%, rgba(248, 250, 252, 0.95) 100%);
+  border-radius: 12px;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.08), 0 1px 3px rgba(0, 0, 0, 0.04), inset 0 1px 0 rgba(255, 255, 255, 0.6);
+  border: 1px solid rgba(226, 232, 240, 0.4);
+  width: 380px;
+  box-sizing: border-box;
+  overflow: hidden;
+}
+
+.accordion-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px 16px;
+  cursor: pointer;
+}
+
+.accordion-title {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.accordion-title .folder-icon svg {
+  filter: drop-shadow(0 2px 4px rgba(0,0,0,0.12));
+  border-radius: 4px;
+}
+
+.accordion-project-name {
+  font-size: 14px;
+  font-weight: 600;
+  color: #1f2937;
+}
+
+.accordion-meta {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  white-space: nowrap;
+}
+
+.accordion-count {
+  font-size: 12px;
+  color: #718096;
+}
+
+.accordion-hours {
+  color: #667eea;
+  font-weight: 600;
+}
+
+.accordion-toggle svg {
+  transition: transform 0.2s ease;
+}
+
+.accordion-item.open .accordion-toggle svg {
+  transform: rotate(180deg);
+}
+
+.accordion-content {
+  display: none;
+  padding: 8px 0 12px;
+}
+
+.accordion-item.open .accordion-content {
+  display: block;
 }
 
 .log-item {

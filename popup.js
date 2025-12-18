@@ -104,6 +104,7 @@ const pendingSelectedIds = new Set();
 const filledSelectedIds = new Set();
 // 待申请页面的任务状态筛选
 let activePendingStatusFilter = 'pending';
+let pendingAccordionState = {};
 
 // 项目颜色分配函数
 // 项目名称到颜色索引的映射缓存
@@ -1312,103 +1313,122 @@ function renderPendingLogs() {
   // 清空列表
   pendingLogsList.innerHTML = '';
   
-  // 为每个日志创建元素（根据状态生成不同操作区）
+  const groupMap = new Map();
   sourceItems.forEach(({ log, status }) => {
-    const logItem = document.createElement('div');
-    logItem.className = 'log-item';
-    logItem.dataset.id = log.id;
-    
-    // 添加项目颜色类
-    const colorIndex = getProjectColorIndex(log.project);
-    logItem.classList.add(`project-color-${colorIndex}`);
-    
-    const actionsIconsHtml = `
-        <div class="log-actions">
-          <div class="action-icon edit-btn" title="修改">
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-              <path d="M12 20h9"></path>
-              <path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4 12.5-12.5z"></path>
-            </svg>
-          </div>
-          <div class="action-icon delete-btn" title="删除">
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-              <polyline points="3 6 5 6 21 6"></polyline>
-              <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
-              <line x1="10" y1="11" x2="10" y2="17"></line>
-              <line x1="14" y1="11" x2="14" y2="17"></line>
-            </svg>
-          </div>
-          <div class="action-icon fill-btn" title="填充">
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-              <polyline points="20 6 9 17 4 12"></polyline>
-            </svg>
-          </div>
-        </div>`;
-    const actionsHtmlFilled = `
-        <div class="log-project">${escapeHtml(log.project)}</div>
-        <div class="log-date">${formatDate(log.date)}</div>
-        <div class="log-hours">${log.hours}h</div>
-        <div class="log-actions">
-          <div class="action-icon edit-btn" title="修改">
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-              <path d="M12 20h9"></path>
-              <path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4 12.5-12.5z"></path>
-            </svg>
-          </div>
-          <div class="action-icon delete-btn" title="删除">
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-              <polyline points="3 6 5 6 21 6"></polyline>
-              <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
-              <line x1="10" y1="11" x2="10" y2="17"></line>
-              <line x1="14" y1="11" x2="14" y2="17"></line>
-            </svg>
-          </div>
-          <div class="action-icon fill-btn" title="填充">
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-              <polyline points="20 6 9 17 4 12"></polyline>
-            </svg>
-          </div>
-        </div>`;
+    const key = log.project || '';
+    if (!groupMap.has(key)) groupMap.set(key, []);
+    groupMap.get(key).push({ log, status });
+  });
 
-    logItem.innerHTML = `
-      <div class=\"log-item-header\">\n        ${pendingSelectionMode ? `<input type=\"checkbox\" class=\"log-select-checkbox\" data-id=\"${log.id}\" ${pendingSelectedIds.has(log.id) ? 'checked' : ''}>` : ''}
-        <span class=\"log-task-title\">${escapeHtml(log.taskName)}</span>\n        <span class=\"log-project-tag\" data-full-name=\"${escapeHtml(log.project)}\">${escapeHtml(log.project.slice(0,3))}</span>\n        <div class=\"log-date\">${formatDate(log.date)}</div>
-        <div class=\"log-hours\">${log.hours}h</div>
+  Array.from(groupMap.keys()).sort().forEach((projectName) => {
+    const items = groupMap.get(projectName) || [];
+    const totalHours = items.reduce((sum, it) => sum + (parseFloat(it.log.hours) || 0), 0);
+    const colorIndex = getProjectColorIndex(projectName);
+    if (pendingAccordionState[projectName] === undefined) pendingAccordionState[projectName] = true;
+    const accordion = document.createElement('div');
+    accordion.className = `accordion-item project-color-${colorIndex} ${pendingAccordionState[projectName] ? '' : 'open'}`;
+    const header = document.createElement('div');
+    header.className = 'accordion-header';
+    header.innerHTML = `
+      <div class="accordion-title">
+        <span class="folder-icon" aria-hidden="true">
+          <svg viewBox="0 0 24 24" width="18" height="18">
+            <path d="M3 7h5l1.8 2H21v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V9a2 2 0 0 1 2-2z" fill="#3b82f6"/>
+          </svg>
+        </span>
+        <span class="accordion-project-name" title="${escapeHtml(projectName)}">${escapeHtml(projectName)}</span>
       </div>
-      <div class=\"log-content\"><span class=\"log-content-text\">${escapeHtml(log.content)}</span>${actionsIconsHtml}</div>
+      <div class="accordion-meta">
+        <span class="accordion-count">${items.length}条</span>
+        <span class="accordion-hours">${totalHours.toFixed(1)}h</span>
+        <span class="accordion-toggle" aria-hidden="true">
+          <svg width="14" height="14" viewBox="0 0 24 24"><path d="M6 9l6 6 6-6" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round"/></svg>
+        </span>
+      </div>
     `;
-    const headerActions = logItem.querySelector('.log-item-header .log-actions');
-    const contentDiv = logItem.querySelector('.log-content');
-    if (headerActions && contentDiv) {
-      contentDiv.appendChild(headerActions);
-    }
-    
-    // 添加事件监听器
-    const fillBtn = logItem.querySelector('.fill-btn');
-    const deleteBtn = logItem.querySelector('.delete-btn');
-    const editBtn = logItem.querySelector('.edit-btn');
-    
-    if (status === 'pending') {
-      const selectCheckbox = logItem.querySelector('.log-select-checkbox');
-      if (fillBtn) fillBtn.addEventListener('click', function() { window.fillLog(log.id); });
-      if (deleteBtn) deleteBtn.addEventListener('click', () => deleteLog(log.id, 'pending'));
-      if (editBtn) editBtn.addEventListener('click', () => editLog(log.id, 'pending'));
-      if (selectCheckbox) {
-        selectCheckbox.addEventListener('change', (e) => {
-          const id = log.id;
-          if (e.target.checked) pendingSelectedIds.add(id);
-          else pendingSelectedIds.delete(id);
-        });
+    const content = document.createElement('div');
+    content.className = 'accordion-content';
+
+    items.forEach(({ log, status }) => {
+      const logItem = document.createElement('div');
+      logItem.className = 'log-item';
+      logItem.dataset.id = log.id;
+      const logColorIndex = getProjectColorIndex(log.project);
+      logItem.classList.add(`project-color-${logColorIndex}`);
+      const actionsIconsHtml = `
+        <div class="log-actions">
+          <div class="action-icon edit-btn" title="修改">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M12 20h9"></path>
+              <path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4 12.5-12.5z"></path>
+            </svg>
+          </div>
+          <div class="action-icon delete-btn" title="删除">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <polyline points="3 6 5 6 21 6"></polyline>
+              <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
+              <line x1="10" y1="11" x2="10" y2="17"></line>
+              <line x1="14" y1="11" x2="14" y2="17"></line>
+            </svg>
+          </div>
+          <div class="action-icon fill-btn" title="填充">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <polyline points="20 6 9 17 4 12"></polyline>
+            </svg>
+          </div>
+        </div>`;
+      logItem.innerHTML = `
+        <div class=\"log-item-header\">\n        ${pendingSelectionMode ? `<input type=\"checkbox\" class=\"log-select-checkbox\" data-id=\"${log.id}\" ${pendingSelectedIds.has(log.id) ? 'checked' : ''}>` : ''}
+          <span class=\"log-task-title\">${escapeHtml(log.taskName)}</span>
+          <div class=\"log-date\">${formatDate(log.date)}</div>
+          <div class=\"log-hours\">${log.hours}h</div>
+        </div>
+        <div class=\"log-content\"><span class=\"log-content-text\">${escapeHtml(log.content)}</span>${actionsIconsHtml}</div>
+      `;
+      const headerActions = logItem.querySelector('.log-item-header .log-actions');
+      const contentDiv = logItem.querySelector('.log-content');
+      if (headerActions && contentDiv) {
+        contentDiv.appendChild(headerActions);
       }
-    } else {
-      const restoreBtn = logItem.querySelector('.restore-btn');
-      if (restoreBtn) restoreBtn.addEventListener('click', () => restoreLog(log.id));
-      if (deleteBtn) deleteBtn.addEventListener('click', () => deleteLog(log.id, 'filled'));
-      if (fillBtn) fillBtn.addEventListener('click', () => fillLog(log.id));
-      if (editBtn) editBtn.addEventListener('click', () => editLog(log.id, 'filled'));
-    }
-    
-    pendingLogsList.appendChild(logItem);
+      const fillBtn = logItem.querySelector('.fill-btn');
+      const deleteBtn = logItem.querySelector('.delete-btn');
+      const editBtn = logItem.querySelector('.edit-btn');
+      if (status === 'pending') {
+        const selectCheckbox = logItem.querySelector('.log-select-checkbox');
+        if (fillBtn) fillBtn.addEventListener('click', function() { window.fillLog(log.id); });
+        if (deleteBtn) deleteBtn.addEventListener('click', () => deleteLog(log.id, 'pending'));
+        if (editBtn) editBtn.addEventListener('click', () => editLog(log.id, 'pending'));
+        if (selectCheckbox) {
+          selectCheckbox.addEventListener('change', (e) => {
+            const id = log.id;
+            if (e.target.checked) pendingSelectedIds.add(id);
+            else pendingSelectedIds.delete(id);
+          });
+        }
+      } else {
+        const restoreBtn = logItem.querySelector('.restore-btn');
+        if (restoreBtn) restoreBtn.addEventListener('click', () => restoreLog(log.id));
+        if (deleteBtn) deleteBtn.addEventListener('click', () => deleteLog(log.id, 'filled'));
+        if (fillBtn) fillBtn.addEventListener('click', () => fillLog(log.id));
+        if (editBtn) editBtn.addEventListener('click', () => editLog(log.id, 'filled'));
+      }
+      content.appendChild(logItem);
+    });
+
+    header.addEventListener('click', () => {
+      const isOpen = accordion.classList.contains('open');
+      if (isOpen) {
+        accordion.classList.remove('open');
+        pendingAccordionState[projectName] = true;
+      } else {
+        accordion.classList.add('open');
+        pendingAccordionState[projectName] = false;
+      }
+    });
+
+    accordion.appendChild(header);
+    accordion.appendChild(content);
+    pendingLogsList.appendChild(accordion);
   });
 }
 
