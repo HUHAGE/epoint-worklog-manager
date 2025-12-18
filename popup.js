@@ -396,6 +396,7 @@ document.addEventListener('DOMContentLoaded', function() {
   
   // 初始化项目选择下拉框
   updateProjectSelect();
+  try { updateExportProjectOptions(); } catch (e) {}
   
   // 切换到待申请标签页
   switchTab('pending');
@@ -985,6 +986,26 @@ function bindEventListeners() {
       window.open('https://huhafish.feishu.cn/wiki/M6AvwaTiYiUtNakqRBRcasjLn4g?from=from_copylink', '_blank');
     });
   }
+
+  const exportLogsBtn = document.getElementById('export-logs-btn');
+  const importLogsBtn = document.getElementById('import-logs-btn');
+  const importLogsFileInput = document.getElementById('import-logs-file-input');
+  if (exportLogsBtn) {
+    exportLogsBtn.addEventListener('click', () => {
+      exportTasksToJson();
+    });
+  }
+  if (importLogsBtn && importLogsFileInput) {
+    importLogsBtn.addEventListener('click', () => {
+      importLogsFileInput.click();
+    });
+    importLogsFileInput.addEventListener('change', (e) => {
+      const f = e.target && e.target.files && e.target.files[0];
+      if (!f) return;
+      importTasksFromJsonFile(f);
+      try { importLogsFileInput.value = ''; } catch (err) {}
+    });
+  }
 }
 
 // 清除所有待填写日志
@@ -1020,6 +1041,95 @@ function clearAllFilledLogs() {
     updateFilledProjectTabs();
     updateHoursStatistics();
     showToast('已清除所有已填写日志');
+  }
+}
+
+function exportTasksToJson() {
+  try {
+    const statusEl = document.getElementById('export-status-filter');
+    const projectEl = document.getElementById('export-project-filter');
+    const startEl = document.getElementById('export-date-start');
+    const endEl = document.getElementById('export-date-end');
+    const status = statusEl ? (statusEl.value || 'all') : 'all';
+    const project = projectEl ? (projectEl.value || 'all') : 'all';
+    const start = startEl && startEl.value ? startEl.value : '';
+    const end = endEl && endEl.value ? endEl.value : '';
+
+    let pending = status === 'filled' ? [] : (Array.isArray(logs.pending) ? logs.pending.slice() : []);
+    let filled = status === 'pending' ? [] : (Array.isArray(logs.filled) ? logs.filled.slice() : []);
+
+    if (project !== 'all') {
+      pending = pending.filter(l => (l.project || '') === project);
+      filled = filled.filter(l => (l.project || '') === project);
+    }
+    if (start) {
+      pending = pending.filter(l => String(l.date || '').slice(0, 10) >= start);
+      filled = filled.filter(l => String(l.date || '').slice(0, 10) >= start);
+    }
+    if (end) {
+      pending = pending.filter(l => String(l.date || '').slice(0, 10) <= end);
+      filled = filled.filter(l => String(l.date || '').slice(0, 10) <= end);
+    }
+
+    const data = { pending, filled };
+    const json = JSON.stringify(data, null, 2);
+    const blob = new Blob([json], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    const d = new Date();
+    const name = `worklogs-${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}.json`;
+    a.href = url;
+    a.download = name;
+    document.body.appendChild(a);
+    a.click();
+    URL.revokeObjectURL(url);
+    document.body.removeChild(a);
+    showToast('已导出任务数据');
+  } catch (err) {
+    showErrorToast('导出失败');
+  }
+}
+
+function importTasksFromJsonFile(file) {
+  try {
+    const reader = new FileReader();
+    reader.onload = function(e) {
+      try {
+        const text = e && e.target ? e.target.result : '';
+        const obj = JSON.parse(text || '{}');
+        const src = obj && obj.logs ? obj.logs : obj;
+        const p = src && Array.isArray(src.pending) ? src.pending : [];
+        const f = src && Array.isArray(src.filled) ? src.filled : [];
+        const norm = function(it) {
+          const id = it && it.id ? String(it.id) : String(Date.now()) + Math.random().toString(16).slice(2);
+          const project = it && it.project ? String(it.project) : '';
+          const taskName = it && it.taskName ? String(it.taskName) : '';
+          const content = it && it.content ? String(it.content) : '';
+          const hours = parseFloat(it && it.hours) || 0.5;
+          const dateRaw = it && it.date ? String(it.date) : new Date().toISOString().split('T')[0];
+          const date = new Date(dateRaw).toString() !== 'Invalid Date' ? new Date(dateRaw).toISOString().split('T')[0] : new Date().toISOString().split('T')[0];
+          const status = it && it.status === 'filled' ? 'filled' : 'pending';
+          return { id, project, taskName, content, hours, date, status };
+        };
+        logs.pending = p.map(norm);
+        logs.filled = f.map(norm);
+        saveLogs();
+        updateProjectTabs();
+        renderLogs();
+        updateHoursStatistics();
+        const set = new Set([ ...logs.pending.map(x => x.project), ...logs.filled.map(x => x.project) ]);
+        let changed = false;
+        set.forEach(v => { if (v && !presetProjects.includes(v)) { presetProjects.push(v); changed = true; } });
+        if (changed) { try { localStorage.setItem('presetProjects', JSON.stringify(presetProjects)); } catch (err) {} updateProjectSelect(); try { renderPresetProjectsList(); } catch (e) {} }
+        try { updateExportProjectOptions(); } catch (e) {}
+        showToast('任务数据已导入');
+      } catch (err) {
+        showErrorToast('导入失败：JSON格式错误');
+      }
+    };
+    reader.readAsText(file);
+  } catch (err) {
+    showErrorToast('导入失败');
   }
 }
 
@@ -1192,6 +1302,24 @@ function updateProjectSelect() {
     const option = document.createElement('option');
     option.value = project;
     modalProjectDatalist.appendChild(option);
+  });
+}
+
+function updateExportProjectOptions() {
+  const select = document.getElementById('export-project-filter');
+  if (!select) return;
+  const projectsSet = new Set([
+    ...logs.pending.map(log => log.project),
+    ...logs.filled.map(log => log.project),
+    ...presetProjects
+  ]);
+  const projects = ['all', ...projectsSet];
+  select.innerHTML = '';
+  projects.forEach(p => {
+    const option = document.createElement('option');
+    option.value = p;
+    option.textContent = p === 'all' ? '全部项目' : p;
+    select.appendChild(option);
   });
 }
 

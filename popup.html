@@ -164,6 +164,31 @@
             </div>
           </div>
 
+          <!-- 数据导入导出卡片 -->
+          <div class="config-card">
+            <h3>数据导入导出</h3>
+            <div class="form-group export-filters-row">
+              <select id="export-project-filter" class="filter-select">
+                <option value="all">全部项目</option>
+              </select>
+              <select id="export-status-filter" class="filter-select">
+                <option value="all">全部</option>
+                <option value="pending">未申请</option>
+                <option value="filled">已申请</option>
+              </select>
+            </div>
+            <div class="form-group export-filters-row">
+              <input type="date" id="export-date-start" class="filter-date" placeholder="开始日期">
+              <span class="export-date-dash">—</span>
+              <input type="date" id="export-date-end" class="filter-date" placeholder="结束日期">
+            </div>
+            <div class="form-group">
+              <button id="export-logs-btn" class="btn-secondary">导出任务数据</button>
+              <button id="import-logs-btn" class="btn-secondary">导入任务数据</button>
+              <input type="file" id="import-logs-file-input" accept="application/json" style="display:none">
+            </div>
+          </div>
+
           <!-- 问题反馈卡片 -->
           <div class="config-card">
             <h3>问题反馈</h3>

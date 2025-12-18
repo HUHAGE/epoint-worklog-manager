@@ -931,6 +931,16 @@ body {
   padding-right: 12px;
 }
 
+.config-card .form-group.export-filters-row {
+  justify-content: flex-start;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.config-card .export-date-dash {
+  color: #999;
+}
+
 #pending-project-filter.filter-select {
   width: 100px;
   min-width: 90px;
