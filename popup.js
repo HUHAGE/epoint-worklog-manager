@@ -1101,7 +1101,6 @@ function importTasksFromJsonFile(file) {
         const p = src && Array.isArray(src.pending) ? src.pending : [];
         const f = src && Array.isArray(src.filled) ? src.filled : [];
         const norm = function(it) {
-          const id = it && it.id ? String(it.id) : String(Date.now()) + Math.random().toString(16).slice(2);
           const project = it && it.project ? String(it.project) : '';
           const taskName = it && it.taskName ? String(it.taskName) : '';
           const content = it && it.content ? String(it.content) : '';
@@ -1109,10 +1108,26 @@ function importTasksFromJsonFile(file) {
           const dateRaw = it && it.date ? String(it.date) : new Date().toISOString().split('T')[0];
           const date = new Date(dateRaw).toString() !== 'Invalid Date' ? new Date(dateRaw).toISOString().split('T')[0] : new Date().toISOString().split('T')[0];
           const status = it && it.status === 'filled' ? 'filled' : 'pending';
+          let id = it && it.id ? String(it.id) : '';
+          if (!id) { id = String(Date.now()) + Math.random().toString(16).slice(2); }
           return { id, project, taskName, content, hours, date, status };
         };
-        logs.pending = p.map(norm);
-        logs.filled = f.map(norm);
+        const existingIds = new Set([ ...logs.pending.map(x => String(x.id)), ...logs.filled.map(x => String(x.id)) ]);
+        const makeId = () => String(Date.now()) + Math.random().toString(16).slice(2);
+        p.map(norm).forEach(it => {
+          let id = String(it.id || '');
+          if (!id || existingIds.has(id)) { id = makeId(); it.id = id; }
+          existingIds.add(id);
+          it.status = 'pending';
+          logs.pending.push(it);
+        });
+        f.map(norm).forEach(it => {
+          let id = String(it.id || '');
+          if (!id || existingIds.has(id)) { id = makeId(); it.id = id; }
+          existingIds.add(id);
+          it.status = 'filled';
+          logs.filled.push(it);
+        });
         saveLogs();
         updateProjectTabs();
         renderLogs();
