@@ -7,7 +7,8 @@
     "storage",
     "activeTab",
     "tabs",
-    "scripting"
+    "scripting",
+    "sidePanel"
   ],
   "host_permissions": [
     "https://oa.epoint.com.cn/*",
@@ -19,6 +20,9 @@
   "action": {
     "default_popup": "popup.html",
     "default_title": "EP • 非功快申"
+  },
+  "side_panel": {
+    "default_path": "popup.html"
   },
   "icons": {
     "16": "icons/icon16.png",

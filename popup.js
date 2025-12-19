@@ -448,6 +448,43 @@ function bindEventListeners() {
       switchTab('preset');
     });
   }
+  const openSidepanelBtn = document.getElementById('open-sidepanel-btn');
+  if (openSidepanelBtn) {
+    openSidepanelBtn.addEventListener('click', () => {
+      try {
+        if (typeof chrome === 'undefined' || !chrome.tabs) {
+          showErrorToast('Chrome API不可用');
+          return;
+        }
+        chrome.tabs.query({ active: true, currentWindow: true }, function(tabs) {
+          if (!tabs || tabs.length === 0) {
+            showErrorToast('未找到活动标签页');
+            return;
+          }
+          const tabId = tabs[0].id;
+          if (chrome.sidePanel && chrome.sidePanel.setOptions) {
+            try {
+              chrome.sidePanel.setOptions({ tabId: tabId, enabled: true, path: 'popup.html' }, function() {
+                if (chrome.runtime.lastError) {
+                  showErrorToast('侧边栏设置失败');
+                  return;
+                }
+                if (chrome.sidePanel && chrome.sidePanel.open) {
+                  chrome.sidePanel.open({ tabId: tabId });
+                } else {
+                  showErrorToast('当前浏览器不支持侧边栏');
+                }
+              });
+            } catch (e) {
+              showErrorToast('打开侧边栏失败');
+            }
+          } else {
+            showErrorToast('当前浏览器不支持侧边栏');
+          }
+        });
+      } catch (e) {}
+    });
+  }
   const closeConfigBtn = document.getElementById('close-config-btn');
   if (closeConfigBtn) {
     closeConfigBtn.addEventListener('click', () => {
