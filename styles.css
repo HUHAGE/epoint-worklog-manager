@@ -1166,6 +1166,10 @@ body {
   overflow: hidden;
 }
 
+.accordion-item.open {
+  border-color: #7e22ce;
+}
+
 .accordion-header {
   display: flex;
   align-items: center;
