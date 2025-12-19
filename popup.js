@@ -2886,14 +2886,14 @@ function loadPresetBlueprints() {
 }
 
 // 保存蓝图预设映射
-function savePresetBlueprints() {
+function savePresetBlueprints(quiet) {
   try {
     localStorage.setItem('presetBlueprints', JSON.stringify(presetBlueprints || {}));
     renderBlueprintPresetsList();
     try { renderUnifiedPresetsList(); } catch (e) {}
     try { updateProjectTabs(); } catch (e) {}
     try { updateFilledProjectTabs(); } catch (e) {}
-    showToast('蓝图预设已保存');
+    if (!quiet) { showToast('蓝图预设已保存'); }
   } catch (error) {
     console.error('保存蓝图预设失败:', error);
   }
@@ -3159,14 +3159,14 @@ function loadPresetTaskReviewers() {
   }
 }
 
-function savePresetTaskReviewers() {
+function savePresetTaskReviewers(quiet) {
   try {
     localStorage.setItem('presetTaskReviewers', JSON.stringify(presetTaskReviewers || {}));
     renderTaskReviewerPresetsList();
     try { renderUnifiedPresetsList(); } catch (e) {}
     try { updateProjectTabs(); } catch (e) {}
     try { updateFilledProjectTabs(); } catch (e) {}
-    showToast('任务审核人预设已保存');
+    if (!quiet) { showToast('任务审核人预设已保存'); }
   } catch (error) {
     console.error('保存任务审核人预设失败:', error);
   }
@@ -3276,17 +3276,17 @@ function savePresetTaskReviewerAutoApply() {
 }
 
 // ===================== 任务审核人预设：捕获与应用 =====================
-function captureCurrentTaskReviewerFromOA() {
+function captureCurrentTaskReviewerFromOA(quiet) {
   try {
     if (typeof chrome === 'undefined' || !chrome.tabs || !chrome.scripting) {
-      showToast('请在扩展环境中使用此功能');
+      if (!quiet) { showToast('请在扩展环境中使用此功能'); }
       return;
     }
     chrome.tabs.query({ active: true, currentWindow: true }, function(tabs) {
-      if (!tabs || tabs.length === 0) { showToast('未找到活动标签页'); return; }
+      if (!tabs || tabs.length === 0) { if (!quiet) { showToast('未找到活动标签页'); } return; }
       const tab = tabs[0];
       const url = tab.url || '';
-      if (!url.includes('oa.epoint.com.cn')) { showToast('请在OA页面使用捕获功能'); return; }
+      if (!url.includes('oa.epoint.com.cn')) { if (!quiet) { showToast('请在OA页面使用捕获功能'); } return; }
       chrome.scripting.executeScript({
         target: { tabId: tab.id, allFrames: true },
         world: 'MAIN',
@@ -3358,15 +3358,15 @@ function captureCurrentTaskReviewerFromOA() {
         try {
           const arr = Array.isArray(results) ? results : [];
           const found = arr.map(r => r && r.result).find(r => r && r.ProjectName);
-          if (!found) { showToast('未捕获到任务审核人，请先在OA页选择'); return; }
+          if (!found) { if (!quiet) { showToast('未捕获到任务审核人，请先在OA页选择'); } return; }
           const key = (found.ProjectName || '').trim();
-          if (!key) { showToast('无法识别项目名称'); return; }
+          if (!key) { if (!quiet) { showToast('无法识别项目名称'); } return; }
           presetTaskReviewers[key] = found;
-          savePresetTaskReviewers();
-          showToast('已捕获并保存任务审核人预设');
+          savePresetTaskReviewers(quiet);
+          if (!quiet) { showToast('已捕获并保存任务审核人预设'); }
         } catch (e) {
           console.error('处理捕获结果失败:', e);
-          showToast('捕获任务审核人失败');
+          if (!quiet) { showToast('捕获任务审核人失败'); }
         }
       });
     });
@@ -3535,14 +3535,14 @@ function loadPresetStageDemands() {
 }
 
 // 保存工作场景预设映射
-function savePresetStageDemands() {
+function savePresetStageDemands(quiet) {
   try {
     localStorage.setItem('presetStageDemands', JSON.stringify(presetStageDemands || {}));
     renderStageDemandPresetsList();
     try { renderUnifiedPresetsList(); } catch (e) {}
     try { updateProjectTabs(); } catch (e) {}
     try { updateFilledProjectTabs(); } catch (e) {}
-    showToast('工作场景预设已保存');
+    if (!quiet) { showToast('工作场景预设已保存'); }
   } catch (error) {
     console.error('保存工作场景预设失败:', error);
   }
@@ -3550,13 +3550,14 @@ function savePresetStageDemands() {
 
 function captureAllPresetsFromOA() {
   try {
-    captureCurrentBlueprintFromOA();
-    captureCurrentStageDemandFromOA();
-    captureCurrentTaskReviewerFromOA();
+    captureCurrentBlueprintFromOA(true);
+    captureCurrentStageDemandFromOA(true);
+    captureCurrentTaskReviewerFromOA(true);
     setTimeout(function(){ 
       try { renderUnifiedPresetsList(); } catch (e) {}
       try { updateProjectTabs(); } catch (e) {}
       try { updateFilledProjectTabs(); } catch (e) {}
+      showToast('一键捕获完成，已保存预设');
     }, 800);
   } catch (e) {}
 }
@@ -3840,17 +3841,17 @@ function savePresetStageDemandAutoApply() {
 }
 
 // 从当前激活的OA页面捕获工作场景信息并保存为预设
-function captureCurrentStageDemandFromOA() {
+function captureCurrentStageDemandFromOA(quiet) {
   try {
     if (typeof chrome === 'undefined' || !chrome.tabs || !chrome.scripting) {
-      showToast('请在扩展环境中使用此功能');
+      if (!quiet) { showToast('请在扩展环境中使用此功能'); }
       return;
     }
     chrome.tabs.query({ active: true, currentWindow: true }, function(tabs) {
-      if (!tabs || tabs.length === 0) { showToast('未找到活动标签页'); return; }
+      if (!tabs || tabs.length === 0) { if (!quiet) { showToast('未找到活动标签页'); } return; }
       const tab = tabs[0];
       const url = tab.url || '';
-      if (!url.includes('oa.epoint.com.cn')) { showToast('请在OA页面使用捕获功能'); return; }
+      if (!url.includes('oa.epoint.com.cn')) { if (!quiet) { showToast('请在OA页面使用捕获功能'); } return; }
       chrome.scripting.executeScript({
         target: { tabId: tab.id, allFrames: true },
         world: 'MAIN',
@@ -3899,14 +3900,14 @@ function captureCurrentStageDemandFromOA() {
         try {
           const arr = Array.isArray(results) ? results : [];
           const found = arr.map(r => r && r.result).find(r => r && r.ProjectName);
-          if (!found) { showToast('未捕获到工作场景，请先在OA页选择工作场景'); return; }
+          if (!found) { if (!quiet) { showToast('未捕获到工作场景，请先在OA页选择工作场景'); } return; }
           const key = found.ProjectName;
           presetStageDemands[key] = found;
-          savePresetStageDemands();
-          showToast('已捕获并保存工作场景预设');
+          savePresetStageDemands(quiet);
+          if (!quiet) { showToast('已捕获并保存工作场景预设'); }
         } catch (e) {
           console.error('处理捕获结果失败:', e);
-          showToast('捕获工作场景失败');
+          if (!quiet) { showToast('捕获工作场景失败'); }
         }
       });
     });
@@ -4057,17 +4058,17 @@ function applyStageDemandPresetToOA() {
 }
 
 // 从当前激活的OA页面捕获蓝图信息并保存为预设
-function captureCurrentBlueprintFromOA() {
+function captureCurrentBlueprintFromOA(quiet) {
   try {
     if (typeof chrome === 'undefined' || !chrome.tabs || !chrome.scripting) {
-      showToast('请在扩展环境中使用此功能');
+      if (!quiet) { showToast('请在扩展环境中使用此功能'); }
       return;
     }
     chrome.tabs.query({ active: true, currentWindow: true }, function(tabs) {
-      if (!tabs || tabs.length === 0) { showToast('未找到活动标签页'); return; }
+      if (!tabs || tabs.length === 0) { if (!quiet) { showToast('未找到活动标签页'); } return; }
       const tab = tabs[0];
       const url = tab.url || '';
-      if (!url.includes('oa.epoint.com.cn')) { showToast('请在OA页面使用捕获功能'); return; }
+      if (!url.includes('oa.epoint.com.cn')) { if (!quiet) { showToast('请在OA页面使用捕获功能'); } return; }
       chrome.scripting.executeScript({
         target: { tabId: tab.id, allFrames: true },
         world: 'MAIN',
@@ -4124,14 +4125,14 @@ function captureCurrentBlueprintFromOA() {
         try {
           const arr = Array.isArray(results) ? results : [];
           const found = arr.map(r => r && r.result).find(r => r && r.ProjectName);
-          if (!found) { showToast('未捕获到蓝图，请先在OA页选择蓝图'); return; }
+          if (!found) { if (!quiet) { showToast('未捕获到蓝图，请先在OA页选择蓝图'); } return; }
           const key = found.ProjectName;
           presetBlueprints[key] = found;
-          savePresetBlueprints();
-          showToast('已捕获并保存蓝图预设');
+          savePresetBlueprints(quiet);
+          if (!quiet) { showToast('已捕获并保存蓝图预设'); }
         } catch (e) {
           console.error('处理捕获结果失败:', e);
-          showToast('捕获蓝图失败');
+          if (!quiet) { showToast('捕获蓝图失败'); }
         }
       });
     });

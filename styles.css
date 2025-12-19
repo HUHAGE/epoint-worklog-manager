@@ -2042,10 +2042,10 @@ input:checked + .slider:before {
 /* Toast提示样式 */
 .toast-container {
   position: fixed;
-  bottom: 20px;
+  top: 12px;
   left: 50%;
   transform: translateX(-50%);
-  z-index: 10001;
+  z-index: 10002;
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -2054,11 +2054,14 @@ input:checked + .slider:before {
 .toast-message {
   background-color: #4CAF50;
   color: #fff;
-  padding: 10px 20px;
+  padding: 12px 24px;
   border-radius: 5px;
   margin-top: 10px;
   opacity: 0;
-  transition: opacity 0.3s ease-in-out;
+  font-size: 12px;
+  font-weight: 600;
+  transform: translateY(-12px);
+  transition: opacity 0.3s ease-in-out, transform 0.3s ease-in-out;
 }
 
 .toast-message.error {
@@ -2067,6 +2070,7 @@ input:checked + .slider:before {
 
 .toast-message.show {
   opacity: 1;
+  transform: translateY(0);
 }
 
 .preset-loaded-icon {
