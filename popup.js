@@ -2437,15 +2437,24 @@ function renderPresetProjectsList() {
     projectInput.className = 'preset-project-input';
     projectInput.dataset.index = index;
     
-    const deleteBtn = document.createElement('button');
-    deleteBtn.className = 'action-icon delete-btn';
-    deleteBtn.innerHTML = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path><line x1="10" y1="11" x2="10" y2="17"></line><line x1="14" y1="11" x2="14" y2="17"></line></svg>';
-    deleteBtn.dataset.index = index;
-    deleteBtn.title = '删除';
-    
-    projectItem.appendChild(projectInput);
-    projectItem.appendChild(deleteBtn);
-    presetProjectsTabList.appendChild(projectItem);
+  const deleteBtn = document.createElement('button');
+  deleteBtn.className = 'action-icon delete-btn';
+  deleteBtn.innerHTML = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path><line x1="10" y1="11" x2="10" y2="17"></line><line x1="14" y1="11" x2="14" y2="17"></line></svg>';
+  deleteBtn.dataset.index = index;
+  deleteBtn.title = '删除';
+  
+  const viewBtn = document.createElement('button');
+  viewBtn.className = 'action-icon detail-btn';
+  viewBtn.title = '查看';
+  viewBtn.innerHTML = '<svg width="16" height="16" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><defs><linearGradient id="viewGradPreset" x1="0" y1="0" x2="1" y2="1"><stop offset="0%" stop-color="#667eea"/><stop offset="100%" stop-color="#764ba2"/></linearGradient></defs><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" fill="url(#viewGradPreset)" fill-opacity="0.9"/><circle cx="12" cy="12" r="3.5" fill="#ffffff"/><circle cx="12" cy="12" r="2" fill="#2d3748"/></svg>';
+  viewBtn.addEventListener('click', () => {
+    try { openUnifiedDetailsModal(project); } catch (e) {}
+  });
+  
+  projectItem.appendChild(projectInput);
+  projectItem.appendChild(viewBtn);
+  projectItem.appendChild(deleteBtn);
+  presetProjectsTabList.appendChild(projectItem);
     
     // 添加修改事件监听
     projectInput.addEventListener('change', (e) => {
@@ -3587,32 +3596,32 @@ function renderUnifiedPresetsList() {
       s1.textContent = '项目: ' + (projName || '');
       info.appendChild(s1);
 
-      var actions = document.createElement('div');
-      actions.className = 'preset-actions';
-      var detailBtn = document.createElement('button');
-      detailBtn.className = 'action-icon detail-btn';
-      detailBtn.type = 'button';
-      detailBtn.innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path><circle cx="12" cy="12" r="3"></circle></svg>';
-      detailBtn.addEventListener('click', function(ev){
-        try { ev.preventDefault(); ev.stopPropagation(); } catch (e) {}
-        openUnifiedDetailsModal(k);
-      });
-      actions.appendChild(detailBtn);
+  var actions = document.createElement('div');
+  actions.className = 'preset-actions';
+  var detailBtn = document.createElement('button');
+  detailBtn.className = 'action-icon detail-btn';
+  detailBtn.type = 'button';
+  detailBtn.innerHTML = '<svg width="16" height="16" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><defs><linearGradient id="viewGrad" x1="0" y1="0" x2="1" y2="1"><stop offset="0%" stop-color="#667eea"/><stop offset="100%" stop-color="#764ba2"/></linearGradient></defs><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" fill="url(#viewGrad)" fill-opacity="0.9"/><circle cx="12" cy="12" r="3.5" fill="#ffffff"/><circle cx="12" cy="12" r="2" fill="#2d3748"/></svg>';
+  detailBtn.addEventListener('click', function(ev){
+    try { ev.preventDefault(); ev.stopPropagation(); } catch (e) {}
+    openUnifiedDetailsModal(k);
+  });
+  actions.appendChild(detailBtn);
 
-      var delBtn = document.createElement('button');
-      delBtn.className = 'action-icon delete-btn';
-      delBtn.type = 'button';
-      delBtn.innerHTML = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path><line x1="10" y1="11" x2="10" y2="17"></line><line x1="14" y1="11" x2="14" y2="17"></line></svg>';
-      delBtn.title = '删除';
-      delBtn.addEventListener('click', function(ev){
-        try { ev.preventDefault(); ev.stopPropagation(); } catch (e) {}
-        removeUnifiedPreset(k);
-      });
-
-      li.appendChild(info);
-      li.appendChild(actions);
-      li.appendChild(delBtn);
-      ul.appendChild(li);
+  var delBtn = document.createElement('button');
+  delBtn.className = 'action-icon delete-btn';
+  delBtn.type = 'button';
+  delBtn.innerHTML = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path><line x1="10" y1="11" x2="10" y2="17"></line><line x1="14" y1="11" x2="14" y2="17"></line></svg>';
+  delBtn.title = '删除';
+  delBtn.addEventListener('click', function(ev){
+    try { ev.preventDefault(); ev.stopPropagation(); } catch (e) {}
+    removeUnifiedPreset(k);
+  });
+  actions.appendChild(delBtn);
+  
+  li.appendChild(info);
+  li.appendChild(actions);
+  ul.appendChild(li);
     });
     unifiedPresetsList.innerHTML = '';
     unifiedPresetsList.appendChild(ul);
