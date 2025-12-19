@@ -581,6 +581,17 @@ body {
   justify-content: center;
 }
 
+.config-card .form-group:has(#capture-all-btn) {
+  justify-content: center;
+}
+
+#export-logs-btn,
+#import-logs-btn {
+  padding: 6px 12px;
+  font-size: 12px;
+  border-radius: 6px;
+}
+
 /* 按钮样式 */
 .config-card button:not(.action-icon) {
   padding: 10px 16px;
