@@ -142,6 +142,9 @@
           <!-- 一键捕获与汇总 -->
           <div class="config-card">
             <h3>一键捕获与汇总</h3>
+            <div class="form-group explain-row">
+              <p class="explain-text">先打开OA任务申请页面，填写数据后，一键捕获，用于下次自动填充</p>
+            </div>
             <div class="form-group">
               <button id="capture-all-btn" class="btn-capture">一键捕获</button>
             </div>
@@ -167,7 +170,7 @@
 
           <!-- 数据导入导出卡片 -->
           <div class="config-card">
-            <h3>数据导入导出</h3>
+            <h3>任务数据导入导出</h3>
             <div class="form-group export-filters-row">
               <select id="export-project-filter" class="filter-select">
                 <option value="all">全部项目</option>
@@ -187,6 +190,18 @@
               <button id="export-logs-btn" class="btn-secondary">导出任务数据</button>
               <button id="import-logs-btn" class="btn-secondary">导入任务数据</button>
               <input type="file" id="import-logs-file-input" accept="application/json" style="display:none">
+            </div>
+          </div>
+
+          <div class="config-card">
+            <h3>插件数据导入导出</h3>
+            <div class="form-group explain-row">
+              <p class="explain-text">导入导出插件设置与捕获的数据（蓝图、工作场景、审核人等）</p>
+            </div>
+            <div class="form-group">
+              <button id="export-plugin-btn" class="btn-secondary">导出插件数据</button>
+              <button id="import-plugin-btn" class="btn-secondary">导入插件数据</button>
+              <input type="file" id="import-plugin-file-input" accept="application/json" style="display:none">
             </div>
           </div>
 

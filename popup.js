@@ -1071,6 +1071,26 @@ function bindEventListeners() {
       try { importLogsFileInput.value = ''; } catch (err) {}
     });
   }
+
+  const exportPluginBtn = document.getElementById('export-plugin-btn');
+  const importPluginBtn = document.getElementById('import-plugin-btn');
+  const importPluginFileInput = document.getElementById('import-plugin-file-input');
+  if (exportPluginBtn) {
+    exportPluginBtn.addEventListener('click', () => {
+      exportPluginDataToJson();
+    });
+  }
+  if (importPluginBtn && importPluginFileInput) {
+    importPluginBtn.addEventListener('click', () => {
+      importPluginFileInput.click();
+    });
+    importPluginFileInput.addEventListener('change', (e) => {
+      const f = e.target && e.target.files && e.target.files[0];
+      if (!f) return;
+      importPluginDataFromJsonFile(f);
+      try { importPluginFileInput.value = ''; } catch (err) {}
+    });
+  }
 }
 
 // 清除所有待填写日志
@@ -1210,6 +1230,126 @@ function importTasksFromJsonFile(file) {
     reader.readAsText(file);
   } catch (err) {
     showErrorToast('导入失败');
+  }
+}
+
+function exportPluginDataToJson() {
+  try {
+    const getBool = (key, def=true) => {
+      const v = localStorage.getItem(key);
+      return v === null ? def : (v === 'true');
+    };
+    const safeParse = (key, def) => {
+      try {
+        const v = localStorage.getItem(key);
+        return v ? JSON.parse(v) : def;
+      } catch (e) { return def; }
+    };
+
+    const data = {
+      meta: {
+        name: 'epoint-worklog-manager-plugin-data',
+        version: 1,
+        exportedAt: new Date().toISOString()
+      },
+      settings: {
+        presetDemandTag: localStorage.getItem('presetDemandTag') || '',
+        presetWorkType: localStorage.getItem('presetWorkType') || '',
+        presetCloseReminders: getBool('presetCloseReminders', false),
+        groupByProjectEnabled: getBool('groupByProjectEnabled', true),
+        presetAutoFillPresets: getBool('presetAutoFillPresets', true),
+        presetBlueprintAutoApply: getBool('presetBlueprintAutoApply', true),
+        presetStageDemandAutoApply: getBool('presetStageDemandAutoApply', true),
+        presetTaskReviewerAutoApply: getBool('presetTaskReviewerAutoApply', true)
+      },
+      captured: {
+        presetBlueprints: safeParse('presetBlueprints', {}),
+        presetStageDemands: safeParse('presetStageDemands', {}),
+        presetTaskReviewers: safeParse('presetTaskReviewers', {})
+      },
+      presets: {
+        presetProjects: safeParse('presetProjects', [])
+      }
+    };
+
+    const json = JSON.stringify(data, null, 2);
+    const blob = new Blob([json], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    const d = new Date();
+    const name = `plugin-data-${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}.json`;
+    a.href = url;
+    a.download = name;
+    document.body.appendChild(a);
+    a.click();
+    URL.revokeObjectURL(url);
+    document.body.removeChild(a);
+    showToast('已导出插件数据');
+  } catch (err) {
+    showErrorToast('导出插件数据失败');
+  }
+}
+
+function importPluginDataFromJsonFile(file) {
+  try {
+    const reader = new FileReader();
+    reader.onload = function(e) {
+      try {
+        const text = e && e.target ? e.target.result : '';
+        const obj = JSON.parse(text || '{}');
+        const settings = obj && obj.settings ? obj.settings : obj;
+        const captured = obj && obj.captured ? obj.captured : obj;
+        const presets = obj && obj.presets ? obj.presets : obj;
+
+        const writeBool = (key, val, def=true) => {
+          if (typeof val === 'boolean') localStorage.setItem(key, String(val));
+          else if (val === undefined && def !== undefined) localStorage.setItem(key, String(def));
+        };
+        const writeStr = (key, val) => { if (typeof val === 'string') localStorage.setItem(key, val); };
+        const writeJson = (key, val, def) => {
+          if (val && typeof val === 'object') localStorage.setItem(key, JSON.stringify(val));
+          else if (def !== undefined) localStorage.setItem(key, JSON.stringify(def));
+        };
+
+        writeStr('presetDemandTag', settings.presetDemandTag);
+        writeStr('presetWorkType', settings.presetWorkType);
+        writeBool('presetCloseReminders', settings.presetCloseReminders, false);
+        writeBool('groupByProjectEnabled', settings.groupByProjectEnabled, true);
+        writeBool('presetAutoFillPresets', settings.presetAutoFillPresets, true);
+        writeBool('presetBlueprintAutoApply', settings.presetBlueprintAutoApply, true);
+        writeBool('presetStageDemandAutoApply', settings.presetStageDemandAutoApply, true);
+        writeBool('presetTaskReviewerAutoApply', settings.presetTaskReviewerAutoApply, true);
+
+        writeJson('presetBlueprints', captured.presetBlueprints, {});
+        writeJson('presetStageDemands', captured.presetStageDemands, {});
+        writeJson('presetTaskReviewers', captured.presetTaskReviewers, {});
+
+        writeJson('presetProjects', presets.presetProjects, []);
+
+        loadPresetDemandTag();
+        loadPresetWorkType();
+        loadPresetCloseReminders();
+        loadGroupByProjectEnabled();
+        loadPresetAutoFillPresets();
+        loadPresetBlueprints();
+        loadPresetBlueprintAutoApply();
+        loadPresetStageDemands();
+        loadPresetStageDemandAutoApply();
+        loadPresetTaskReviewers();
+        loadPresetTaskReviewerAutoApply();
+        loadPresetProjects();
+        try { renderUnifiedPresetsList(); } catch (e) {}
+        try { updateExportProjectOptions(); } catch (e) {}
+        try { updateProjectTabs(); } catch (e) {}
+        try { updateFilledProjectTabs(); } catch (e) {}
+        showToast('插件数据已导入');
+      } catch (err) {
+        showErrorToast('导入失败：JSON格式错误');
+      }
+    };
+    reader.readAsText(file);
+  } catch (err) {
+    showErrorToast('导入插件数据失败');
   }
 }
 

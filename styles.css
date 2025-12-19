@@ -581,15 +581,32 @@ body {
   justify-content: center;
 }
 
+.config-card .form-group:has(#export-plugin-btn),
+.config-card .form-group:has(#import-plugin-btn) {
+  justify-content: center;
+}
+
 .config-card .form-group:has(#capture-all-btn) {
   justify-content: center;
 }
 
 #export-logs-btn,
-#import-logs-btn {
-  padding: 6px 12px;
-  font-size: 12px;
-  border-radius: 6px;
+#import-logs-btn,
+#export-plugin-btn,
+#import-plugin-btn {
+  padding: 10px 16px;
+  font-size: 14px;
+  border-radius: 8px;
+}
+
+.config-card .form-group.explain-row {
+  justify-content: flex-start;
+}
+
+.config-card .explain-text {
+  color: #718096;
+  font-size: 13px;
+  line-height: 1.5;
 }
 
 /* 按钮样式 */
@@ -664,9 +681,10 @@ body {
 }
 
 .btn-capture, .btn-apply {
-  padding: 6px 12px;
-  font-size: 12px;
-  border-radius: 4px;
+  padding: 10px 16px;
+  font-size: 14px;
+  border-radius: 8px;
+}
   cursor: pointer;
   transition: all 0.2s ease;
   font-weight: 500;
@@ -2854,6 +2872,19 @@ html, body {
   max-height: 80vh;
   display: flex;
   flex-direction: column;
+}
+
+#unified-details-modal .modal-header {
+  padding: 8px 16px;
+}
+
+#unified-details-modal .modal-header h3 {
+  font-size: 15px;
+}
+
+#unified-details-modal .modal-close {
+  width: 24px;
+  height: 24px;
 }
 
 #unified-details-modal .modal-body {
