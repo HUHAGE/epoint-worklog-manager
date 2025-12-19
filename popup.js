@@ -1266,6 +1266,8 @@ function switchTab(tabName) {
   }
   
   // 渲染对应标签页的内容
+  try { updateProjectTabs(); } catch (e) {}
+  try { updateFilledProjectTabs(); } catch (e) {}
   renderLogs();
 }
 
@@ -2832,10 +2834,16 @@ function loadPresetBlueprints() {
     const saved = localStorage.getItem('presetBlueprints');
     presetBlueprints = saved ? JSON.parse(saved) : {};
     renderBlueprintPresetsList();
+    try { renderUnifiedPresetsList(); } catch (e) {}
+    try { updateProjectTabs(); } catch (e) {}
+    try { updateFilledProjectTabs(); } catch (e) {}
   } catch (error) {
     console.error('加载蓝图预设失败:', error);
     presetBlueprints = {};
     renderBlueprintPresetsList();
+    try { renderUnifiedPresetsList(); } catch (e) {}
+    try { updateProjectTabs(); } catch (e) {}
+    try { updateFilledProjectTabs(); } catch (e) {}
   }
 }
 
@@ -2845,6 +2853,8 @@ function savePresetBlueprints() {
     localStorage.setItem('presetBlueprints', JSON.stringify(presetBlueprints || {}));
     renderBlueprintPresetsList();
     try { renderUnifiedPresetsList(); } catch (e) {}
+    try { updateProjectTabs(); } catch (e) {}
+    try { updateFilledProjectTabs(); } catch (e) {}
     showToast('蓝图预设已保存');
   } catch (error) {
     console.error('保存蓝图预设失败:', error);
@@ -3098,10 +3108,16 @@ function loadPresetTaskReviewers() {
     const saved = localStorage.getItem('presetTaskReviewers');
     presetTaskReviewers = saved ? JSON.parse(saved) : {};
     renderTaskReviewerPresetsList();
+    try { renderUnifiedPresetsList(); } catch (e) {}
+    try { updateProjectTabs(); } catch (e) {}
+    try { updateFilledProjectTabs(); } catch (e) {}
   } catch (error) {
     console.error('加载任务审核人预设失败:', error);
     presetTaskReviewers = {};
     renderTaskReviewerPresetsList();
+    try { renderUnifiedPresetsList(); } catch (e) {}
+    try { updateProjectTabs(); } catch (e) {}
+    try { updateFilledProjectTabs(); } catch (e) {}
   }
 }
 
@@ -3110,6 +3126,8 @@ function savePresetTaskReviewers() {
     localStorage.setItem('presetTaskReviewers', JSON.stringify(presetTaskReviewers || {}));
     renderTaskReviewerPresetsList();
     try { renderUnifiedPresetsList(); } catch (e) {}
+    try { updateProjectTabs(); } catch (e) {}
+    try { updateFilledProjectTabs(); } catch (e) {}
     showToast('任务审核人预设已保存');
   } catch (error) {
     console.error('保存任务审核人预设失败:', error);
@@ -3465,10 +3483,16 @@ function loadPresetStageDemands() {
     const saved = localStorage.getItem('presetStageDemands');
     presetStageDemands = saved ? JSON.parse(saved) : {};
     renderStageDemandPresetsList();
+    try { renderUnifiedPresetsList(); } catch (e) {}
+    try { updateProjectTabs(); } catch (e) {}
+    try { updateFilledProjectTabs(); } catch (e) {}
   } catch (error) {
     console.error('加载工作场景预设失败:', error);
     presetStageDemands = {};
     renderStageDemandPresetsList();
+    try { renderUnifiedPresetsList(); } catch (e) {}
+    try { updateProjectTabs(); } catch (e) {}
+    try { updateFilledProjectTabs(); } catch (e) {}
   }
 }
 
@@ -3478,6 +3502,8 @@ function savePresetStageDemands() {
     localStorage.setItem('presetStageDemands', JSON.stringify(presetStageDemands || {}));
     renderStageDemandPresetsList();
     try { renderUnifiedPresetsList(); } catch (e) {}
+    try { updateProjectTabs(); } catch (e) {}
+    try { updateFilledProjectTabs(); } catch (e) {}
     showToast('工作场景预设已保存');
   } catch (error) {
     console.error('保存工作场景预设失败:', error);
@@ -3489,7 +3515,11 @@ function captureAllPresetsFromOA() {
     captureCurrentBlueprintFromOA();
     captureCurrentStageDemandFromOA();
     captureCurrentTaskReviewerFromOA();
-    setTimeout(function(){ try { renderUnifiedPresetsList(); } catch (e) {} }, 800);
+    setTimeout(function(){ 
+      try { renderUnifiedPresetsList(); } catch (e) {}
+      try { updateProjectTabs(); } catch (e) {}
+      try { updateFilledProjectTabs(); } catch (e) {}
+    }, 800);
   } catch (e) {}
 }
 
