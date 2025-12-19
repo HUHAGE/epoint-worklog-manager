@@ -85,6 +85,12 @@ const captureStageDemandBtn = document.getElementById('capture-stagedemand-btn')
 const applyStageDemandBtn = document.getElementById('apply-stagedemand-btn');
 const stageDemandAutoApplyCheckbox = document.getElementById('stagedemand-auto-apply-checkbox');
 const stageDemandPresetsList = document.getElementById('stagedemand-presets-list');
+const captureAllBtn = document.getElementById('capture-all-btn');
+const unifiedPresetsList = document.getElementById('unified-presets-list');
+const unifiedDetailsModal = document.getElementById('unified-details-modal');
+const unifiedDetailsBody = document.getElementById('unified-details-body');
+const unifiedDetailsCloseBtn = document.getElementById('unified-details-close-btn');
+const unifiedDetailsCancelBtn = document.getElementById('unified-details-cancel-btn');
 let presetDemandTag = '';
 let presetWorkType = '';
 let presetCloseReminders = false;
@@ -334,6 +340,7 @@ document.addEventListener('DOMContentLoaded', function() {
   loadPresetBlueprints();
   loadPresetStageDemands();
   loadPresetTaskReviewers();
+  try { renderUnifiedPresetsList(); } catch (e) {}
   loadGroupByProjectEnabled();
   // 统一由总开关管理自动应用行为，移除各自自动应用开关的加载
   // 加载“自动填充预设配置”总开关
@@ -395,6 +402,23 @@ document.addEventListener('DOMContentLoaded', function() {
         applyTaskReviewerPresetToOA();
         showToast('已填充预设配置');
       });
+    });
+  }
+
+  if (captureAllBtn) {
+    captureAllBtn.addEventListener('click', () => {
+      captureAllPresetsFromOA();
+    });
+  }
+
+  if (unifiedDetailsCloseBtn) {
+    unifiedDetailsCloseBtn.addEventListener('click', () => {
+      if (unifiedDetailsModal) unifiedDetailsModal.style.display = 'none';
+    });
+  }
+  if (unifiedDetailsCancelBtn) {
+    unifiedDetailsCancelBtn.addEventListener('click', () => {
+      if (unifiedDetailsModal) unifiedDetailsModal.style.display = 'none';
     });
   }
   
@@ -1276,12 +1300,7 @@ window.editLog = function(id, status = 'pending') {
   const today = new Date().toISOString().split('T')[0];
   
   // 填充项目选项 - 包含现有日志项目和预设项目，确保编辑的项目包含在内
-  const projectsSet = new Set([
-    log.project, // 确保编辑的项目包含在内
-    ...logs.pending.map(log => log.project),
-    ...logs.filled.map(log => log.project),
-    ...presetProjects // 添加预设项目
-  ]);
+  const projectsSet = new Set([log.project, ...getCapturedProjects()]);
   
   // 清空并重新填充项目候选列表（datalist）
   if (modalProjectDatalist) {
@@ -1321,7 +1340,7 @@ function updateProjectSelect() {
   if (!modalProjectDatalist) return;
   
   modalProjectDatalist.innerHTML = '';
-  presetProjects.forEach(project => {
+  getCapturedProjects().forEach(project => {
     const option = document.createElement('option');
     option.value = project;
     modalProjectDatalist.appendChild(option);
@@ -1331,12 +1350,7 @@ function updateProjectSelect() {
 function updateExportProjectOptions() {
   const select = document.getElementById('export-project-filter');
   if (!select) return;
-  const projectsSet = new Set([
-    ...logs.pending.map(log => log.project),
-    ...logs.filled.map(log => log.project),
-    ...presetProjects
-  ]);
-  const projects = ['all', ...projectsSet];
+  const projects = ['all', ...getCapturedProjects()];
   select.innerHTML = '';
   projects.forEach(p => {
     const option = document.createElement('option');
@@ -1402,12 +1416,7 @@ function updateHoursStatistics() {
 function updateProjectTabs() {
   // 使用待申请筛选下拉框替代项目标签
   if (!pendingProjectDropdown) return;
-  // 使用两类任务的并集填充项目筛选
-  const projectsSet = new Set([
-    ...logs.pending.map(log => log.project),
-    ...logs.filled.map(log => log.project)
-  ]);
-  const projects = ['all', ...projectsSet];
+  const projects = ['all', ...getCapturedProjects()];
   pendingProjectDropdown.innerHTML = '';
   projects.forEach(p => {
     const option = document.createElement('option');
@@ -1755,9 +1764,7 @@ function renderFilledLogs() {
 function updateFilledProjectTabs() {
   // 使用已申请下拉框填充项目列表
   if (!filledProjectDropdown) return;
-
-  const projectsSet = new Set(logs.filled.map(log => log.project));
-  const projects = ['all', ...projectsSet];
+  const projects = ['all', ...getCapturedProjects()];
   filledProjectDropdown.innerHTML = '';
   projects.forEach(p => {
     const option = document.createElement('option');
@@ -1767,6 +1774,19 @@ function updateFilledProjectTabs() {
   });
   // 保持当前筛选值
   filledProjectDropdown.value = activeFilledProjectFilter;
+}
+
+function getCapturedProjects(){
+  try {
+    var names = new Set();
+    var bp = presetBlueprints || {};
+    var sd = presetStageDemands || {};
+    var tr = presetTaskReviewers || {};
+    Object.keys(bp).forEach(function(k){ var n = (bp[k] && bp[k].ProjectName) || k; n = (n || '').trim(); if (n) names.add(n); });
+    Object.keys(sd).forEach(function(k){ var n = (sd[k] && sd[k].ProjectName) || k; n = (n || '').trim(); if (n) names.add(n); });
+    Object.keys(tr).forEach(function(k){ var n = (tr[k] && tr[k].ProjectName) || k; n = (n || '').trim(); if (n) names.add(n); });
+    return Array.from(names).sort();
+  } catch (e) { return []; }
 }
 
 // 切换已填写项目筛选
@@ -2824,6 +2844,7 @@ function savePresetBlueprints() {
   try {
     localStorage.setItem('presetBlueprints', JSON.stringify(presetBlueprints || {}));
     renderBlueprintPresetsList();
+    try { renderUnifiedPresetsList(); } catch (e) {}
     showToast('蓝图预设已保存');
   } catch (error) {
     console.error('保存蓝图预设失败:', error);
@@ -2946,11 +2967,7 @@ function openAddLogWindow() {
     const today = new Date().toISOString().split('T')[0];
     
     // 填充项目选项 - 包含现有日志项目和预设项目
-    const projectsSet = new Set([
-      ...logs.pending.map(log => log.project),
-      ...logs.filled.map(log => log.project),
-      ...presetProjects // 添加预设项目
-    ]);
+    const projectsSet = new Set(getCapturedProjects());
     
     // 清空并重新填充项目候选列表（datalist）
     if (modalProjectDatalist) {
@@ -3036,16 +3053,7 @@ function saveLogAndContinue() {
       return;
     }
 
-    // 若项目不在预设列表中，自动加入并持久化
-    const projName = (project || '').trim();
-    if (projName && !presetProjects.includes(projName)) {
-      presetProjects.push(projName);
-      try {
-        localStorage.setItem('presetProjects', JSON.stringify(presetProjects));
-      } catch (err) {}
-      updateProjectSelect();
-      try { renderPresetProjectsList(); } catch (e) {}
-    }
+    // 项目来源来自一键捕获的项目列表，不再写入旧的预设项目
 
     // 创建新日志
     const newLog = {
@@ -3101,6 +3109,7 @@ function savePresetTaskReviewers() {
   try {
     localStorage.setItem('presetTaskReviewers', JSON.stringify(presetTaskReviewers || {}));
     renderTaskReviewerPresetsList();
+    try { renderUnifiedPresetsList(); } catch (e) {}
     showToast('任务审核人预设已保存');
   } catch (error) {
     console.error('保存任务审核人预设失败:', error);
@@ -3468,10 +3477,190 @@ function savePresetStageDemands() {
   try {
     localStorage.setItem('presetStageDemands', JSON.stringify(presetStageDemands || {}));
     renderStageDemandPresetsList();
+    try { renderUnifiedPresetsList(); } catch (e) {}
     showToast('工作场景预设已保存');
   } catch (error) {
     console.error('保存工作场景预设失败:', error);
   }
+}
+
+function captureAllPresetsFromOA() {
+  try {
+    captureCurrentBlueprintFromOA();
+    captureCurrentStageDemandFromOA();
+    captureCurrentTaskReviewerFromOA();
+    setTimeout(function(){ try { renderUnifiedPresetsList(); } catch (e) {} }, 800);
+  } catch (e) {}
+}
+
+function renderUnifiedPresetsList() {
+  try {
+    if (!unifiedPresetsList) return;
+    var bpMap = presetBlueprints || {};
+    var sdMap = presetStageDemands || {};
+    var trMap = presetTaskReviewers || {};
+    var keys = Array.from(new Set([].concat(Object.keys(bpMap), Object.keys(sdMap), Object.keys(trMap))));
+    if (keys.length === 0) {
+      unifiedPresetsList.innerHTML = '<p style="color:#888;">暂无捕获数据</p>';
+      return;
+    }
+    var ul = document.createElement('ul');
+    ul.className = 'preset-list';
+    keys.forEach(function(k){
+      var bp = bpMap[k] || {};
+      var sd = sdMap[k] || {};
+      var tr = trMap[k] || {};
+      var projName = bp.ProjectName || sd.ProjectName || tr.ProjectName || k;
+      var li = document.createElement('li');
+      var info = document.createElement('div');
+      info.className = 'preset-info';
+      var s1 = document.createElement('span');
+      s1.textContent = '项目: ' + (projName || '');
+      info.appendChild(s1);
+
+      var actions = document.createElement('div');
+      actions.className = 'preset-actions';
+      var detailBtn = document.createElement('button');
+      detailBtn.className = 'action-icon detail-btn';
+      detailBtn.type = 'button';
+      detailBtn.innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path><circle cx="12" cy="12" r="3"></circle></svg>';
+      detailBtn.addEventListener('click', function(ev){
+        try { ev.preventDefault(); ev.stopPropagation(); } catch (e) {}
+        openUnifiedDetailsModal(k);
+      });
+      actions.appendChild(detailBtn);
+
+      var delBtn = document.createElement('button');
+      delBtn.className = 'action-icon delete-btn';
+      delBtn.type = 'button';
+      delBtn.innerHTML = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path><line x1="10" y1="11" x2="10" y2="17"></line><line x1="14" y1="11" x2="14" y2="17"></line></svg>';
+      delBtn.title = '删除';
+      delBtn.addEventListener('click', function(ev){
+        try { ev.preventDefault(); ev.stopPropagation(); } catch (e) {}
+        removeUnifiedPreset(k);
+      });
+
+      li.appendChild(info);
+      li.appendChild(actions);
+      li.appendChild(delBtn);
+      ul.appendChild(li);
+    });
+    unifiedPresetsList.innerHTML = '';
+    unifiedPresetsList.appendChild(ul);
+  } catch (e) {}
+}
+
+function openUnifiedDetailsModal(projectKey){
+  try {
+    var bp = (presetBlueprints || {})[projectKey] || {};
+    var sd = (presetStageDemands || {})[projectKey] || {};
+    var tr = (presetTaskReviewers || {})[projectKey] || {};
+    var projName = bp.ProjectName || sd.ProjectName || tr.ProjectName || projectKey;
+    var projGuid = bp.ProjectGuid || sd.ProjectGuid || tr.ProjectGuid || '';
+    if (unifiedDetailsBody) {
+      var wrap = document.createElement('div');
+      wrap.className = 'details-grid';
+
+      var secBase = document.createElement('div');
+      secBase.className = 'details-section';
+      var secBaseTitle = document.createElement('div');
+      secBaseTitle.className = 'details-section-title';
+      secBaseTitle.textContent = '基础信息';
+      var secBaseBody = document.createElement('div');
+      secBaseBody.className = 'details-section-body';
+      secBaseBody.appendChild(makeDetailRow('项目名称', projName));
+      secBaseBody.appendChild(makeDetailRow('ProjectGuid', projGuid));
+      secBase.appendChild(secBaseTitle);
+      secBase.appendChild(secBaseBody);
+
+      var secBp = document.createElement('div');
+      secBp.className = 'details-section';
+      var secBpTitle = document.createElement('div');
+      secBpTitle.className = 'details-section-title';
+      secBpTitle.textContent = '蓝图';
+      var secBpBody = document.createElement('div');
+      secBpBody.className = 'details-section-body';
+      secBpBody.appendChild(makeDetailRow('蓝图名称', bp.BluePrint_Formal || ''));
+      secBpBody.appendChild(makeDetailRow('蓝图GUID', bp.BluePrint_FormalGuid || ''));
+      secBpBody.appendChild(makeDetailRow('蓝图等级', bp.BluePrintLevel || ''));
+      secBpBody.appendChild(makeDetailRow('合同GUID', bp.ContractGuid || ''));
+      secBpBody.appendChild(makeDetailRow('是否有建设合同', bp.IsWYSJSHT || ''));
+      secBpBody.appendChild(makeDetailRow('合同编号', bp.ContractNumber || ''));
+      if (typeof bp.YLGZMoney !== 'undefined') secBpBody.appendChild(makeDetailRow('遗留工作金额', bp.YLGZMoney || ''));
+      if (typeof bp.HasYLGZ !== 'undefined') secBpBody.appendChild(makeDetailRow('是否存在遗留工作', bp.HasYLGZ || ''));
+      secBp.appendChild(secBpTitle);
+      secBp.appendChild(secBpBody);
+
+      var secSd = document.createElement('div');
+      secSd.className = 'details-section';
+      var secSdTitle = document.createElement('div');
+      secSdTitle.className = 'details-section-title';
+      secSdTitle.textContent = '工作场景';
+      var secSdBody = document.createElement('div');
+      secSdBody.className = 'details-section-body';
+      secSdBody.appendChild(makeDetailRow('场景名称', sd.StageDemandName || ''));
+      secSdBody.appendChild(makeDetailRow('场景GUID', sd.StageDemandGuid || ''));
+      secSd.appendChild(secSdTitle);
+      secSd.appendChild(secSdBody);
+
+      var secTr = document.createElement('div');
+      secTr.className = 'details-section';
+      var secTrTitle = document.createElement('div');
+      secTrTitle.className = 'details-section-title';
+      secTrTitle.textContent = '任务审核人';
+      var secTrBody = document.createElement('div');
+      secTrBody.className = 'details-section-body';
+      secTrBody.appendChild(makeDetailRow('审核人姓名', tr.TaskReviewerName || ''));
+      secTrBody.appendChild(makeDetailRow('审核人GUID', tr.TaskReviewerGuid || ''));
+      secTr.appendChild(secTrTitle);
+      secTr.appendChild(secTrBody);
+
+      wrap.appendChild(secBase);
+      wrap.appendChild(secBp);
+      wrap.appendChild(secSd);
+      wrap.appendChild(secTr);
+
+      unifiedDetailsBody.innerHTML = '';
+      unifiedDetailsBody.appendChild(wrap);
+    }
+    if (unifiedDetailsModal) unifiedDetailsModal.style.display = 'block';
+  } catch (e) {}
+}
+
+function makeDetailRow(label, value){
+  var row = document.createElement('div');
+  row.className = 'details-row';
+  var l = document.createElement('div');
+  l.className = 'details-label';
+  l.textContent = label;
+  var v = document.createElement('div');
+  v.className = 'details-value';
+  v.textContent = value || '—';
+  row.appendChild(l);
+  row.appendChild(v);
+  return row;
+}
+
+function removeUnifiedPreset(projectKey) {
+  try {
+    if (!projectKey) return;
+    var changed = false;
+    if (presetBlueprints && presetBlueprints[projectKey]) { delete presetBlueprints[projectKey]; changed = true; }
+    if (presetStageDemands && presetStageDemands[projectKey]) { delete presetStageDemands[projectKey]; changed = true; }
+    if (presetTaskReviewers && presetTaskReviewers[projectKey]) { delete presetTaskReviewers[projectKey]; changed = true; }
+    if (changed) {
+      try {
+        if (presetBlueprints && Object.keys(presetBlueprints).length) localStorage.setItem('presetBlueprints', JSON.stringify(presetBlueprints)); else localStorage.removeItem('presetBlueprints');
+        if (presetStageDemands && Object.keys(presetStageDemands).length) localStorage.setItem('presetStageDemands', JSON.stringify(presetStageDemands)); else localStorage.removeItem('presetStageDemands');
+        if (presetTaskReviewers && Object.keys(presetTaskReviewers).length) localStorage.setItem('presetTaskReviewers', JSON.stringify(presetTaskReviewers)); else localStorage.removeItem('presetTaskReviewers');
+      } catch (e) {}
+      try { renderBlueprintPresetsList(); } catch (e) {}
+      try { renderStageDemandPresetsList(); } catch (e) {}
+      try { renderTaskReviewerPresetsList(); } catch (e) {}
+      try { renderUnifiedPresetsList(); } catch (e) {}
+      showToast('已删除该项目的捕获数据');
+    }
+  } catch (e) {}
 }
 
 // 渲染工作场景预设列表

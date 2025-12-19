@@ -369,7 +369,8 @@ body {
 /* 预设列表容器保持默认布局 */
 .config-card .form-group:has(#blueprint-presets-list),
 .config-card .form-group:has(#stagedemand-presets-list),
-.config-card .form-group:has(#taskreviewer-presets-list) {
+.config-card .form-group:has(#taskreviewer-presets-list),
+.config-card .form-group:has(#unified-presets-list) {
   justify-content: flex-start;
   margin-bottom: 16px;
 }
@@ -377,7 +378,8 @@ body {
 /* 预设列表标题 */
 .config-card .form-group:has(#blueprint-presets-list) > label,
 .config-card .form-group:has(#stagedemand-presets-list) > label,
-.config-card .form-group:has(#taskreviewer-presets-list) > label {
+.config-card .form-group:has(#taskreviewer-presets-list) > label,
+.config-card .form-group:has(#unified-presets-list) > label {
   font-weight: 600;
   color: #2d3748;
   margin-bottom: 12px;
@@ -553,7 +555,7 @@ body {
 }
 
 /* 按钮样式 */
-.config-card button {
+.config-card button:not(.action-icon) {
   padding: 10px 16px;
   border: none;
   border-radius: 8px;
@@ -566,12 +568,12 @@ body {
   box-shadow: 0 2px 8px rgba(102, 126, 234, 0.3);
 }
 
-.config-card button:hover {
+.config-card button:not(.action-icon):hover {
   transform: translateY(-2px);
   box-shadow: 0 4px 16px rgba(102, 126, 234, 0.4);
 }
 
-.config-card button:active {
+.config-card button:not(.action-icon):active {
   transform: translateY(0);
   box-shadow: 0 2px 4px rgba(102, 126, 234, 0.3);
 }
@@ -1410,6 +1412,7 @@ body {
 #blueprint-presets-list .action-icon.delete-btn,
 #stagedemand-presets-list .action-icon.delete-btn,
 #taskreviewer-presets-list .action-icon.delete-btn,
+#unified-presets-list .action-icon.delete-btn,
 .config-card .action-icon.delete-btn {
   color: #ef4444;
   background-color: transparent;
@@ -1422,6 +1425,7 @@ body {
 #blueprint-presets-list .action-icon.delete-btn svg,
 #stagedemand-presets-list .action-icon.delete-btn svg,
 #taskreviewer-presets-list .action-icon.delete-btn svg,
+#unified-presets-list .action-icon.delete-btn svg,
 .config-card .action-icon.delete-btn svg {
   width: 16px;
   height: 16px;
@@ -1433,6 +1437,7 @@ body {
 #blueprint-presets-list .action-icon.delete-btn:hover,
 #stagedemand-presets-list .action-icon.delete-btn:hover,
 #taskreviewer-presets-list .action-icon.delete-btn:hover,
+#unified-presets-list .action-icon.delete-btn:hover,
 .config-card .action-icon.delete-btn:hover {
   background-color: transparent;
   border-color: transparent;
@@ -1683,7 +1688,10 @@ body {
 .preset-project-item .action-icon.delete-btn,
 #blueprint-presets-list .action-icon.delete-btn,
 #stagedemand-presets-list .action-icon.delete-btn,
-#taskreviewer-presets-list .action-icon.delete-btn {
+#taskreviewer-presets-list .action-icon.delete-btn,
+#unified-presets-list .action-icon.delete-btn,
+#unified-presets-list .action-icon.detail-btn,
+.config-card .action-icon.detail-btn {
   background: transparent !important;
   border-color: transparent !important;
   box-shadow: none !important;
@@ -2709,4 +2717,81 @@ html, body {
 #add-log-modal .modal-close {
   width: 24px;
   height: 24px;
+}
+
+.preset-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.action-icon.detail-btn {
+  background-color: transparent;
+  border-color: transparent;
+}
+.action-icon.detail-btn:hover {
+  background-color: transparent;
+  border-color: transparent;
+}
+
+.details-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 16px;
+}
+
+.details-section {
+  background: #fff;
+  border: 1px solid #e2e8f0;
+  border-radius: 8px;
+  box-shadow: 0 1px 4px rgba(0,0,0,0.06);
+  overflow: hidden;
+}
+
+.details-section-title {
+  padding: 10px 12px;
+  font-size: 14px;
+  font-weight: 600;
+  color: #2d3748;
+  background: #f8fafc;
+  border-bottom: 1px solid #e2e8f0;
+}
+
+.details-section-body {
+  padding: 10px 12px;
+}
+
+.details-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 6px 0;
+  border-bottom: 1px dashed #edf2f7;
+}
+
+.details-row:last-child {
+  border-bottom: none;
+}
+
+.details-label {
+  color: #718096;
+  font-size: 13px;
+}
+
+.details-value {
+  color: #2d3748;
+  font-size: 13px;
+  font-weight: 500;
+}
+
+#unified-details-modal .modal-content {
+  width: 560px;
+  max-width: 92%;
+  max-height: 80vh;
+  display: flex;
+  flex-direction: column;
+}
+
+#unified-details-modal .modal-body {
+  overflow-y: auto;
 }

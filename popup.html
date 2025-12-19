@@ -79,18 +79,6 @@
               </label>
             </div>
           </div>
-          <!-- 预设项目卡片 -->
-          <div class="config-card">
-            <h3>预设项目</h3>
-            <div class="preset-projects-list" id="preset-projects-tab-list">
-              <!-- 预设项目列表将通过JavaScript动态生成 -->
-            </div>
-            <div class="add-preset-project">
-              <input type="text" id="new-preset-project-tab" placeholder="输入新项目名称">
-              <button id="add-preset-project-tab-btn" class="btn-small">添加</button>
-            </div>
-          </div>
-
           <!-- 需求标签卡片 -->
           <div class="config-card">
             <h3>需求标签预设</h3>
@@ -142,39 +130,31 @@
           </div>
 
 
-          <!-- 蓝图预设卡片 -->
+          
+
+          <!-- 一键捕获与汇总 -->
           <div class="config-card">
-            <h3>蓝图预设</h3>
+            <h3>一键捕获与汇总</h3>
             <div class="form-group">
-              <button id="capture-blueprint-btn" class="btn-capture">捕获</button>
-              <button id="apply-blueprint-btn" class="btn-apply">应用</button>
+              <button id="capture-all-btn" class="btn-capture">一键捕获</button>
             </div>
             <div class="form-group">
-              <div id="blueprint-presets-list"></div>
+              <div id="unified-presets-list"></div>
             </div>
           </div>
 
-          <!-- 工作场景预设卡片 -->
-          <div class="config-card">
-            <h3>工作场景预设</h3>
-            <div class="form-group">
-              <button id="capture-stagedemand-btn" class="btn-capture">捕获</button>
-              <button id="apply-stagedemand-btn" class="btn-apply">应用</button>
-            </div>
-            <div class="form-group">
-              <div id="stagedemand-presets-list"></div>
-            </div>
-          </div>
-
-          <!-- 任务审核人预设卡片 -->
-          <div class="config-card">
-            <h3>任务审核人预设</h3>
-            <div class="form-group">
-              <button id="capture-taskreviewer-btn" class="btn-capture">捕获</button>
-              <button id="apply-taskreviewer-btn" class="btn-apply">应用</button>
-            </div>
-            <div class="form-group">
-              <div id="taskreviewer-presets-list"></div>
+          <div id="unified-details-modal" class="modal">
+            <div class="modal-content">
+              <div class="modal-header">
+                <h3>项目详情</h3>
+                <button type="button" class="modal-close" id="unified-details-close-btn">&times;</button>
+              </div>
+              <div class="modal-body">
+                <div id="unified-details-body"></div>
+              </div>
+              <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" id="unified-details-cancel-btn">关闭</button>
+              </div>
             </div>
           </div>
 
