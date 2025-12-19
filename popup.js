@@ -32,6 +32,7 @@ const toastContainer = document.getElementById('toast-container');
 const demandTagSelect = document.getElementById('demand-tag-select');
 const workTypeSelect = document.getElementById('work-type-select');
 const closeRemindersCheckbox = document.getElementById('close-reminders-checkbox');
+const groupByProjectCheckbox = document.getElementById('group-by-project-checkbox');
 const captureBlueprintBtn = document.getElementById('capture-blueprint-btn');
 const applyBlueprintBtn = document.getElementById('apply-blueprint-btn');
 const blueprintAutoApplyCheckbox = document.getElementById('blueprint-auto-apply-checkbox');
@@ -96,6 +97,8 @@ let presetTaskReviewerAutoApply = true;
 let presetAutoFillPresets = true; // 预设配置自动填充总开关，默认开启
 // 已申请日期筛选状态
 let activeFilledDateFilter = '';
+// 是否按项目分组展示（首页）
+let groupByProjectEnabled = true;
 
 // 选择模式状态与选中集合
 let pendingSelectionMode = false;
@@ -331,6 +334,7 @@ document.addEventListener('DOMContentLoaded', function() {
   loadPresetBlueprints();
   loadPresetStageDemands();
   loadPresetTaskReviewers();
+  loadGroupByProjectEnabled();
   // 统一由总开关管理自动应用行为，移除各自自动应用开关的加载
   // 加载“自动填充预设配置”总开关
   loadPresetAutoFillPresets();
@@ -1459,44 +1463,126 @@ function renderPendingLogs() {
   
   // 清空列表
   pendingLogsList.innerHTML = '';
-  
-  const groupMap = new Map();
-  sourceItems.forEach(({ log, status }) => {
-    const key = log.project || '';
-    if (!groupMap.has(key)) groupMap.set(key, []);
-    groupMap.get(key).push({ log, status });
-  });
+  if (groupByProjectEnabled) {
+    const groupMap = new Map();
+    sourceItems.forEach(({ log, status }) => {
+      const key = log.project || '';
+      if (!groupMap.has(key)) groupMap.set(key, []);
+      groupMap.get(key).push({ log, status });
+    });
 
-  Array.from(groupMap.keys()).sort().forEach((projectName) => {
-    const items = groupMap.get(projectName) || [];
-    const totalHours = items.reduce((sum, it) => sum + (parseFloat(it.log.hours) || 0), 0);
-    const colorIndex = getProjectColorIndex(projectName);
-    if (pendingAccordionState[projectName] === undefined) pendingAccordionState[projectName] = true;
-    const accordion = document.createElement('div');
-    accordion.className = `accordion-item project-color-${colorIndex} ${pendingAccordionState[projectName] ? '' : 'open'}`;
-    const header = document.createElement('div');
-    header.className = 'accordion-header';
-    header.innerHTML = `
-      <div class="accordion-title">
-        <span class="folder-icon" aria-hidden="true">
-          <svg viewBox="0 0 24 24" width="18" height="18">
-            <path d="M3 7h5l1.8 2H21v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V9a2 2 0 0 1 2-2z" fill="#3b82f6"/>
-          </svg>
-        </span>
-        <span class="accordion-project-name" title="${escapeHtml(projectName)}">${escapeHtml(projectName)}</span>
-      </div>
-      <div class="accordion-meta">
-        <span class="accordion-count">${items.length}条</span>
-        <span class="accordion-hours">${totalHours.toFixed(1)}h</span>
-        <span class="accordion-toggle" aria-hidden="true">
-          <svg width="14" height="14" viewBox="0 0 24 24"><path d="M6 9l6 6 6-6" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round"/></svg>
-        </span>
-      </div>
-    `;
-    const content = document.createElement('div');
-    content.className = 'accordion-content';
+    Array.from(groupMap.keys()).sort().forEach((projectName) => {
+      const items = groupMap.get(projectName) || [];
+      const totalHours = items.reduce((sum, it) => sum + (parseFloat(it.log.hours) || 0), 0);
+      const colorIndex = getProjectColorIndex(projectName);
+      if (pendingAccordionState[projectName] === undefined) pendingAccordionState[projectName] = true;
+      const accordion = document.createElement('div');
+      accordion.className = `accordion-item project-color-${colorIndex} ${pendingAccordionState[projectName] ? '' : 'open'}`;
+      const header = document.createElement('div');
+      header.className = 'accordion-header';
+      header.innerHTML = `
+        <div class="accordion-title">
+          <span class="folder-icon" aria-hidden="true">
+            <svg viewBox="0 0 24 24" width="18" height="18">
+              <path d="M3 7h5l1.8 2H21v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V9a2 2 0 0 1 2-2z" fill="#3b82f6"/>
+            </svg>
+          </span>
+          <span class="accordion-project-name" title="${escapeHtml(projectName)}">${escapeHtml(projectName)}</span>
+        </div>
+        <div class="accordion-meta">
+          <span class="accordion-count">${items.length}条</span>
+          <span class="accordion-hours">${totalHours.toFixed(1)}h</span>
+          <span class="accordion-toggle" aria-hidden="true">
+            <svg width="14" height="14" viewBox="0 0 24 24"><path d="M6 9l6 6 6-6" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round"/></svg>
+          </span>
+        </div>
+      `;
+      const content = document.createElement('div');
+      content.className = 'accordion-content';
 
-    items.forEach(({ log, status }) => {
+      items.forEach(({ log, status }) => {
+        const logItem = document.createElement('div');
+        logItem.className = 'log-item';
+        logItem.dataset.id = log.id;
+        const logColorIndex = getProjectColorIndex(log.project);
+        logItem.classList.add(`project-color-${logColorIndex}`);
+        const actionsIconsHtml = `
+          <div class="log-actions">
+            <div class="action-icon edit-btn" title="修改">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M12 20h9"></path>
+                <path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4 12.5-12.5z"></path>
+              </svg>
+            </div>
+            <div class="action-icon delete-btn" title="删除">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <polyline points="3 6 5 6 21 6"></polyline>
+                <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
+                <line x1="10" y1="11" x2="10" y2="17"></line>
+                <line x1="14" y1="11" x2="14" y2="17"></line>
+              </svg>
+            </div>
+            <div class="action-icon fill-btn" title="填充">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <polyline points="20 6 9 17 4 12"></polyline>
+              </svg>
+            </div>
+          </div>`;
+        logItem.innerHTML = `
+          <div class=\"log-item-header\">\n        ${pendingSelectionMode ? `<input type=\"checkbox\" class=\"log-select-checkbox\" data-id=\"${log.id}\" ${pendingSelectedIds.has(log.id) ? 'checked' : ''}>` : ''}
+            <span class=\"log-task-title\">${escapeHtml(log.taskName)}</span>
+            <div class=\"log-date\">${formatDate(log.date)}</div>
+            <div class=\"log-hours\">${log.hours}h</div>
+          </div>
+          <div class=\"log-content\"><span class=\"log-content-text\">${escapeHtml(log.content)}</span>${actionsIconsHtml}</div>
+        `;
+        const headerActions = logItem.querySelector('.log-item-header .log-actions');
+        const contentDiv = logItem.querySelector('.log-content');
+        if (headerActions && contentDiv) {
+          contentDiv.appendChild(headerActions);
+        }
+        const fillBtn = logItem.querySelector('.fill-btn');
+        const deleteBtn = logItem.querySelector('.delete-btn');
+        const editBtn = logItem.querySelector('.edit-btn');
+        if (status === 'pending') {
+          const selectCheckbox = logItem.querySelector('.log-select-checkbox');
+          if (fillBtn) fillBtn.addEventListener('click', function() { window.fillLog(log.id); });
+          if (deleteBtn) deleteBtn.addEventListener('click', () => deleteLog(log.id, 'pending'));
+          if (editBtn) editBtn.addEventListener('click', () => editLog(log.id, 'pending'));
+          if (selectCheckbox) {
+            selectCheckbox.addEventListener('change', (e) => {
+              const id = log.id;
+              if (e.target.checked) pendingSelectedIds.add(id);
+              else pendingSelectedIds.delete(id);
+            });
+          }
+        } else {
+          const restoreBtn = logItem.querySelector('.restore-btn');
+          if (restoreBtn) restoreBtn.addEventListener('click', () => restoreLog(log.id));
+          if (deleteBtn) deleteBtn.addEventListener('click', () => deleteLog(log.id, 'filled'));
+          if (fillBtn) fillBtn.addEventListener('click', () => fillLog(log.id));
+          if (editBtn) editBtn.addEventListener('click', () => editLog(log.id, 'filled'));
+        }
+        content.appendChild(logItem);
+      });
+
+      header.addEventListener('click', () => {
+        const isOpen = accordion.classList.contains('open');
+        if (isOpen) {
+          accordion.classList.remove('open');
+          pendingAccordionState[projectName] = true;
+        } else {
+          accordion.classList.add('open');
+          pendingAccordionState[projectName] = false;
+        }
+      });
+
+      accordion.appendChild(header);
+      accordion.appendChild(content);
+      pendingLogsList.appendChild(accordion);
+    });
+  } else {
+    sourceItems.forEach(({ log, status }) => {
       const logItem = document.createElement('div');
       logItem.className = 'log-item';
       logItem.dataset.id = log.id;
@@ -1525,12 +1611,16 @@ function renderPendingLogs() {
           </div>
         </div>`;
       logItem.innerHTML = `
-        <div class=\"log-item-header\">\n        ${pendingSelectionMode ? `<input type=\"checkbox\" class=\"log-select-checkbox\" data-id=\"${log.id}\" ${pendingSelectedIds.has(log.id) ? 'checked' : ''}>` : ''}
-          <span class=\"log-task-title\">${escapeHtml(log.taskName)}</span>
-          <div class=\"log-date\">${formatDate(log.date)}</div>
-          <div class=\"log-hours\">${log.hours}h</div>
+        <div class=\"log-item-header\">
+          <div class=\"log-header-left\">${pendingSelectionMode ? `<input type=\"checkbox\" class=\"log-select-checkbox\" data-id=\"${log.id}\" ${pendingSelectedIds.has(log.id) ? 'checked' : ''}>` : ''}<span class=\"log-task-title\">${escapeHtml(log.taskName)}</span></div>
+          <div class=\"log-header-right\">
+            <span class=\"log-project-tag\" data-full-name=\"${escapeHtml(log.project)}\">${escapeHtml((log.project || '').slice(0,3))}</span>
+            <div class=\"log-date\">${formatDate(log.date)}</div>
+            <div class=\"log-hours\">${log.hours}h</div>
+            ${actionsIconsHtml}
+          </div>
         </div>
-        <div class=\"log-content\"><span class=\"log-content-text\">${escapeHtml(log.content)}</span>${actionsIconsHtml}</div>
+        <div class=\"log-content\"><span class=\"log-content-text\">${escapeHtml(log.content)}</span></div>
       `;
       const headerActions = logItem.querySelector('.log-item-header .log-actions');
       const contentDiv = logItem.querySelector('.log-content');
@@ -1559,24 +1649,9 @@ function renderPendingLogs() {
         if (fillBtn) fillBtn.addEventListener('click', () => fillLog(log.id));
         if (editBtn) editBtn.addEventListener('click', () => editLog(log.id, 'filled'));
       }
-      content.appendChild(logItem);
+      pendingLogsList.appendChild(logItem);
     });
-
-    header.addEventListener('click', () => {
-      const isOpen = accordion.classList.contains('open');
-      if (isOpen) {
-        accordion.classList.remove('open');
-        pendingAccordionState[projectName] = true;
-      } else {
-        accordion.classList.add('open');
-        pendingAccordionState[projectName] = false;
-      }
-    });
-
-    accordion.appendChild(header);
-    accordion.appendChild(content);
-    pendingLogsList.appendChild(accordion);
-  });
+  }
 }
 
 // 渲染已填写日志列表
@@ -2556,6 +2631,12 @@ function createLogElement(log) {
       autofillCloseRemindersToPage(presetCloseReminders);
     });
   }
+  // 项目分组展示勾选后立即保存并刷新首页列表
+  if (groupByProjectCheckbox) {
+    groupByProjectCheckbox.addEventListener('change', () => {
+      saveGroupByProjectEnabled();
+    });
+  }
   // 自动填充总开关勾选后保存，并切换底部按钮显示
   if (autoFillPresetsCheckbox) {
     autoFillPresetsCheckbox.addEventListener('change', () => {
@@ -2648,6 +2729,34 @@ function savePresetCloseReminders() {
     showToast('关闭提醒已保存');
   } catch (error) {
     console.error('保存预设关闭提醒失败:', error);
+  }
+}
+
+// 加载“项目分组展示”配置
+function loadGroupByProjectEnabled() {
+  try {
+    const saved = localStorage.getItem('groupByProjectEnabled');
+    groupByProjectEnabled = saved === null ? true : (saved === 'true');
+    if (groupByProjectCheckbox) {
+      groupByProjectCheckbox.checked = !!groupByProjectEnabled;
+    }
+    renderLogs();
+  } catch (error) {
+    console.error('加载项目分组展示配置失败:', error);
+    groupByProjectEnabled = true;
+    if (groupByProjectCheckbox) groupByProjectCheckbox.checked = true;
+  }
+}
+
+// 保存“项目分组展示”配置
+function saveGroupByProjectEnabled() {
+  try {
+    groupByProjectEnabled = !!(groupByProjectCheckbox && groupByProjectCheckbox.checked);
+    localStorage.setItem('groupByProjectEnabled', String(groupByProjectEnabled));
+    showToast(groupByProjectEnabled ? '已开启项目分类展示' : '已关闭项目分类展示');
+    renderLogs();
+  } catch (error) {
+    console.error('保存项目分组展示配置失败:', error);
   }
 }
 

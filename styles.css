@@ -920,7 +920,7 @@ body {
 .filter-date {
   height: 28px;
   padding: 4px 8px;
-  font-size: 12px;
+  font-size: 13px;
   border: 2px solid #e2e8f0;
   border-radius: 6px;
   background: linear-gradient(135deg, #ffffff 0%, #f8fafc 100%);
@@ -1045,7 +1045,7 @@ body {
 .filter-today-btn {
   height: 28px;
   padding: 4px 10px;
-  font-size: 12px;
+  font-size: 13px;
   border: 1px solid #d1d5db;
   border-radius: 4px;
   background: #ffffff;
