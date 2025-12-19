@@ -1499,6 +1499,12 @@ function renderPendingLogs() {
             </svg>
           </span>
           <span class="accordion-project-name" title="${escapeHtml(projectName)}">${escapeHtml(projectName)}</span>
+          <button class="action-icon apply-btn" type="button" aria-label="申请" title="申请" data-project="${escapeHtml(projectName)}">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <line x1="22" y1="2" x2="11" y2="13"></line>
+              <polygon points="22 2 15 22 11 13 2 9 22 2" fill="none"></polygon>
+            </svg>
+          </button>
         </div>
         <div class="accordion-meta">
           <span class="accordion-count">${items.length}条</span>
@@ -1506,8 +1512,7 @@ function renderPendingLogs() {
           <span class="accordion-toggle" aria-hidden="true">
             <svg width="14" height="14" viewBox="0 0 24 24"><path d="M6 9l6 6 6-6" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round"/></svg>
           </span>
-        </div>
-      `;
+        </div>`;
       const content = document.createElement('div');
       content.className = 'accordion-content';
 
@@ -1576,6 +1581,14 @@ function renderPendingLogs() {
         }
         content.appendChild(logItem);
       });
+
+      const applyBtn = header.querySelector('.apply-btn');
+      if (applyBtn) {
+        applyBtn.addEventListener('click', (ev) => {
+          try { ev.preventDefault(); ev.stopPropagation(); } catch (e) {}
+          openApplyPageForProject(projectName);
+        });
+      }
 
       header.addEventListener('click', () => {
         const isOpen = accordion.classList.contains('open');
@@ -1789,6 +1802,31 @@ function getCapturedProjects(){
     Object.keys(tr).forEach(function(k){ var n = (tr[k] && tr[k].ProjectName) || k; n = (n || '').trim(); if (n) names.add(n); });
     return Array.from(names).sort();
   } catch (e) { return []; }
+}
+
+function getProjectGuidByName(projectName){
+  try {
+    var bp = presetBlueprints || {}; var sd = presetStageDemands || {}; var tr = presetTaskReviewers || {};
+    var k = projectName;
+    var g = (bp[k] && bp[k].ProjectGuid) || (sd[k] && sd[k].ProjectGuid) || (tr[k] && tr[k].ProjectGuid);
+    if (g) return g;
+    var keys;
+    keys = Object.keys(bp); for (var i=0;i<keys.length;i++){ var v = bp[keys[i]]; if (v && (v.ProjectName === projectName || keys[i] === projectName) && v.ProjectGuid) return v.ProjectGuid; }
+    keys = Object.keys(sd); for (var j=0;j<keys.length;j++){ var v2 = sd[keys[j]]; if (v2 && (v2.ProjectName === projectName || keys[j] === projectName) && v2.ProjectGuid) return v2.ProjectGuid; }
+    keys = Object.keys(tr); for (var m=0;m<keys.length;m++){ var v3 = tr[keys[m]]; if (v3 && (v3.ProjectName === projectName || keys[m] === projectName) && v3.ProjectGuid) return v3.ProjectGuid; }
+    return '';
+  } catch (e) { return ''; }
+}
+
+function openApplyPageForProject(projectName){
+  try {
+    var guid = getProjectGuidByName(projectName);
+    if (!guid) { try { showToast('未捕获到该项目的 ProjectGuid'); } catch(e) {} return; }
+    var today = new Date().toISOString().split('T')[0];
+    var url = 'https://oa.epoint.com.cn/epointprojectm/projectmanage/mission/missionapply/missionapplyadd?ProjectGuid=' + encodeURIComponent(guid) + '&RZDate=' + encodeURIComponent(today);
+    try { if (typeof chrome !== 'undefined' && chrome.tabs && chrome.tabs.create) { chrome.tabs.create({ url: url }); return; } } catch (e) {}
+    try { window.open(url, '_blank'); } catch (e) {}
+  } catch (e) {}
 }
 
 // 切换已填写项目筛选

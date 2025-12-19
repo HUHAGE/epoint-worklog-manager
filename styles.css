@@ -1150,7 +1150,7 @@ body {
 .accordion-title {
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: 10px;
   flex: 1 1 auto;
   min-width: 0;
 }
@@ -1171,6 +1171,16 @@ body {
   white-space: nowrap;
 }
 
+.action-icon.apply-btn {
+  color: #667eea;
+  background-color: transparent;
+  border-color: transparent;
+}
+.action-icon.apply-btn:hover {
+  background-color: rgba(102, 126, 234, 0.08);
+  border-color: rgba(102, 126, 234, 0.2);
+}
+
 .accordion-meta {
   display: flex;
   align-items: center;
@@ -1181,6 +1191,7 @@ body {
 .accordion-count {
   font-size: 13px;
   color: #718096;
+  margin-left: 4px;
 }
 
 .accordion-hours {
