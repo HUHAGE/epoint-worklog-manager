@@ -2358,7 +2358,7 @@ input:checked + .slider:before {
   left: 0;
   width: 100%;
   height: 100%;
-  z-index: 2000;
+  z-index: 20001;
 }
 
 .dialog-overlay {
@@ -2411,6 +2411,27 @@ input:checked + .slider:before {
   display: flex;
   justify-content: flex-end;
   gap: 10px;
+}
+#force-update-dialog .dialog-header h3 {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+
+#force-update-dialog .force-update-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  color: #ef4444;
+}
+
+#force-update-dialog .modal-body p {
+  font-size: 16px;
+  line-height: 1.6;
+}
+
+#force-update-dialog .modal-footer {
+  justify-content: center;
 }
 
 /* 成功提示消息样式 */
