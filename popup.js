@@ -202,7 +202,11 @@ function fetchLatestVersionOnline(url) {
       var text = await res.text();
       var v = '';
       if (/text\/plain|text\/txt|application\/octet-stream/i.test(ct) || /latest-version\.txt/i.test(effectiveUrl)) {
-        v = String(text || '').trim().split(/\s+/)[0] || '';
+        var rawV = String(text || '').trim().split(/\s+/)[0] || '';
+        // 增加校验：版本号不应包含 { [ < 等字符，且长度合理
+        if (rawV && !/^[{\[<]/.test(rawV) && rawV.length < 50) {
+          v = rawV;
+        }
       } else {
         var m = text.match(/href\s*=\s*"([^"]*latest-version\.[^"]*)"/i) || text.match(/(https?:\/\/[^\s"']*latest-version\.[a-z0-9]+)/i);
         var fileUrl = m && m[1] ? m[1] : '';
@@ -247,6 +251,19 @@ function fetchManifestVersionOnline(url) {
   });
 }
 
+function compareVersions(a, b) {
+  var pa = String(a || '').split('.').map(function(n){ return parseInt(n) || 0; });
+  var pb = String(b || '').split('.').map(function(n){ return parseInt(n) || 0; });
+  var len = Math.max(pa.length, pb.length);
+  for (var i = 0; i < len; i++) {
+    var x = pa[i] || 0;
+    var y = pb[i] || 0;
+    if (x > y) return 1;
+    if (x < y) return -1;
+  }
+  return 0;
+}
+
 async function initVersionBanner() {
   var updateUrl = String(UPDATE_URL || '');
   var localVersion = '';
@@ -256,16 +273,18 @@ async function initVersionBanner() {
       localVersion = String((mf && mf.version) || '');
     }
   } catch (e) {}
+
   var url = '';
   try { url = localStorage.getItem('latestVersionUrl') || LATEST_VERSION_URL || ''; } catch (e) {}
+  
   if (!url || !updateUrl) return;
-  var remoteVersion = '';
-  try { remoteVersion = await fetchLatestVersionOnline(url); } catch (e) {}
-  if (!remoteVersion) {
-    try { remoteVersion = await fetchManifestVersionOnline(url); } catch (e) {}
-  }
+
+  // 使用与“检测更新”按钮完全一致的逻辑：只使用 fetchManifestVersionOnline，且使用 compareVersions
+  var remoteVersion = await fetchManifestVersionOnline(url);
+  
   if (!remoteVersion) return;
-  if (String(localVersion) !== String(remoteVersion)) {
+
+  if (compareVersions(remoteVersion.trim(), localVersion) > 0) {
     var header = document.querySelector('.header');
     if (!header) return;
     var titleEl = header.querySelector('h1') || header;
@@ -494,33 +513,34 @@ document.addEventListener('DOMContentLoaded', function() {
   // 检测更新
   document.getElementById('check-update-btn').addEventListener('click', () => {
     (async function(){
+      // 重置显示状态
+      const updateInfo = document.getElementById('update-info');
+      const noUpdateInfo = document.getElementById('no-update-info');
+      if (updateInfo) updateInfo.style.display = 'none';
+      if (noUpdateInfo) noUpdateInfo.style.display = 'none';
+
       var url = '';
       try { url = localStorage.getItem('latestVersionUrl') || LATEST_VERSION_URL || ''; } catch (e) {}
-      if (!url) { alert('当前已是最新版本！'); return; }
+      
+      // 如果没有配置更新地址，直接显示无更新
+      if (!url) { 
+        if (noUpdateInfo) noUpdateInfo.style.display = 'block'; 
+        return; 
+      }
+
       var latestVersion = await fetchManifestVersionOnline(url);
       if (latestVersion && compareVersions(latestVersion.trim(), currentVersion) > 0) {
-        document.getElementById('update-info').style.display = 'block';
+        if (updateInfo) updateInfo.style.display = 'block';
         var latestEl = document.getElementById('latest-version');
         if (latestEl) latestEl.textContent = latestVersion.trim();
-        document.getElementById('download-link').href = UPDATE_URL;
+        var dlLink = document.getElementById('download-link');
+        if (dlLink) dlLink.href = UPDATE_URL;
       } else {
-        alert('当前已是最新版本！');
+        if (noUpdateInfo) noUpdateInfo.style.display = 'block';
       }
     })();
   });
 
-function compareVersions(a, b) {
-  var pa = String(a || '').split('.').map(function(n){ return parseInt(n) || 0; });
-  var pb = String(b || '').split('.').map(function(n){ return parseInt(n) || 0; });
-  var len = Math.max(pa.length, pb.length);
-  for (var i = 0; i < len; i++) {
-    var x = pa[i] || 0;
-    var y = pb[i] || 0;
-    if (x > y) return 1;
-    if (x < y) return -1;
-  }
-  return 0;
-}
 
   // 绑定“填充”按钮点击，并初次根据当前标签与总开关更新可见性
   if (applyPresetsBtn) {
