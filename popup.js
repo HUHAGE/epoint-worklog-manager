@@ -471,6 +471,8 @@ document.addEventListener('DOMContentLoaded', function() {
       .then(latestVersion => {
         if (latestVersion.trim() > currentVersion) {
           document.getElementById('update-info').style.display = 'block';
+          const latestEl = document.getElementById('latest-version');
+          if (latestEl) { latestEl.textContent = latestVersion.trim(); }
           document.getElementById('download-link').href = 'https://pan.quark.cn/s/46b7bbd538d7'; // 在这里替换为您的下载链接
         } else {
           alert('当前已是最新版本！');
