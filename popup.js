@@ -460,6 +460,24 @@ document.addEventListener('DOMContentLoaded', function() {
   // 绑定事件监听器
   bindEventListeners();
 
+  // 获取并显示当前版本号
+  const currentVersion = chrome.runtime.getManifest().version;
+  document.getElementById('current-version').textContent = currentVersion;
+
+  // 检测更新
+  document.getElementById('check-update-btn').addEventListener('click', () => {
+    fetch('latest-version.txt')
+      .then(response => response.text())
+      .then(latestVersion => {
+        if (latestVersion.trim() > currentVersion) {
+          document.getElementById('update-info').style.display = 'block';
+          document.getElementById('download-link').href = 'https://pan.quark.cn/s/46b7bbd538d7'; // 在这里替换为您的下载链接
+        } else {
+          alert('当前已是最新版本！');
+        }
+      });
+  });
+
   // 绑定“填充”按钮点击，并初次根据当前标签与总开关更新可见性
   if (applyPresetsBtn) {
     applyPresetsBtn.addEventListener('click', () => {
