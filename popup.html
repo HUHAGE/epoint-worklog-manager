@@ -260,19 +260,6 @@
             <label for="modal-task-name">任务名称</label>
             <input type="text" id="modal-task-name" class="form-control" placeholder="请输入任务名称" required>
           </div>
-          <div class="form-group">
-            <div class="label-inline">
-              <label for="modal-content">工作内容</label>
-              <div class="auto-copy-toggle">
-                <span id="auto-copy-switch-label">自动复制任务名称</span>
-                <label class="apple-switch" title="开启后保存时自动将任务名称复制到工作内容">
-                  <input type="checkbox" id="auto-copy-task-to-content-switch" checked>
-                  <span class="slider"></span>
-                </label>
-              </div>
-            </div>
-            <textarea id="modal-content" class="form-control" placeholder="可不填写，保存时将使用任务名称" rows="3"></textarea>
-          </div>
           <div class="form-row">
             <div class="form-group col-half">
               <label for="modal-hours">工作时长</label>
@@ -285,6 +272,19 @@
               <label for="modal-date">工作日期</label>
               <input type="date" id="modal-date" class="form-control" required>
             </div>
+          </div>
+          <div class="form-group">
+            <div class="label-inline">
+              <label for="modal-content">工作内容</label>
+              <div class="auto-copy-toggle">
+                <span id="auto-copy-switch-label">自动复制任务名称</span>
+                <label class="apple-switch" title="开启后保存时自动将任务名称复制到工作内容">
+                  <input type="checkbox" id="auto-copy-task-to-content-switch" checked>
+                  <span class="slider"></span>
+                </label>
+              </div>
+            </div>
+            <textarea id="modal-content" class="form-control" placeholder="可不填写，保存时将使用任务名称" rows="3"></textarea>
           </div>
         </div>
         <div class="modal-footer">

@@ -460,7 +460,7 @@ body {
 }
 
 .modal-body textarea.form-control {
-  resize: vertical;
+  resize: none;
   min-height: 60px;
   line-height: 1.4;
 }
