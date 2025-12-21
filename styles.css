@@ -1223,6 +1223,18 @@ body {
   min-width: 0;
 }
 
+.accordion-actions {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+}
+
+.accordion-actions .action-icon {
+  width: 22px;
+  height: 22px;
+  padding: 2px;
+}
+
 .accordion-title .folder-icon svg {
   width: 20px;
   height: 20px;
@@ -1249,6 +1261,16 @@ body {
 .action-icon.apply-btn:hover {
   background-color: rgba(102, 126, 234, 0.08);
   border-color: rgba(102, 126, 234, 0.2);
+}
+
+.action-icon.add-btn {
+  color: #10b981;
+  background-color: transparent;
+  border-color: transparent;
+}
+.action-icon.add-btn:hover {
+  background-color: rgba(16, 185, 129, 0.08);
+  border-color: rgba(16, 185, 129, 0.2);
 }
 
 .accordion-meta {

@@ -1676,12 +1676,20 @@ function renderPendingLogs() {
             </svg>
           </span>
           <span class="accordion-project-name" title="${escapeHtml(projectName)}">${escapeHtml(projectName)}</span>
-          <button class="action-icon apply-btn" type="button" aria-label="申请" title="申请" data-project="${escapeHtml(projectName)}">
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-              <line x1="22" y1="2" x2="11" y2="13"></line>
-              <polygon points="22 2 15 22 11 13 2 9 22 2" fill="none"></polygon>
-            </svg>
-          </button>
+          <div class="accordion-actions">
+            <button class="action-icon add-btn" type="button" aria-label="新增" title="新增" data-project="${escapeHtml(projectName)}">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <line x1="12" y1="5" x2="12" y2="19"></line>
+                <line x1="5" y1="12" x2="19" y2="12"></line>
+              </svg>
+            </button>
+            <button class="action-icon apply-btn" type="button" aria-label="申请" title="申请" data-project="${escapeHtml(projectName)}">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <line x1="22" y1="2" x2="11" y2="13"></line>
+                <polygon points="22 2 15 22 11 13 2 9 22 2" fill="none"></polygon>
+              </svg>
+            </button>
+          </div>
         </div>
         <div class="accordion-meta">
           <span class="accordion-count">${items.length}条</span>
@@ -1760,10 +1768,17 @@ function renderPendingLogs() {
       });
 
       const applyBtn = header.querySelector('.apply-btn');
+      const addBtn = header.querySelector('.add-btn');
       if (applyBtn) {
         applyBtn.addEventListener('click', (ev) => {
           try { ev.preventDefault(); ev.stopPropagation(); } catch (e) {}
           openApplyPageForProject(projectName);
+        });
+      }
+      if (addBtn) {
+        addBtn.addEventListener('click', (ev) => {
+          try { ev.preventDefault(); ev.stopPropagation(); } catch (e) {}
+          openAddLogWindowForProject(projectName);
         });
       }
 
@@ -3230,6 +3245,19 @@ function openAddLogWindow() {
   }
 }
 
+function openAddLogWindowForProject(projectName) {
+  openAddLogWindow();
+  try {
+    if (modalProjectSelect) modalProjectSelect.value = projectName || '';
+    if (modalTaskNameInput) {
+      modalTaskNameInput.value = projectName || '';
+      modalTaskNameInput.disabled = true;
+    }
+    const modalTitle = addLogModal && addLogModal.querySelector('.modal-header h3');
+    if (modalTitle) modalTitle.textContent = `新增工作日志 - ${projectName || ''}`;
+  } catch (e) {}
+}
+
 // 关闭模态框函数
 function closeAddLogModal() {
   addLogModal.style.display = 'none';
@@ -3244,6 +3272,7 @@ function closeAddLogModal() {
   // 清除编辑模式标记
   delete modalAddLogForm.dataset.editingLogId;
   delete modalAddLogForm.dataset.editingLogStatus;
+  try { if (modalTaskNameInput) modalTaskNameInput.disabled = false; } catch (e) {}
 }
 
 // 保存日志并继续函数
@@ -3316,6 +3345,9 @@ function saveLogAndContinue() {
     
     // 恢复项目选择
     modalProjectSelect.value = currentProject;
+    if (modalTaskNameInput && modalTaskNameInput.disabled) {
+      modalTaskNameInput.value = currentProject || '';
+    }
     
     // 显示成功消息
     showToast('日志添加成功！可继续添加下一条日志。');
