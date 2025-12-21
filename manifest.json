@@ -1,7 +1,7 @@
 {
   "manifest_version": 3,
   "name": "EP • 非功快申",
-  "version": "2.0",
+  "version": "1.6",
   "description": "管理并自动填充非功能工作日志到公司系统，实现快速申请",
   "permissions": [
     "storage",

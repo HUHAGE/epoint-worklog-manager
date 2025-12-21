@@ -121,6 +121,9 @@ let projectColorMapping = {};
 let usedColorIndices = new Set();
 let nextAvailableColorIndex = 0;
 
+const UPDATE_URL = 'https://pan.quark.cn/s/46b7bbd538d7';
+const LATEST_VERSION_URL = 'https://pan.quark.cn/s/3f772cfd3a51';
+
 function getProjectColorIndex(projectName) {
   if (!projectName) return 0;
   
@@ -182,6 +185,73 @@ function initializeProjectColorMapping() {
   Array.from(allProjects).forEach(projectName => {
     getProjectColorIndex(projectName);
   });
+}
+
+function fetchLatestVersionOnline(url) {
+  return new Promise(async (resolve) => {
+    try {
+      var controller = typeof AbortController !== 'undefined' ? new AbortController() : null;
+      var timer = controller ? setTimeout(function(){ try { controller.abort(); } catch(e){} }, 5000) : null;
+      var res = await fetch(url, { method: 'GET', cache: 'no-store', signal: controller ? controller.signal : undefined });
+      if (timer) clearTimeout(timer);
+      var ct = (res.headers && res.headers.get && res.headers.get('content-type')) || '';
+      var text = await res.text();
+      var v = '';
+      if (/text\/plain|text\/txt|application\/octet-stream/i.test(ct) || /latest-version\.txt/i.test(url)) {
+        v = String(text || '').trim().split(/\s+/)[0] || '';
+      } else {
+        var m = text.match(/href\s*=\s*"([^"]*latest-version\.[^"]*)"/i) || text.match(/(https?:\/\/[^\s"']*latest-version\.[a-z0-9]+)/i);
+        var fileUrl = m && m[1] ? m[1] : '';
+        if (fileUrl) {
+          var r2 = await fetch(fileUrl, { method: 'GET', cache: 'no-store' });
+          var t2 = await r2.text();
+          v = String(t2 || '').trim().split(/\s+/)[0] || '';
+        }
+      }
+      resolve(v);
+    } catch (e) {
+      resolve('');
+    }
+  });
+}
+
+async function initVersionBanner() {
+  var updateUrl = String(UPDATE_URL || '');
+  var localVersion = '';
+  try {
+    if (typeof chrome !== 'undefined' && chrome.runtime && typeof chrome.runtime.getManifest === 'function') {
+      var mf = chrome.runtime.getManifest();
+      localVersion = String((mf && mf.version) || '');
+    }
+  } catch (e) {}
+  var url = '';
+  try { url = localStorage.getItem('latestVersionUrl') || LATEST_VERSION_URL || ''; } catch (e) {}
+  if (!url || !updateUrl) return;
+  var remoteVersion = '';
+  try { remoteVersion = await fetchLatestVersionOnline(url); } catch (e) {}
+  if (!remoteVersion) return;
+  if (String(localVersion) !== String(remoteVersion)) {
+    var header = document.querySelector('.header');
+    if (!header) return;
+    var tip = document.getElementById('update-tip-btn');
+    if (!tip) {
+      tip = document.createElement('button');
+      tip.id = 'update-tip-btn';
+      tip.className = 'header-update-tip';
+      tip.textContent = '有新版本';
+      header.appendChild(tip);
+    }
+    tip.style.display = 'inline-flex';
+    tip.onclick = function() {
+      try {
+        if (typeof chrome !== 'undefined' && chrome.tabs && chrome.tabs.create) {
+          chrome.tabs.create({ url: updateUrl });
+          return;
+        }
+      } catch (e) {}
+      try { window.open(updateUrl, '_blank'); } catch (e2) {}
+    };
+  }
 }
 
 // 初始化
@@ -428,6 +498,7 @@ document.addEventListener('DOMContentLoaded', function() {
   
   // 切换到待申请标签页
   switchTab('pending');
+  try { initVersionBanner(); } catch (e) {}
 });
 
 
