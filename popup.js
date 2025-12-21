@@ -1054,10 +1054,16 @@ function bindEventListeners() {
 
   const exportLogsBtn = document.getElementById('export-logs-btn');
   const importLogsBtn = document.getElementById('import-logs-btn');
+  const clearAllDataBtn = document.getElementById('clear-all-data-btn');
   const importLogsFileInput = document.getElementById('import-logs-file-input');
   if (exportLogsBtn) {
     exportLogsBtn.addEventListener('click', () => {
       exportTasksToJson();
+    });
+  }
+  if (clearAllDataBtn) {
+    clearAllDataBtn.addEventListener('click', () => {
+      clearAllTaskData();
     });
   }
   if (importLogsBtn && importLogsFileInput) {
@@ -1074,10 +1080,16 @@ function bindEventListeners() {
 
   const exportPluginBtn = document.getElementById('export-plugin-btn');
   const importPluginBtn = document.getElementById('import-plugin-btn');
+  const clearPluginDataBtn = document.getElementById('clear-plugin-data-btn');
   const importPluginFileInput = document.getElementById('import-plugin-file-input');
   if (exportPluginBtn) {
     exportPluginBtn.addEventListener('click', () => {
       exportPluginDataToJson();
+    });
+  }
+  if (clearPluginDataBtn) {
+    clearPluginDataBtn.addEventListener('click', () => {
+      clearPluginData();
     });
   }
   if (importPluginBtn && importPluginFileInput) {
@@ -1126,6 +1138,81 @@ function clearAllFilledLogs() {
     updateFilledProjectTabs();
     updateHoursStatistics();
     showToast('已清除所有已填写日志');
+  }
+}
+
+// 清除所有任务数据（待填写和已填写）
+function clearAllTaskData() {
+  // 检查是否有数据可清除
+  if (logs.pending.length === 0 && logs.filled.length === 0) {
+    showToast('暂无任务数据可清除');
+    return;
+  }
+  
+  // 确认对话框
+  if (confirm('确定要清除全部任务数据吗？此操作不可恢复！')) {
+    logs.pending = [];
+    logs.filled = [];
+    saveLogs();
+    
+    // 更新界面
+    renderLogs();
+    updateProjectTabs();
+    updateFilledProjectTabs();
+    
+    // 重置颜色映射
+    initializeProjectColorMapping();
+    
+    showToast('已清除全部任务数据');
+  }
+}
+
+// 清除插件数据
+function clearPluginData() {
+  if (confirm('确定要清除所有插件数据（预设配置、捕获数据等）吗？此操作不可恢复！\n\n注意：此操作不会删除任务日志。')) {
+    // 清除预设配置
+    localStorage.removeItem('presetDemandTag');
+    localStorage.removeItem('presetWorkType');
+    localStorage.removeItem('presetCloseReminders');
+    localStorage.removeItem('groupByProjectEnabled');
+    localStorage.removeItem('presetAutoFillPresets');
+    localStorage.removeItem('presetBlueprintAutoApply');
+    localStorage.removeItem('presetStageDemandAutoApply');
+    localStorage.removeItem('presetTaskReviewerAutoApply');
+    
+    // 清除捕获数据
+    localStorage.removeItem('presetBlueprints');
+    localStorage.removeItem('presetStageDemands');
+    localStorage.removeItem('presetTaskReviewers');
+    localStorage.removeItem('presetProjects');
+    
+    // 重新加载配置
+    loadPresetDemandTag();
+    loadPresetWorkType();
+    loadPresetCloseReminders();
+    loadGroupByProjectEnabled();
+    loadPresetAutoFillPresets();
+    loadPresetBlueprints();
+    loadPresetBlueprintAutoApply();
+    loadPresetStageDemands();
+    loadPresetStageDemandAutoApply();
+    loadPresetTaskReviewers();
+    loadPresetTaskReviewerAutoApply();
+    loadPresetProjects();
+    
+    try { renderUnifiedPresetsList(); } catch (e) {}
+    try { updateExportProjectOptions(); } catch (e) {}
+    try { updateProjectTabs(); } catch (e) {}
+    try { updateFilledProjectTabs(); } catch (e) {}
+    
+    // 刷新界面上的开关状态
+    if (autoFillPresetsCheckbox) autoFillPresetsCheckbox.checked = true;
+    if (groupByProjectCheckbox) groupByProjectCheckbox.checked = true;
+    if (closeRemindersCheckbox) closeRemindersCheckbox.checked = false;
+    if (demandTagSelect) demandTagSelect.value = '';
+    if (workTypeSelect) workTypeSelect.value = '';
+    
+    showToast('已清除所有插件数据');
   }
 }
 

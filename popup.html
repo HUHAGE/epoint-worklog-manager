@@ -170,7 +170,7 @@
 
           <!-- 数据导入导出卡片 -->
           <div class="config-card">
-            <h3>任务数据导入导出</h3>
+            <h3>任务数据管理</h3>
             <div class="form-group export-filters-row">
               <select id="export-project-filter" class="filter-select">
                 <option value="all">全部项目</option>
@@ -189,18 +189,20 @@
             <div class="form-group">
               <button id="export-logs-btn" class="btn-secondary">导出任务数据</button>
               <button id="import-logs-btn" class="btn-secondary">导入任务数据</button>
+              <button id="clear-all-data-btn" class="btn-secondary" style="background-color: #dc3545; color: white;">清除数据</button>
               <input type="file" id="import-logs-file-input" accept="application/json" style="display:none">
             </div>
           </div>
 
           <div class="config-card">
-            <h3>插件数据导入导出</h3>
+            <h3>插件数据管理</h3>
             <div class="form-group explain-row">
               <p class="explain-text">导入导出插件设置与捕获的数据（蓝图、工作场景、审核人等）</p>
             </div>
             <div class="form-group">
               <button id="export-plugin-btn" class="btn-secondary">导出插件数据</button>
               <button id="import-plugin-btn" class="btn-secondary">导入插件数据</button>
+              <button id="clear-plugin-data-btn" class="btn-secondary" style="background-color: #dc3545; color: white;">清除数据</button>
               <input type="file" id="import-plugin-file-input" accept="application/json" style="display:none">
             </div>
           </div>
