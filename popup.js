@@ -500,6 +500,13 @@ function bindEventListeners() {
       window.open('https://huhafish.feishu.cn/share/base/form/shrcnCjMxCiAH2xXXWen8Cy2nUb', '_blank');
     });
   }
+
+  const issueListBtn = document.getElementById('issue-list-btn');
+  if (issueListBtn) {
+    issueListBtn.addEventListener('click', () => {
+      window.open('https://huhafish.feishu.cn/wiki/Hxs2walGYipBHCkWTGmcxwALnwb?table=tblnxeCbDF1m9BQN&view=vewvmrKz23', '_blank');
+    });
+  }
   
   // 添加申请非公按钮事件监听器
   const applyNonPublicBtn = document.getElementById('apply-non-public-btn');
