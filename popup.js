@@ -122,7 +122,7 @@ let usedColorIndices = new Set();
 let nextAvailableColorIndex = 0;
 
 const UPDATE_URL = 'https://pan.quark.cn/s/46b7bbd538d7';
-const LATEST_VERSION_URL = 'https://pan.quark.cn/s/3f772cfd3a51';
+const LATEST_VERSION_URL = 'https://github.com/HUHAGE/epoint-worklog-manager/blob/main/latest-version.txt';
 
 function getProjectColorIndex(projectName) {
   if (!projectName) return 0;
@@ -192,17 +192,25 @@ function fetchLatestVersionOnline(url) {
     try {
       var controller = typeof AbortController !== 'undefined' ? new AbortController() : null;
       var timer = controller ? setTimeout(function(){ try { controller.abort(); } catch(e){} }, 5000) : null;
-      var res = await fetch(url, { method: 'GET', cache: 'no-store', signal: controller ? controller.signal : undefined });
+      var effectiveUrl = String(url || '');
+      if (/github\.com/i.test(effectiveUrl) && /\/blob\//i.test(effectiveUrl)) {
+        effectiveUrl = effectiveUrl.replace(/^https?:\/\/github\.com\//i, 'https://raw.githubusercontent.com/').replace(/\/blob\//i, '/');
+      }
+      var res = await fetch(effectiveUrl, { method: 'GET', cache: 'no-store', signal: controller ? controller.signal : undefined });
       if (timer) clearTimeout(timer);
       var ct = (res.headers && res.headers.get && res.headers.get('content-type')) || '';
       var text = await res.text();
       var v = '';
-      if (/text\/plain|text\/txt|application\/octet-stream/i.test(ct) || /latest-version\.txt/i.test(url)) {
+      if (/text\/plain|text\/txt|application\/octet-stream/i.test(ct) || /latest-version\.txt/i.test(effectiveUrl)) {
         v = String(text || '').trim().split(/\s+/)[0] || '';
       } else {
         var m = text.match(/href\s*=\s*"([^"]*latest-version\.[^"]*)"/i) || text.match(/(https?:\/\/[^\s"']*latest-version\.[a-z0-9]+)/i);
         var fileUrl = m && m[1] ? m[1] : '';
         if (fileUrl) {
+          try { fileUrl = new URL(fileUrl, effectiveUrl).href; } catch(e) {}
+          if (/github\.com/i.test(fileUrl) && /\/blob\//i.test(fileUrl)) {
+            fileUrl = fileUrl.replace(/^https?:\/\/github\.com\//i, 'https://raw.githubusercontent.com/').replace(/\/blob\//i, '/');
+          }
           var r2 = await fetch(fileUrl, { method: 'GET', cache: 'no-store' });
           var t2 = await r2.text();
           v = String(t2 || '').trim().split(/\s+/)[0] || '';
@@ -233,13 +241,14 @@ async function initVersionBanner() {
   if (String(localVersion) !== String(remoteVersion)) {
     var header = document.querySelector('.header');
     if (!header) return;
+    var titleEl = header.querySelector('h1') || header;
     var tip = document.getElementById('update-tip-btn');
     if (!tip) {
       tip = document.createElement('button');
       tip.id = 'update-tip-btn';
       tip.className = 'header-update-tip';
-      tip.textContent = '有新版本';
-      header.appendChild(tip);
+      tip.innerHTML = '<svg viewBox="0 0 24 24" width="14" height="14" aria-hidden="true"><path d="M12 3v12" stroke="currentColor" stroke-width="2" stroke-linecap="round"/><path d="M7 10l5 5 5-5" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/><path d="M5 21h14" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg> 有新版本，点击下载';
+      titleEl.appendChild(tip);
     }
     tip.style.display = 'inline-flex';
     tip.onclick = function() {
