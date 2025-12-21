@@ -115,6 +115,26 @@ const filledSelectedIds = new Set();
 let activePendingStatusFilter = 'pending';
 let pendingAccordionState = {};
 
+function sendUmamiEvent(name, data) {
+  try {
+    var website = '0dc2fd74-b467-4cdb-b427-3a53311c7630';
+    var host = 'https://api-gateway.umami.dev';
+    var screen = (window.screen && window.screen.width + 'x' + window.screen.height) || '';
+    var payload = { website: website, screen: screen, language: navigator.language || '', title: document.title || '', hostname: location.hostname || '', url: location.href || '', referrer: document.referrer || '', name: String(name || ''), data: data || {} };
+    fetch(host.replace(/\/$/, '') + '/api/send', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ type: 'event', payload: payload }), keepalive: true }).catch(function(){});
+  } catch (e) {}
+}
+
+function sendUmamiPageview() {
+  try {
+    var website = '0dc2fd74-b467-4cdb-b427-3a53311c7630';
+    var host = 'https://api-gateway.umami.dev';
+    var screen = (window.screen && window.screen.width + 'x' + window.screen.height) || '';
+    var payload = { website: website, screen: screen, language: navigator.language || '', title: document.title || '', hostname: location.hostname || '', url: location.href || '', referrer: document.referrer || '' };
+    fetch(host.replace(/\/$/, '') + '/api/send', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ type: 'event', payload: payload }), keepalive: true }).catch(function(){});
+  } catch (e) {}
+}
+
 // 项目颜色分配函数
 // 项目名称到颜色索引的映射缓存
 let projectColorMapping = {};
@@ -455,6 +475,38 @@ if (typeof chrome !== 'undefined' && chrome.tabs && chrome.tabs.onRemoved) {
 document.addEventListener('DOMContentLoaded', function() {
   // 初始检查页面状态
   checkLogPages();
+  try { if (window.umami && typeof window.umami.track === 'function') { window.umami.track('popup_open'); } } catch (e) {}
+  try {
+    (function(){
+      var website = '0dc2fd74-b467-4cdb-b427-3a53311c7630';
+      var host = 'https://api-gateway.umami.dev';
+      var screen = (window.screen && window.screen.width + 'x' + window.screen.height) || '';
+      var payload = { website: website, screen: screen, language: navigator.language || '', title: document.title || '', hostname: location.hostname || '', url: location.href || '', referrer: document.referrer || '', name: 'popup_open_manual', data: {} };
+      fetch(host.replace(/\/$/, '') + '/api/send', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ type: 'event', payload: payload }), keepalive: true }).then(function(r){ try { r.json().then(function(j){ try { console.log('umami manual', r.status, j); } catch(e){} }); } catch(e) { try { console.log('umami manual status', r.status); } catch(e2){} } }).catch(function(err){ try { console.error('umami manual error', err); } catch(e){} });
+    })();
+  } catch (e) {}
+  try { sendUmamiPageview(); } catch(e) {}
+
+  try {
+    document.addEventListener('click', function(e){
+      try {
+        var el = e.target.closest('a,button');
+        if (!el) return;
+        var ev = el.getAttribute('data-umami-event');
+        if (!ev) return;
+        var params = {};
+        var names = (typeof el.getAttributeNames === 'function') ? el.getAttributeNames() : [];
+        for (var i = 0; i < names.length; i++) {
+          var nm = names[i] || '';
+          var m = nm.match(/^data-umami-event-(.+)$/);
+          if (m && m[1]) {
+            params[m[1]] = el.getAttribute(nm);
+          }
+        }
+        sendUmamiEvent(ev, params);
+      } catch (e2) {}
+    }, true);
+  } catch (e) {}
   
   // 加载存储的日志数据和预设项目
   loadLogs();
@@ -540,6 +592,15 @@ document.addEventListener('DOMContentLoaded', function() {
       }
     })();
   });
+
+  try {
+    var btn = document.getElementById('check-update-btn');
+    if (btn) {
+      btn.addEventListener('click', function(){
+        sendUmamiEvent('check_update_click_manual', {});
+      });
+    }
+  } catch(e) {}
 
 
   // 绑定“填充”按钮点击，并初次根据当前标签与总开关更新可见性

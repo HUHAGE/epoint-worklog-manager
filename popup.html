@@ -5,13 +5,15 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>EP•非功快申</title>
+  <link rel="icon" type="image/png" href="icons/icon16.png">
   <link rel="stylesheet" href="styles.css">
+  <script defer src="js/umami.js" data-website-id="0dc2fd74-b467-4cdb-b427-3a53311c7630" data-host-url="https://api-gateway.umami.dev"></script>
 </head>
 
   <body>
     <div class="container">
       <div class="header">
-        <button id="open-sidepanel-btn" class="header-pin-btn" title="侧边栏固定" aria-label="侧边栏固定">
+        <button id="open-sidepanel-btn" class="header-pin-btn" title="侧边栏固定" aria-label="侧边栏固定" data-umami-event="sidepanel_pin_click">
           <svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true">
             <rect x="3" y="4" width="18" height="16" rx="2" fill="none" stroke="currentColor" stroke-width="2"/>
             <line x1="8" y1="4" x2="8" y2="20" stroke="currentColor" stroke-width="2"/>
@@ -22,7 +24,7 @@
           <img src="icons/icon128.png" alt="Logo" class="header-logo">
           EP • 非功快申
         </h1>
-        <button id="header-config-btn" class="header-config-btn" title="配置" aria-label="配置">
+        <button id="header-config-btn" class="header-config-btn" title="配置" aria-label="配置" data-umami-event="config_open_click">
           <svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true"><path fill="currentColor" d="M19.14 12.94c.04-.3.06-.61.06-.94 0-.32-.02-.64-.07-.94l2.03-1.58c.18-.14.23-.41.12-.61l-1.92-3.32c-.12-.22-.37-.29-.59-.22l-2.39.96c-.5-.38-1.03-.7-1.62-.94l-.36-2.54c-.04-.24-.24-.41-.48-.41h-3.84c-.24 0-.43.17-.47.41l-.36 2.54c-.59.24-1.13.57-1.62.94l-2.39-.96c-.22-.08-.47 0-.59.22L2.74 8.87c-.12.21-.08.47.12.61l2.03 1.58c-.05.3-.09.63-.09.94s.02.64.07.94l-2.03 1.58c-.18.14-.23.41-.12.61l1.92 3.32c.12.22.37.29.59.22l2.39-.96c.5.38 1.03.7 1.62.94l.36 2.54c.05.24.24.41.48.41h3.84c.24 0 .44-.17.47-.41l.36-2.54c.59-.24 1.13-.56 1.62-.94l2.39.96c.22.08.47 0 .59-.22l1.92-3.32c.12-.22.07-.47-.12-.61l-2.01-1.58zM12 15.6c-1.98 0-3.6-1.62-3.6-3.6s1.62-3.6 3.6-3.6 3.6 1.62 3.6 3.6-1.62 3.6-3.6 3.6z"/></svg>
         </button>
       </div>
@@ -45,7 +47,7 @@
                 <input type="date" id="pending-date-filter" class="filter-date" placeholder="选择日期">
               </div>
               <div class="filter-actions">
-                <button id="add-new-log-btn" class="btn-add-log" title="新增日志" aria-label="新增日志">
+                <button id="add-new-log-btn" class="btn-add-log" title="新增日志" aria-label="新增日志" data-umami-event="add_new_log_click">
                   <svg class="btn-icon" viewBox="0 0 24 24" width="16" height="16"><path d="M12 5v14M5 12h14" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
                 </button>
               </div>
@@ -146,7 +148,7 @@
               <p class="explain-text">先打开OA任务申请页面，填写数据后，一键捕获，用于下次自动填充</p>
             </div>
             <div class="form-group">
-              <button id="capture-all-btn" class="btn-capture">一键捕获</button>
+              <button id="capture-all-btn" class="btn-capture" data-umami-event="capture_all_click">一键捕获</button>
             </div>
             <div class="form-group">
               <div id="unified-presets-list"></div>
@@ -187,9 +189,9 @@
               <input type="date" id="export-date-end" class="filter-date" placeholder="结束日期">
             </div>
             <div class="form-group">
-              <button id="export-logs-btn" class="btn-secondary">导出任务数据</button>
-              <button id="import-logs-btn" class="btn-secondary">导入任务数据</button>
-              <button id="clear-all-data-btn" class="btn-secondary" style="background-color: #dc3545; color: white;">清除数据</button>
+              <button id="export-logs-btn" class="btn-secondary" data-umami-event="export_logs_click">导出任务数据</button>
+              <button id="import-logs-btn" class="btn-secondary" data-umami-event="import_logs_click">导入任务数据</button>
+              <button id="clear-all-data-btn" class="btn-secondary" style="background-color: #dc3545; color: white;" data-umami-event="clear_all_data_click">清除数据</button>
               <input type="file" id="import-logs-file-input" accept="application/json" style="display:none">
             </div>
           </div>
@@ -200,9 +202,9 @@
               <p class="explain-text">导入导出插件设置与捕获的数据（蓝图、工作场景、审核人等）</p>
             </div>
             <div class="form-group">
-              <button id="export-plugin-btn" class="btn-secondary">导出插件数据</button>
-              <button id="import-plugin-btn" class="btn-secondary">导入插件数据</button>
-              <button id="clear-plugin-data-btn" class="btn-secondary" style="background-color: #dc3545; color: white;">清除数据</button>
+              <button id="export-plugin-btn" class="btn-secondary" data-umami-event="export_plugin_click">导出插件数据</button>
+              <button id="import-plugin-btn" class="btn-secondary" data-umami-event="import_plugin_click">导入插件数据</button>
+              <button id="clear-plugin-data-btn" class="btn-secondary" style="background-color: #dc3545; color: white;" data-umami-event="clear_plugin_data_click">清除数据</button>
               <input type="file" id="import-plugin-file-input" accept="application/json" style="display:none">
             </div>
           </div>
@@ -210,8 +212,8 @@
           <!-- 问题反馈卡片 -->
           <div class="config-card">
             <h3>问题反馈</h3>
-            <button id="feedback-btn" class="btn-secondary">问题提交</button>
-            <button id="issue-list-btn" class="btn-secondary">问题列表</button>
+            <button id="feedback-btn" class="btn-secondary" data-umami-event="feedback_click">问题提交</button>
+            <button id="issue-list-btn" class="btn-secondary" data-umami-event="issue_list_click">问题列表</button>
           </div>
 
           <!-- 版本检测卡片 -->
@@ -219,7 +221,7 @@
             <h3>版本检测</h3>
             <div class="form-group" style="display: flex; justify-content: space-between; align-items: center;">
               <p style="margin: 0;">当前版本：<span id="current-version"></span></p>
-              <button id="check-update-btn" class="btn btn-primary">检测更新</button>
+              <button id="check-update-btn" class="btn btn-primary" data-umami-event="check_update_click">检测更新</button>
             </div>
             <div class="form-group">
                 <p id="update-info" style="display: none; margin-top: 8px;">有新版本可用！最新版本：<span id="latest-version"></span> <a href="#" id="download-link" target="_blank">点击下载</a></p>
@@ -231,17 +233,17 @@
     </div>
   </div>
 
-  <button id="close-config-btn" class="close-config-btn" title="关闭" aria-label="关闭">×</button>
+  <button id="close-config-btn" class="close-config-btn" title="关闭" aria-label="关闭" data-umami-event="close_config_click">×</button>
 
   <!-- 申请非公按钮 -->
   <div class="apply-non-public-container">
-    <button id="write-log-btn" class="btn-apply-non-public text-btn" title="填写日志">
+    <button id="write-log-btn" class="btn-apply-non-public text-btn" title="填写日志" data-umami-event="write_log_click">
       填写日志
     </button>
-    <button id="apply-non-public-btn" class="btn-apply-non-public text-btn" title="申请非功能任务">
+    <button id="apply-non-public-btn" class="btn-apply-non-public text-btn" title="申请非功能任务" data-umami-event="apply_non_public_click">
       申请任务
     </button>
-    <button id="distribute-non-public-btn" class="btn-apply-non-public text-btn" title="发放非功能任务">
+    <button id="distribute-non-public-btn" class="btn-apply-non-public text-btn" title="发放非功能任务" data-umami-event="distribute_non_public_click">
       发放任务
     </button>
   </div>
@@ -304,9 +306,9 @@
           </div>
         </div>
         <div class="modal-footer">
-          <button type="button" class="btn btn-secondary" id="modal-cancel-btn">取消</button>
-          <button type="button" class="btn btn-secondary" id="modal-save-continue-btn">保存并继续</button>
-          <button type="submit" class="btn btn-primary">保存</button>
+          <button type="button" class="btn btn-secondary" id="modal-cancel-btn" data-umami-event="modal_cancel_click">取消</button>
+          <button type="button" class="btn btn-secondary" id="modal-save-continue-btn" data-umami-event="modal_save_continue_click">保存并继续</button>
+          <button type="submit" class="btn btn-primary" data-umami-event="modal_save_click">保存</button>
         </div>
       </form>
     </div>
