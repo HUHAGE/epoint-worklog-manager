@@ -3250,11 +3250,11 @@ function openAddLogWindowForProject(projectName) {
   try {
     if (modalProjectSelect) modalProjectSelect.value = projectName || '';
     if (modalTaskNameInput) {
-      modalTaskNameInput.value = projectName || '';
-      modalTaskNameInput.disabled = true;
+      modalTaskNameInput.value = '';
+      modalTaskNameInput.disabled = false;
     }
     const modalTitle = addLogModal && addLogModal.querySelector('.modal-header h3');
-    if (modalTitle) modalTitle.textContent = `新增工作日志 - ${projectName || ''}`;
+    if (modalTitle) modalTitle.textContent = '新增工作日志';
   } catch (e) {}
 }
 
@@ -3345,9 +3345,7 @@ function saveLogAndContinue() {
     
     // 恢复项目选择
     modalProjectSelect.value = currentProject;
-    if (modalTaskNameInput && modalTaskNameInput.disabled) {
-      modalTaskNameInput.value = currentProject || '';
-    }
+    
     
     // 显示成功消息
     showToast('日志添加成功！可继续添加下一条日志。');
