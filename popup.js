@@ -1671,7 +1671,7 @@ function renderPendingLogs() {
       header.innerHTML = `
         <div class="accordion-title">
           <span class="folder-icon" aria-hidden="true">
-            <svg viewBox="0 0 24 24" width="18" height="18">
+            <svg viewBox="0 0 24 24" width="20" height="20">
               <path d="M3 7h5l1.8 2H21v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V9a2 2 0 0 1 2-2z" fill="#3b82f6"/>
             </svg>
           </span>

@@ -1199,6 +1199,14 @@ body {
   border-color: #7e22ce;
 }
 
+.accordion-item:not(.open) {
+  min-height: 64px;
+}
+.accordion-item:not(.open) .accordion-header {
+  padding: 16px 16px;
+  min-height: 64px;
+}
+
 .accordion-header {
   display: flex;
   align-items: center;
@@ -1216,6 +1224,8 @@ body {
 }
 
 .accordion-title .folder-icon svg {
+  width: 20px;
+  height: 20px;
   filter: drop-shadow(0 2px 4px rgba(0,0,0,0.12));
   border-radius: 4px;
 }
