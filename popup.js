@@ -122,7 +122,7 @@ let usedColorIndices = new Set();
 let nextAvailableColorIndex = 0;
 
 const UPDATE_URL = 'https://pan.quark.cn/s/46b7bbd538d7';
-const LATEST_VERSION_URL = 'https://github.com/HUHAGE/epoint-worklog-manager/blob/main/latest-version.txt';
+const LATEST_VERSION_URL = 'https://github.com/HUHAGE/epoint-worklog-manager/blob/main/manifest.json';
 
 function getProjectColorIndex(projectName) {
   if (!projectName) return 0;
@@ -223,6 +223,30 @@ function fetchLatestVersionOnline(url) {
   });
 }
 
+function fetchManifestVersionOnline(url) {
+  return new Promise(async (resolve) => {
+    try {
+      var controller = typeof AbortController !== 'undefined' ? new AbortController() : null;
+      var timer = controller ? setTimeout(function(){ try { controller.abort(); } catch(e){} }, 5000) : null;
+      var effectiveUrl = String(url || '');
+      if (/github\.com/i.test(effectiveUrl) && /\/blob\//i.test(effectiveUrl)) {
+        effectiveUrl = effectiveUrl.replace(/^https?:\/\/github\.com\//i, 'https://raw.githubusercontent.com/').replace(/\/blob\//i, '/');
+      }
+      var res = await fetch(effectiveUrl, { method: 'GET', cache: 'no-store', signal: controller ? controller.signal : undefined });
+      if (timer) clearTimeout(timer);
+      var text = await res.text();
+      var v = '';
+      try {
+        var obj = JSON.parse(String(text || '{}'));
+        v = String((obj && obj.version) || '').trim();
+      } catch (e) { v = ''; }
+      resolve(v);
+    } catch (e) {
+      resolve('');
+    }
+  });
+}
+
 async function initVersionBanner() {
   var updateUrl = String(UPDATE_URL || '');
   var localVersion = '';
@@ -237,6 +261,9 @@ async function initVersionBanner() {
   if (!url || !updateUrl) return;
   var remoteVersion = '';
   try { remoteVersion = await fetchLatestVersionOnline(url); } catch (e) {}
+  if (!remoteVersion) {
+    try { remoteVersion = await fetchManifestVersionOnline(url); } catch (e) {}
+  }
   if (!remoteVersion) return;
   if (String(localVersion) !== String(remoteVersion)) {
     var header = document.querySelector('.header');
@@ -466,19 +493,34 @@ document.addEventListener('DOMContentLoaded', function() {
 
   // 检测更新
   document.getElementById('check-update-btn').addEventListener('click', () => {
-    fetch('latest-version.txt')
-      .then(response => response.text())
-      .then(latestVersion => {
-        if (latestVersion.trim() > currentVersion) {
-          document.getElementById('update-info').style.display = 'block';
-          const latestEl = document.getElementById('latest-version');
-          if (latestEl) { latestEl.textContent = latestVersion.trim(); }
-          document.getElementById('download-link').href = 'https://pan.quark.cn/s/46b7bbd538d7'; // 在这里替换为您的下载链接
-        } else {
-          alert('当前已是最新版本！');
-        }
-      });
+    (async function(){
+      var url = '';
+      try { url = localStorage.getItem('latestVersionUrl') || LATEST_VERSION_URL || ''; } catch (e) {}
+      if (!url) { alert('当前已是最新版本！'); return; }
+      var latestVersion = await fetchManifestVersionOnline(url);
+      if (latestVersion && compareVersions(latestVersion.trim(), currentVersion) > 0) {
+        document.getElementById('update-info').style.display = 'block';
+        var latestEl = document.getElementById('latest-version');
+        if (latestEl) latestEl.textContent = latestVersion.trim();
+        document.getElementById('download-link').href = UPDATE_URL;
+      } else {
+        alert('当前已是最新版本！');
+      }
+    })();
   });
+
+function compareVersions(a, b) {
+  var pa = String(a || '').split('.').map(function(n){ return parseInt(n) || 0; });
+  var pb = String(b || '').split('.').map(function(n){ return parseInt(n) || 0; });
+  var len = Math.max(pa.length, pb.length);
+  for (var i = 0; i < len; i++) {
+    var x = pa[i] || 0;
+    var y = pb[i] || 0;
+    if (x > y) return 1;
+    if (x < y) return -1;
+  }
+  return 0;
+}
 
   // 绑定“填充”按钮点击，并初次根据当前标签与总开关更新可见性
   if (applyPresetsBtn) {
