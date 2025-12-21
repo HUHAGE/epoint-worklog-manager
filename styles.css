@@ -1193,10 +1193,22 @@ body {
   width: 380px;
   box-sizing: border-box;
   overflow: hidden;
+  position: relative;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 .accordion-item.open {
   border-color: #7e22ce;
+}
+
+.accordion-item:hover {
+  transform: translateY(-2px) scale(1.01);
+  box-shadow: 0 10px 24px rgba(102, 126, 234, 0.20), 0 3px 10px rgba(118, 75, 162, 0.12), inset 0 1px 0 rgba(255, 255, 255, 0.6);
+  border-color: rgba(102, 126, 234, 0.35);
+}
+
+.accordion-item:hover .accordion-project-name {
+  color: #5a67d8;
 }
 
 .accordion-item:not(.open) {
@@ -1213,6 +1225,7 @@ body {
   justify-content: space-between;
   padding: 12px 16px;
   cursor: pointer;
+  transition: background-color 0.3s ease, color 0.3s ease;
 }
 
 .accordion-title {
