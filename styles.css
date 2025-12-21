@@ -704,84 +704,98 @@ body {
 
 /* 一键捕获按钮 - 紫色主题柔和设计 */
 #capture-all-btn {
-  background: linear-gradient(135deg, #a855f7 0%, #8b5cf6 100%);
+  background: linear-gradient(135deg, #b67cf9 0%, #9a6df7 100%);
   color: white;
+  border: 1px solid rgba(255, 255, 255, 0.35);
   box-shadow: 
-    0 4px 14px rgba(168, 85, 247, 0.25),
+    inset 0 1px 0 rgba(255, 255, 255, 0.25),
+    0 4px 14px rgba(168, 85, 247, 0.20),
     0 2px 6px rgba(0, 0, 0, 0.08);
 }
 
 #capture-all-btn:hover {
-  background: linear-gradient(135deg, #9333ea 0%, #7c3aed 100%);
+  background: linear-gradient(135deg, #a368f3 0%, #8a5aef 100%);
   transform: translateY(-1px);
   box-shadow: 
-    0 6px 20px rgba(168, 85, 247, 0.35),
+    inset 0 1px 0 rgba(255, 255, 255, 0.30),
+    0 6px 20px rgba(168, 85, 247, 0.30),
     0 3px 8px rgba(0, 0, 0, 0.12);
 }
 
 /* 导出按钮 - 蓝色主题柔和设计 */
 #export-logs-btn,
 #export-plugin-btn {
-  background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
+  background: linear-gradient(135deg, #5a8df8 0%, #3a6eea 100%);
   color: white;
+  border: 1px solid rgba(255, 255, 255, 0.35);
   box-shadow: 
-    0 4px 14px rgba(59, 130, 246, 0.25),
+    inset 0 1px 0 rgba(255, 255, 255, 0.25),
+    0 4px 14px rgba(59, 130, 246, 0.20),
     0 2px 6px rgba(0, 0, 0, 0.08);
 }
 
 #export-logs-btn:hover,
 #export-plugin-btn:hover {
-  background: linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%);
+  background: linear-gradient(135deg, #4a7ef1 0%, #345fd8 100%);
   transform: translateY(-1px);
   box-shadow: 
-    0 6px 20px rgba(59, 130, 246, 0.35),
+    inset 0 1px 0 rgba(255, 255, 255, 0.30),
+    0 6px 20px rgba(59, 130, 246, 0.30),
     0 3px 8px rgba(0, 0, 0, 0.12);
 }
 
 /* 导入按钮 - 绿色主题柔和设计 */
 #import-logs-btn,
 #import-plugin-btn {
-  background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+  background: linear-gradient(135deg, #43c7a1 0%, #078f73 100%);
   color: white;
+  border: 1px solid rgba(255, 255, 255, 0.35);
   box-shadow: 
-    0 4px 14px rgba(16, 185, 129, 0.25),
+    inset 0 1px 0 rgba(255, 255, 255, 0.25),
+    0 4px 14px rgba(16, 185, 129, 0.20),
     0 2px 6px rgba(0, 0, 0, 0.08);
 }
 
 #import-logs-btn:hover,
 #import-plugin-btn:hover {
-  background: linear-gradient(135deg, #059669 0%, #047857 100%);
+  background: linear-gradient(135deg, #2fb892 0%, #067d65 100%);
   transform: translateY(-1px);
   box-shadow: 
-    0 6px 20px rgba(16, 185, 129, 0.35),
+    inset 0 1px 0 rgba(255, 255, 255, 0.30),
+    0 6px 20px rgba(16, 185, 129, 0.30),
     0 3px 8px rgba(0, 0, 0, 0.12);
 }
 
 /* 删除按钮 - 红色主题柔和设计 */
 #clear-all-data-btn,
 #clear-plugin-data-btn {
-  background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+  background: linear-gradient(135deg, #f36b6b 0%, #e23b3b 100%);
   color: white;
+  border: 1px solid rgba(255, 255, 255, 0.35);
   box-shadow: 
-    0 4px 14px rgba(239, 68, 68, 0.25),
+    inset 0 1px 0 rgba(255, 255, 255, 0.25),
+    0 4px 14px rgba(239, 68, 68, 0.20),
     0 2px 6px rgba(0, 0, 0, 0.08);
 }
 
 #clear-all-data-btn:hover,
 #clear-plugin-data-btn:hover {
-  background: linear-gradient(135deg, #dc2626 0%, #b91c1c 100%);
+  background: linear-gradient(135deg, #e55656 0%, #c72c2c 100%);
   transform: translateY(-1px);
   box-shadow: 
-    0 6px 20px rgba(239, 68, 68, 0.35),
+    inset 0 1px 0 rgba(255, 255, 255, 0.30),
+    0 6px 20px rgba(239, 68, 68, 0.30),
     0 3px 8px rgba(0, 0, 0, 0.12);
 }
 
 /* 问题反馈按钮 - 灰色主题柔和设计 */
 #feedback-btn {
-  background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
+  background: linear-gradient(135deg, #5a8df8 0%, #3a6eea 100%);
   color: white;
+  border: 1px solid rgba(255, 255, 255, 0.35);
   box-shadow: 
-    0 4px 14px rgba(59, 130, 246, 0.25),
+    inset 0 1px 0 rgba(255, 255, 255, 0.25),
+    0 4px 14px rgba(59, 130, 246, 0.20),
     0 2px 6px rgba(0, 0, 0, 0.08);
   width: auto;
   max-width: 160px;
@@ -789,10 +803,12 @@ body {
 
 /* 问题列表按钮 - 青色主题，与反馈按钮一致样式 */
 #issue-list-btn {
-  background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+  background: linear-gradient(135deg, #43c7a1 0%, #078f73 100%);
   color: white;
+  border: 1px solid rgba(255, 255, 255, 0.35);
   box-shadow:
-    0 4px 14px rgba(16, 185, 129, 0.25),
+    inset 0 1px 0 rgba(255, 255, 255, 0.25),
+    0 4px 14px rgba(16, 185, 129, 0.20),
     0 2px 6px rgba(0, 0, 0, 0.08);
   width: auto;
   max-width: 160px;
@@ -800,18 +816,20 @@ body {
 }
 
 #feedback-btn:hover {
-  background: linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%);
+  background: linear-gradient(135deg, #4a7ef1 0%, #345fd8 100%);
   transform: translateY(-1px);
   box-shadow: 
-    0 6px 20px rgba(59, 130, 246, 0.35),
+    inset 0 1px 0 rgba(255, 255, 255, 0.30),
+    0 6px 20px rgba(59, 130, 246, 0.30),
     0 3px 8px rgba(0, 0, 0, 0.12);
 }
 
 #issue-list-btn:hover {
-  background: linear-gradient(135deg, #059669 0%, #047857 100%);
+  background: linear-gradient(135deg, #2fb892 0%, #067d65 100%);
   transform: translateY(-1px);
   box-shadow:
-    0 6px 20px rgba(16, 185, 129, 0.35),
+    inset 0 1px 0 rgba(255, 255, 255, 0.30),
+    0 6px 20px rgba(16, 185, 129, 0.30),
     0 3px 8px rgba(0, 0, 0, 0.12);
 }
 
