@@ -1483,6 +1483,26 @@ body {
   transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
+.accordion-item.empty {
+  background: linear-gradient(135deg, rgba(235, 238, 241, 0.96) 0%, rgba(220, 224, 229, 0.96) 100%);
+  border-color: rgba(170, 178, 189, 0.75);
+}
+.accordion-item.empty .accordion-project-name {
+  color: #374151;
+}
+.accordion-item.empty .accordion-hours {
+  color: #4b5563;
+}
+
+.accordion-empty-tip {
+  padding: 10px 12px;
+  font-size: 13px;
+  color: #6b7280;
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.8), rgba(248, 250, 252, 0.7));
+  border: 1px dashed rgba(156, 163, 175, 0.5);
+  border-radius: 8px;
+}
+
 .accordion-item.open {
   border-color: #7e22ce;
 }

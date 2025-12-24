@@ -2054,11 +2054,6 @@ function renderPendingLogs() {
     sourceItems = sourceItems.filter(item => item.log.date === activePendingDateFilter);
   }
   
-  if (sourceItems.length === 0) {
-    pendingLogsList.innerHTML = '<p class="empty-message">暂无日志</p>';
-    return;
-  }
-  
   // 清空列表
   pendingLogsList.innerHTML = '';
   if (groupByProjectEnabled) {
@@ -2068,14 +2063,39 @@ function renderPendingLogs() {
       if (!groupMap.has(key)) groupMap.set(key, []);
       groupMap.get(key).push({ log, status });
     });
+    const capturedProjects = new Set(getCapturedProjects());
+    // 同时包含日志中出现但未捕获的项目
+    Array.from(groupMap.keys()).forEach(p => capturedProjects.add(p));
+    // 计算排序后的项目列表：先有任务的项目，后无任务的项目
+    const nonEmptyProjects = Array.from(groupMap.keys()).sort();
+    let emptyProjects = Array.from(capturedProjects).filter(p => !groupMap.has(p)).sort();
+    // 当筛选为具体项目时，仅显示该项目（即使为空）
+    let orderedProjects;
+    if (activeProjectFilter !== 'all') {
+      const target = activeProjectFilter;
+      // 如果筛选项目未被捕获，也允许展示一个空项目卡片
+      if (!capturedProjects.has(target) && target) {
+        emptyProjects = [target];
+      } else {
+        emptyProjects = emptyProjects.filter(p => p === target);
+      }
+      orderedProjects = groupMap.has(target) ? [target] : [].concat(emptyProjects);
+    } else {
+      orderedProjects = nonEmptyProjects.concat(emptyProjects);
+    }
+    // 若完全没有项目（既无日志也无捕获），显示空消息
+    if (orderedProjects.length === 0) {
+      pendingLogsList.innerHTML = '<p class="empty-message">暂无日志</p>';
+      return;
+    }
 
-    Array.from(groupMap.keys()).sort().forEach((projectName) => {
+    orderedProjects.forEach((projectName) => {
       const items = groupMap.get(projectName) || [];
       const totalHours = items.reduce((sum, it) => sum + (parseFloat(it.log.hours) || 0), 0);
       const colorIndex = getProjectColorIndex(projectName);
       if (pendingAccordionState[projectName] === undefined) pendingAccordionState[projectName] = true;
       const accordion = document.createElement('div');
-      accordion.className = `accordion-item project-color-${colorIndex} ${pendingAccordionState[projectName] ? '' : 'open'}`;
+      accordion.className = `accordion-item project-color-${colorIndex} ${pendingAccordionState[projectName] ? '' : 'open'} ${items.length === 0 ? 'empty' : ''}`;
       const header = document.createElement('div');
       header.className = 'accordion-header';
       header.innerHTML = `
@@ -2111,6 +2131,9 @@ function renderPendingLogs() {
       const content = document.createElement('div');
       content.className = 'accordion-content';
 
+      if (items.length === 0) {
+        content.innerHTML = '<div class="accordion-empty-tip">🥺当前项目还没有添加任务</div>';
+      } else {
       items.forEach(({ log, status }) => {
         const logItem = document.createElement('div');
         logItem.className = 'log-item';
@@ -2176,6 +2199,7 @@ function renderPendingLogs() {
         }
         content.appendChild(logItem);
       });
+      }
 
       const applyBtn = header.querySelector('.apply-btn');
       const addBtn = header.querySelector('.add-btn');
@@ -2208,6 +2232,10 @@ function renderPendingLogs() {
       pendingLogsList.appendChild(accordion);
     });
   } else {
+    if (sourceItems.length === 0) {
+      pendingLogsList.innerHTML = '<p class="empty-message">暂无日志</p>';
+      return;
+    }
     sourceItems.forEach(({ log, status }) => {
       const logItem = document.createElement('div');
       logItem.className = 'log-item';
