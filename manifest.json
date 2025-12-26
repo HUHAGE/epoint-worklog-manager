@@ -1,7 +1,7 @@
 {
   "manifest_version": 3,
   "name": "EP • 非功快申",
-  "version": "2.2",
+  "version": "2.3",
   "force_update": {
     "enabled": false
   },

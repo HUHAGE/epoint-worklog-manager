@@ -744,10 +744,128 @@ document.addEventListener('DOMContentLoaded', function() {
   // 切换到待申请标签页
   switchTab('pending');
   try { initVersionBanner(); } catch (e) {}
+  try { detectAndPrioritizeProjectFromActiveTab(); } catch (e) {}
 });
 
 
 
+function moveProjectAccordionToTop(projectName) {
+  try {
+    if (!projectName) return;
+    if (!groupByProjectEnabled) return;
+    const list = pendingLogsList;
+    if (!list) return;
+    const items = Array.prototype.slice.call(list.querySelectorAll('.accordion-item'));
+    if (!items.length) return;
+    let target = null;
+    for (let i = 0; i < items.length; i++) {
+      const h = items[i].querySelector('.accordion-header .accordion-project-name');
+      const t = h ? (h.getAttribute('title') || h.textContent || '').trim() : '';
+      if (t && t === projectName) { target = items[i]; break; }
+    }
+    if (!target) return;
+    try { list.insertBefore(target, list.firstChild); } catch (e) {}
+    try { target.classList.add('open'); } catch (e) {}
+    try { pendingAccordionState[projectName] = false; } catch (e) {}
+  } catch (e) {}
+}
+
+function getProjectNameByGuidFromPresets(guid) {
+  try {
+    if (!guid) return '';
+    const cand = [];
+    try { if (presetBlueprints) cand.push(...Object.values(presetBlueprints)); } catch (e) {}
+    try { if (presetStageDemands) cand.push(...Object.values(presetStageDemands)); } catch (e) {}
+    try { if (presetTaskReviewers) cand.push(...Object.values(presetTaskReviewers)); } catch (e) {}
+    for (let i = 0; i < cand.length; i++) {
+      const it = cand[i] || {};
+      const g = String(it.ProjectGuid || '').trim();
+      if (g && g === guid) {
+        const name = String(it.ProjectName || '').trim();
+        if (name) return name;
+      }
+    }
+    return '';
+  } catch (e) { return ''; }
+}
+
+function detectAndPrioritizeProjectFromActiveTab() {
+  try {
+    if (typeof chrome === 'undefined' || !chrome.tabs || !chrome.tabs.query) return;
+    chrome.tabs.query({ active: true, currentWindow: true }, function(tabs) {
+      try {
+        if (!tabs || !tabs.length) return;
+        const tab = tabs[0];
+        const url = String(tab.url || '');
+        const low = url.toLowerCase();
+        if (!/missionapplyadd/i.test(low)) return;
+        let projGuid = '';
+        try {
+          const u = new URL(url);
+          projGuid = String(u.searchParams.get('ProjectGuid') || '').trim();
+        } catch (e) {}
+        const fallbackName = getProjectNameByGuidFromPresets(projGuid);
+        if (typeof chrome.scripting === 'undefined') {
+          moveProjectAccordionToTop(fallbackName);
+          return;
+        }
+        chrome.scripting.executeScript({
+          target: { tabId: tab.id, allFrames: true },
+          world: 'MAIN',
+          func: function() {
+            try {
+              function pick(doc) {
+                var w = doc.defaultView || window;
+                var miniObj = w.mini;
+                function getCtrl(id){ try { return miniObj && miniObj.get && miniObj.get(id); } catch(e){ return null; } }
+                function getValue(id) {
+                  var ctrl = getCtrl(id); var el = doc.getElementById(id); var v = '';
+                  try { if (ctrl && typeof ctrl.getValue === 'function') v = ctrl.getValue() || ''; else if (el) v = (el.value || el.textContent || '').trim(); } catch (e) {}
+                  return v || '';
+                }
+                function getText(id) {
+                  var ctrl = getCtrl(id); var el = doc.getElementById(id); var t = '';
+                  try { if (ctrl && typeof ctrl.getText === 'function') t = ctrl.getText() || ''; else if (el) t = (el.innerText || el.textContent || '').trim(); } catch (e) {}
+                  return t || '';
+                }
+                var name = (getText('lblProjectName') || getValue('ProjectName') || '').trim();
+                return name || '';
+              }
+              var name = '';
+              try { name = pick(document) || ''; } catch (e) {}
+              if (!name) {
+                var iframes = document.getElementsByTagName('iframe');
+                for (var i = 0; i < iframes.length && !name; i++) {
+                  try {
+                    var doc = iframes[i].contentDocument || (iframes[i].contentWindow && iframes[i].contentWindow.document);
+                    if (doc) name = pick(doc) || '';
+                  } catch (e) {}
+                }
+              }
+              return name || '';
+            } catch (e) { return ''; }
+          }
+        }, function(results) {
+          try {
+            var arr = Array.isArray(results) ? results : [];
+            var found = '';
+            for (var i = 0; i < arr.length; i++) {
+              var r = arr[i] && arr[i].result;
+              if (r && typeof r === 'string' && r.trim()) { found = r.trim(); break; }
+            }
+            var name = found || fallbackName || '';
+            if (name) {
+              setTimeout(function(){ try { moveProjectAccordionToTop(name); } catch (e) {} }, 50);
+            }
+          } catch (e) {
+            var name2 = fallbackName || '';
+            if (name2) setTimeout(function(){ try { moveProjectAccordionToTop(name2); } catch (e2) {} }, 50);
+          }
+        });
+      } catch (e) {}
+    });
+  } catch (e) {}
+}
 // 绑定事件监听器
 function bindEventListeners() {
   // 标签页切换
