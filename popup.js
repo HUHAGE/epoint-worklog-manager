@@ -2424,6 +2424,15 @@ function renderPendingLogs() {
       pendingLogsList.appendChild(logItem);
     });
   }
+  
+  // 渲染完成后，重新检测并优先显示当前页面的项目
+  setTimeout(() => {
+    try {
+      detectAndPrioritizeProjectFromActiveTab();
+    } catch (e) {
+      console.error('重新检测项目优先级时出错:', e);
+    }
+  }, 100); // 短暂延迟确保DOM更新完成
 }
 
 // 渲染已填写日志列表
@@ -2836,6 +2845,13 @@ function fillLogToPage(tabId, log) {
           applyTaskReviewerPresetToOA();
           
           console.log('额外的自动填充操作完成');
+          
+          // 重新检测并优先显示当前页面的项目
+          try {
+            detectAndPrioritizeProjectFromActiveTab();
+          } catch (e) {
+            console.error('重新检测项目优先级时出错:', e);
+          }
         }, 1000); // 延迟1秒确保数据填充完成后再执行
       }
     });
