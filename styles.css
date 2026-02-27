@@ -631,6 +631,14 @@ body {
   margin-bottom: 16px;
 }
 
+.config-card .feedback-actions {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 16px;
+}
+
 .config-card .form-group:has(#export-logs-btn) {
   display: flex;
   justify-content: center;
@@ -829,7 +837,7 @@ body {
     0 2px 6px rgba(0, 0, 0, 0.08);
   width: auto;
   max-width: 160px;
-  margin-left: 10px;
+  margin-left: 0;
 }
 
 #feedback-btn:hover {
