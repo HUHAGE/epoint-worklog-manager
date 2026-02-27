@@ -209,6 +209,21 @@
             </div>
           </div>
 
+          <!-- 云同步卡片 -->
+          <div class="config-card">
+            <h3>云同步 (GitHub Gist)</h3>
+            <div class="form-group">
+              <label for="gist-token">GitHub Token</label>
+              <input type="password" id="gist-token" placeholder="ghp_xxxx..." style="width: 100%; padding: 6px; border: 1px solid #ccc; border-radius: 4px;">
+              <p class="explain-text" style="margin-top: 4px;">需要 gist 权限，<a href="https://github.com/settings/tokens/new?scopes=gist&description=epoint-worklog-sync" target="_blank">点击创建</a></p>
+            </div>
+            <div class="form-group">
+              <button id="cloud-upload-btn" class="btn-secondary" data-umami-event="cloud_upload_click">上传到云</button>
+              <button id="cloud-download-btn" class="btn-secondary" data-umami-event="cloud_download_click">从云恢复</button>
+            </div>
+            <p id="cloud-sync-status" class="explain-text" style="margin-top: 4px;"></p>
+          </div>
+
           <!-- 问题反馈卡片 -->
           <div class="config-card">
             <h3>问题反馈</h3>

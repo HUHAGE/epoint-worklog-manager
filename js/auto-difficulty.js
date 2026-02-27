@@ -14,7 +14,7 @@
     if (!document.getElementById('oneKeySplitStyles')) {
       const style = document.createElement('style');
       style.id = 'oneKeySplitStyles';
-      style.textContent = '#oneKeySplitBtn{padding:12px 24px;border-radius:12px;border:1px solid rgba(255,255,255,0.18);cursor:pointer;font-size:15px;font-weight:600;color:#fff;background:linear-gradient(180deg,rgba(255,255,255,0.12) 0%,rgba(255,255,255,0) 40%),linear-gradient(135deg,#6E34FF 0%,#9E46FF 60%,#C77DFF 100%);box-shadow:0 8px 20px rgba(126,34,206,0.30),0 2px 6px rgba(0,0,0,0.12),inset 0 1px 0 rgba(255,255,255,0.25),inset 0 -1px 0 rgba(0,0,0,0.15);backdrop-filter:saturate(1.2);transition:transform .15s ease,box-shadow .2s ease,filter .2s ease;}#oneKeySplitBtn:hover{transform:translateY(-1px);box-shadow:0 12px 28px rgba(126,34,206,0.45),0 4px 10px rgba(0,0,0,0.12),inset 0 1px 0 rgba(255,255,255,0.35);filter:brightness(1.06);}#oneKeySplitBtn:active{transform:scale(0.99);}#oneKeySplitBtn .icon{display:inline-block;margin-right:8px;vertical-align:middle;line-height:0;}';
+      style.textContent = '#oneKeySplitBtn{padding:12px 24px;border-radius:12px;border:1px solid rgba(255,255,255,0.18);cursor:pointer;font-size:15px;font-weight:600;color:#fff;background:linear-gradient(180deg,rgba(255,255,255,0.12) 0%,rgba(255,255,255,0) 40%),linear-gradient(135deg,#0A84FF 0%,#007AFF 60%,#40A9FF 100%);box-shadow:0 8px 20px rgba(10, 132, 255, 0.30),0 2px 6px rgba(0,0,0,0.12),inset 0 1px 0 rgba(255,255,255,0.25),inset 0 -1px 0 rgba(0,0,0,0.15);backdrop-filter:saturate(1.2);transition:transform .15s ease,box-shadow .2s ease,filter .2s ease;}#oneKeySplitBtn:hover{transform:translateY(-1px);box-shadow:0 12px 28px rgba(10, 132, 255, 0.45),0 4px 10px rgba(0,0,0,0.12),inset 0 1px 0 rgba(255,255,255,0.35);filter:brightness(1.06);}#oneKeySplitBtn:active{transform:scale(0.99);}#oneKeySplitBtn .icon{display:inline-block;margin-right:8px;vertical-align:middle;line-height:0;}';
       document.head.appendChild(style);
     }
     const btn = document.createElement('button');
@@ -27,8 +27,8 @@
     btn.style.fontSize = '15px';
     btn.style.fontWeight = '600';
     btn.style.color = '#fff';
-    btn.style.boxShadow = '0 8px 20px rgba(126,34,206,0.30),0 2px 6px rgba(0,0,0,0.12), inset 0 1px 0 rgba(255,255,255,0.25), inset 0 -1px 0 rgba(0,0,0,0.15)';
-    btn.style.background = 'linear-gradient(180deg, rgba(255,255,255,0.12) 0%, rgba(255,255,255,0) 40%), linear-gradient(135deg, #6E34FF 0%, #9E46FF 60%, #C77DFF 100%)';
+    btn.style.boxShadow = '0 8px 20px rgba(10, 132, 255, 0.30),0 2px 6px rgba(0,0,0,0.12), inset 0 1px 0 rgba(255,255,255,0.25), inset 0 -1px 0 rgba(0,0,0,0.15)';
+    btn.style.background = 'linear-gradient(180deg, rgba(255,255,255,0.12) 0%, rgba(255,255,255,0) 40%), linear-gradient(135deg, #0A84FF 0%, #007AFF 60%, #40A9FF 100%)';
     btn.onclick = runOneKeySplit;
     const icon = document.createElement('span');
     icon.className = 'icon';

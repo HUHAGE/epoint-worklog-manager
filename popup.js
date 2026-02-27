@@ -1544,6 +1544,129 @@ function bindEventListeners() {
       try { importPluginFileInput.value = ''; } catch (err) {}
     });
   }
+
+  // 云同步功能
+  const gistTokenInput = document.getElementById('gist-token');
+  const cloudUploadBtn = document.getElementById('cloud-upload-btn');
+  const cloudDownloadBtn = document.getElementById('cloud-download-btn');
+  const cloudSyncStatus = document.getElementById('cloud-sync-status');
+
+  if (gistTokenInput) {
+    gistTokenInput.value = localStorage.getItem('gistToken') || '';
+    gistTokenInput.addEventListener('change', () => {
+      localStorage.setItem('gistToken', gistTokenInput.value.trim());
+    });
+  }
+
+  if (cloudUploadBtn) {
+    cloudUploadBtn.addEventListener('click', async () => {
+      const token = gistTokenInput?.value?.trim();
+      if (!token) { showErrorToast('请先填写 GitHub Token'); return; }
+      cloudSyncStatus.textContent = '正在上传...';
+      try {
+        await syncToGist(token, 'upload');
+        cloudSyncStatus.textContent = '上传成功 ' + new Date().toLocaleString();
+      } catch (e) {
+        cloudSyncStatus.textContent = '';
+        showErrorToast('上传失败: ' + e.message);
+      }
+    });
+  }
+
+  if (cloudDownloadBtn) {
+    cloudDownloadBtn.addEventListener('click', async () => {
+      const token = gistTokenInput?.value?.trim();
+      if (!token) { showErrorToast('请先填写 GitHub Token'); return; }
+      cloudSyncStatus.textContent = '正在下载...';
+      try {
+        await syncToGist(token, 'download');
+        cloudSyncStatus.textContent = '恢复成功 ' + new Date().toLocaleString();
+      } catch (e) {
+        cloudSyncStatus.textContent = '';
+        showErrorToast('下载失败: ' + e.message);
+      }
+    });
+  }
+}
+
+// GitHub Gist 同步
+async function syncToGist(token, action) {
+  const GIST_FILENAME = 'epoint-worklog-sync.json';
+  const gistId = localStorage.getItem('gistId');
+
+  if (action === 'upload') {
+    const data = getPluginDataForExport();
+    const body = { description: 'epoint-worklog-manager sync', public: false, files: { [GIST_FILENAME]: { content: JSON.stringify(data, null, 2) } } };
+
+    let res;
+    if (gistId) {
+      res = await fetch(`https://api.github.com/gists/${gistId}`, { method: 'PATCH', headers: { Authorization: `token ${token}`, 'Content-Type': 'application/json' }, body: JSON.stringify(body) });
+    } else {
+      res = await fetch('https://api.github.com/gists', { method: 'POST', headers: { Authorization: `token ${token}`, 'Content-Type': 'application/json' }, body: JSON.stringify(body) });
+    }
+    if (!res.ok) throw new Error(res.status === 401 ? 'Token 无效' : '请求失败');
+    const json = await res.json();
+    localStorage.setItem('gistId', json.id);
+    showToast('已上传到云');
+  } else {
+    if (!gistId) throw new Error('未找到云端数据，请先上传');
+    const res = await fetch(`https://api.github.com/gists/${gistId}`, { headers: { Authorization: `token ${token}` } });
+    if (!res.ok) throw new Error(res.status === 404 ? '云端数据不存在' : '请求失败');
+    const json = await res.json();
+    const content = json.files?.[GIST_FILENAME]?.content;
+    if (!content) throw new Error('云端数据格式错误');
+    importPluginDataFromObject(JSON.parse(content));
+    showToast('已从云端恢复');
+  }
+}
+
+function getPluginDataForExport() {
+  const getBool = (key, def=true) => { const v = localStorage.getItem(key); return v === null ? def : (v === 'true'); };
+  const safeParse = (key, def) => { try { const v = localStorage.getItem(key); return v ? JSON.parse(v) : def; } catch (e) { return def; } };
+  return {
+    meta: { name: 'epoint-worklog-manager-plugin-data', version: 1, exportedAt: new Date().toISOString() },
+    settings: {
+      presetDemandTag: localStorage.getItem('presetDemandTag') || '',
+      presetWorkType: localStorage.getItem('presetWorkType') || '',
+      presetCloseReminders: getBool('presetCloseReminders', false),
+      groupByProjectEnabled: getBool('groupByProjectEnabled', true),
+      presetAutoFillPresets: getBool('presetAutoFillPresets', true),
+      presetBlueprintAutoApply: getBool('presetBlueprintAutoApply', true),
+      presetStageDemandAutoApply: getBool('presetStageDemandAutoApply', true),
+      presetTaskReviewerAutoApply: getBool('presetTaskReviewerAutoApply', true)
+    },
+    captured: { presetBlueprints: safeParse('presetBlueprints', {}), presetStageDemands: safeParse('presetStageDemands', {}), presetTaskReviewers: safeParse('presetTaskReviewers', {}) },
+    presets: { presetProjects: safeParse('presetProjects', []) }
+  };
+}
+
+function importPluginDataFromObject(obj) {
+  const settings = obj?.settings || obj;
+  const captured = obj?.captured || obj;
+  const presets = obj?.presets || obj;
+  const writeBool = (key, val, def=true) => { if (typeof val === 'boolean') localStorage.setItem(key, String(val)); else if (val === undefined && def !== undefined) localStorage.setItem(key, String(def)); };
+  const writeStr = (key, val) => { if (typeof val === 'string') localStorage.setItem(key, val); };
+  const writeJson = (key, val, def) => { if (val && typeof val === 'object') localStorage.setItem(key, JSON.stringify(val)); else if (def !== undefined) localStorage.setItem(key, JSON.stringify(def)); };
+  writeStr('presetDemandTag', settings.presetDemandTag);
+  writeStr('presetWorkType', settings.presetWorkType);
+  writeBool('presetCloseReminders', settings.presetCloseReminders, false);
+  writeBool('groupByProjectEnabled', settings.groupByProjectEnabled, true);
+  writeBool('presetAutoFillPresets', settings.presetAutoFillPresets, true);
+  writeBool('presetBlueprintAutoApply', settings.presetBlueprintAutoApply, true);
+  writeBool('presetStageDemandAutoApply', settings.presetStageDemandAutoApply, true);
+  writeBool('presetTaskReviewerAutoApply', settings.presetTaskReviewerAutoApply, true);
+  writeJson('presetBlueprints', captured.presetBlueprints, {});
+  writeJson('presetStageDemands', captured.presetStageDemands, {});
+  writeJson('presetTaskReviewers', captured.presetTaskReviewers, {});
+  writeJson('presetProjects', presets.presetProjects, []);
+  loadPresetDemandTag(); loadPresetWorkType(); loadPresetCloseReminders(); loadGroupByProjectEnabled();
+  loadPresetAutoFillPresets(); loadPresetBlueprints(); loadPresetBlueprintAutoApply();
+  loadPresetStageDemands(); loadPresetStageDemandAutoApply(); loadPresetTaskReviewers(); loadPresetTaskReviewerAutoApply();
+  loadPresetProjects();
+  try { renderUnifiedPresetsList(); } catch (e) {}
+  try { updateExportProjectOptions(); } catch (e) {}
+  try { updateProjectTabs(); } catch (e) {}
+  try { updateFilledProjectTabs(); } catch (e) {}
 }
 
 // 清除所有待填写日志
@@ -3210,7 +3333,7 @@ function renderPresetProjectsList() {
   const viewBtn = document.createElement('button');
   viewBtn.className = 'action-icon detail-btn';
   viewBtn.title = '查看';
-  viewBtn.innerHTML = '<svg width="16" height="16" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><defs><linearGradient id="viewGradPreset" x1="0" y1="0" x2="1" y2="1"><stop offset="0%" stop-color="#667eea"/><stop offset="100%" stop-color="#764ba2"/></linearGradient></defs><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" fill="url(#viewGradPreset)" fill-opacity="0.9"/><circle cx="12" cy="12" r="3.5" fill="#ffffff"/><circle cx="12" cy="12" r="2" fill="#2d3748"/></svg>';
+  viewBtn.innerHTML = '<svg width="16" height="16" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><defs><linearGradient id="viewGradPreset" x1="0" y1="0" x2="1" y2="1"><stop offset="0%" stop-color="#0a84ff"/><stop offset="100%" stop-color="#0066cc"/></linearGradient></defs><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" fill="url(#viewGradPreset)" fill-opacity="0.9"/><circle cx="12" cy="12" r="3.5" fill="#ffffff"/><circle cx="12" cy="12" r="2" fill="#2d3748"/></svg>';
   viewBtn.addEventListener('click', () => {
     try { openUnifiedDetailsModal(project); } catch (e) {}
   });
@@ -4380,7 +4503,7 @@ function renderUnifiedPresetsList() {
   var detailBtn = document.createElement('button');
   detailBtn.className = 'action-icon detail-btn';
   detailBtn.type = 'button';
-  detailBtn.innerHTML = '<svg width="16" height="16" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><defs><linearGradient id="viewGrad" x1="0" y1="0" x2="1" y2="1"><stop offset="0%" stop-color="#667eea"/><stop offset="100%" stop-color="#764ba2"/></linearGradient></defs><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" fill="url(#viewGrad)" fill-opacity="0.9"/><circle cx="12" cy="12" r="3.5" fill="#ffffff"/><circle cx="12" cy="12" r="2" fill="#2d3748"/></svg>';
+  detailBtn.innerHTML = '<svg width="16" height="16" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><defs><linearGradient id="viewGrad" x1="0" y1="0" x2="1" y2="1"><stop offset="0%" stop-color="#0a84ff"/><stop offset="100%" stop-color="#0066cc"/></linearGradient></defs><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" fill="url(#viewGrad)" fill-opacity="0.9"/><circle cx="12" cy="12" r="3.5" fill="#ffffff"/><circle cx="12" cy="12" r="2" fill="#2d3748"/></svg>';
   detailBtn.addEventListener('click', function(ev){
     try { ev.preventDefault(); ev.stopPropagation(); } catch (e) {}
     openUnifiedDetailsModal(k);
