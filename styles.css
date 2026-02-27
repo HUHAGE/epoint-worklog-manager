@@ -359,32 +359,42 @@ body {
 }
 
 .btn-secondary {
-  background-color: #6c757d;
+  background-color: #0a84ff;
   color: white;
   border: none;
-  padding: 8px 12px;
-  border-radius: 4px;
+  padding: 6px 12px;
+  border-radius: 6px;
   cursor: pointer;
-  font-size: 13px;
+  font-size: 12px;
   font-weight: 500;
-  transition: background-color 0.3s;
+  transition: all 0.2s ease;
 }
 
 .btn-secondary:hover {
-  background-color: #5a6268;
+  background-color: #0070e0;
+  transform: translateY(-1px);
 }
-
 
 .btn-capture {
   background-color: #0a84ff;
   color: white;
   border: none;
+  padding: 6px 12px;
+  border-radius: 6px;
+  font-size: 12px;
 }
 
 .btn-capture:hover {
-  background-color: #0a84ff;
+  background-color: #0070e0;
   transform: translateY(-1px);
-  box-shadow: 0 2px 8px rgba(108, 117, 125, 0.3);
+}
+
+.btn-danger {
+  background-color: #dc3545 !important;
+}
+
+.btn-danger:hover {
+  background-color: #c82333 !important;
 }
 
 .btn-small {
@@ -984,12 +994,10 @@ body {
   flex-shrink: 0; /* 防止按钮被压缩 */
 }
 
-/* 配置页捕获按钮与添加项目按钮一致的高度 */
+/* 配置页捕获按钮 */
 .btn-capture {
-  padding: 4px 10px;
-  font-size: 11px;
-  height: 35px;
-  line-height: 1;
+  padding: 6px 12px;
+  font-size: 12px;
 }
 
 .preset-btn {
@@ -3097,22 +3105,23 @@ textarea.form-control {
 }
 
 .btn {
-  padding: 8px 16px;
+  padding: 6px 12px;
   border: none;
   border-radius: 6px;
-  font-size: 14px;
+  font-size: 12px;
   font-weight: 500;
   cursor: pointer;
   transition: all 0.2s ease;
 }
 
 .btn-secondary {
-  background-color: #e5e7eb;
-  color: #374151;
+  background-color: #0a84ff;
+  color: white;
 }
 
 .btn-secondary:hover {
-  background-color: #d1d5db;
+  background-color: #0070e0;
+  transform: translateY(-1px);
 }
 
 .btn-primary {

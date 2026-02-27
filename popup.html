@@ -191,7 +191,7 @@
             <div class="form-group">
               <button id="export-logs-btn" class="btn-secondary" data-umami-event="export_logs_click">导出任务数据</button>
               <button id="import-logs-btn" class="btn-secondary" data-umami-event="import_logs_click">导入任务数据</button>
-              <button id="clear-all-data-btn" class="btn-secondary" style="background-color: #dc3545; color: white;" data-umami-event="clear_all_data_click">清除数据</button>
+              <button id="clear-all-data-btn" class="btn-secondary btn-danger" data-umami-event="clear_all_data_click">清除数据</button>
               <input type="file" id="import-logs-file-input" accept="application/json" style="display:none">
             </div>
           </div>
@@ -204,7 +204,7 @@
             <div class="form-group">
               <button id="export-plugin-btn" class="btn-secondary" data-umami-event="export_plugin_click">导出插件数据</button>
               <button id="import-plugin-btn" class="btn-secondary" data-umami-event="import_plugin_click">导入插件数据</button>
-              <button id="clear-plugin-data-btn" class="btn-secondary" style="background-color: #dc3545; color: white;" data-umami-event="clear_plugin_data_click">清除数据</button>
+              <button id="clear-plugin-data-btn" class="btn-secondary btn-danger" data-umami-event="clear_plugin_data_click">清除数据</button>
               <input type="file" id="import-plugin-file-input" accept="application/json" style="display:none">
             </div>
           </div>
@@ -220,6 +220,7 @@
             <div class="form-group">
               <button id="cloud-upload-btn" class="btn-secondary" data-umami-event="cloud_upload_click">上传到云</button>
               <button id="cloud-download-btn" class="btn-secondary" data-umami-event="cloud_download_click">从云恢复</button>
+              <a id="cloud-view-link" href="#" target="_blank" style="display: none; margin-left: 8px;" data-umami-event="cloud_view_click">查看云端</a>
             </div>
             <p id="cloud-sync-status" class="explain-text" style="margin-top: 4px;"></p>
           </div>
@@ -236,7 +237,7 @@
             <h3>版本检测</h3>
             <div class="form-group" style="display: flex; justify-content: space-between; align-items: center;">
               <p style="margin: 0;">当前版本：<span id="current-version"></span></p>
-              <button id="check-update-btn" class="btn btn-primary" data-umami-event="check_update_click">检测更新</button>
+              <button id="check-update-btn" class="btn-secondary" data-umami-event="check_update_click">检测更新</button>
             </div>
             <div class="form-group">
                 <p id="update-info" style="display: none; margin-top: 8px;">有新版本可用！最新版本：<span id="latest-version"></span> <a href="#" id="download-link" target="_blank">点击下载</a></p>

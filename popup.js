@@ -1550,6 +1550,16 @@ function bindEventListeners() {
   const cloudUploadBtn = document.getElementById('cloud-upload-btn');
   const cloudDownloadBtn = document.getElementById('cloud-download-btn');
   const cloudSyncStatus = document.getElementById('cloud-sync-status');
+  const cloudViewLink = document.getElementById('cloud-view-link');
+
+  function updateCloudViewLink() {
+    const gistId = localStorage.getItem('gistId');
+    if (cloudViewLink) {
+      if (gistId) { cloudViewLink.href = `https://gist.github.com/${gistId}`; cloudViewLink.style.display = 'inline'; }
+      else { cloudViewLink.style.display = 'none'; }
+    }
+  }
+  updateCloudViewLink();
 
   if (gistTokenInput) {
     gistTokenInput.value = localStorage.getItem('gistToken') || '';
@@ -1566,6 +1576,7 @@ function bindEventListeners() {
       try {
         await syncToGist(token, 'upload');
         cloudSyncStatus.textContent = '上传成功 ' + new Date().toLocaleString();
+        updateCloudViewLink();
       } catch (e) {
         cloudSyncStatus.textContent = '';
         showErrorToast('上传失败: ' + e.message);
