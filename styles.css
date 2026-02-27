@@ -3295,3 +3295,72 @@ html, body {
 #preset-tab .btn-danger:hover {
   background-color: #c82333 !important;
 }
+
+/* 云同步卡片布局优化 */
+.cloud-sync-card .cloud-token-group,
+.cloud-sync-card .cloud-auto-group {
+  flex-direction: column;
+  align-items: stretch;
+  justify-content: flex-start;
+  gap: 6px;
+}
+
+.cloud-sync-card #gist-token {
+  width: 100%;
+  box-sizing: border-box;
+  padding: 10px 12px;
+  border: 1px solid #d7deea;
+  border-radius: 8px;
+  font-size: 13px;
+}
+
+.cloud-sync-card .cloud-help-text {
+  margin: 0;
+}
+
+.cloud-sync-card .cloud-auto-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.cloud-sync-card .cloud-auto-label {
+  color: #334155;
+  font-size: 14px;
+  font-weight: 500;
+}
+
+.cloud-sync-card .cloud-actions {
+  justify-content: center;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: nowrap;
+}
+
+.cloud-sync-card .cloud-actions #cloud-upload-btn,
+.cloud-sync-card .cloud-actions #cloud-download-btn,
+.cloud-sync-card .cloud-actions #cloud-view-link {
+  min-width: 96px;
+  white-space: nowrap;
+}
+
+.cloud-sync-card .cloud-view-link {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  text-decoration: none;
+  background-color: #14b8a6 !important;
+  color: #ffffff !important;
+}
+
+.cloud-sync-card .cloud-view-link:hover {
+  background-color: #0d9488 !important;
+}
+
+.cloud-sync-card .cloud-sync-status {
+  margin-top: 4px;
+  margin-bottom: 0;
+  text-align: center;
+  min-height: 20px;
+}

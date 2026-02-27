@@ -105,6 +105,36 @@ let presetAutoFillPresets = true; // 预设配置自动填充总开关，默认�
 let activeFilledDateFilter = '';
 // 是否按项目分组展示（首页）
 let groupByProjectEnabled = true;
+const AUTO_CLOUD_SYNC_STORAGE_KEY = 'autoCloudSyncEnabled';
+const AUTO_CLOUD_SYNC_DEBOUNCE_MS = 800;
+const AUTO_CLOUD_SYNC_TRACKED_KEYS = new Set([
+  'presetProjects',
+  'presetDemandTag',
+  'presetWorkType',
+  'presetCloseReminders',
+  'groupByProjectEnabled',
+  'presetAutoFillPresets',
+  'presetBlueprintAutoApply',
+  'presetStageDemandAutoApply',
+  'presetTaskReviewerAutoApply',
+  'presetBlueprints',
+  'presetStageDemands',
+  'presetTaskReviewers',
+  AUTO_CLOUD_SYNC_STORAGE_KEY
+]);
+let autoCloudSyncEnabled = false;
+let autoCloudSyncTimer = null;
+let autoCloudSyncPending = false;
+let autoCloudSyncInProgress = false;
+let autoCloudSyncSuppressDepth = 0;
+let autoCloudSyncStorageHookInstalled = false;
+let cloudSyncStatusElement = null;
+
+try {
+  autoCloudSyncEnabled = localStorage.getItem(AUTO_CLOUD_SYNC_STORAGE_KEY) === 'true';
+} catch (error) {
+  autoCloudSyncEnabled = false;
+}
 
 // 选择模式状态与选中集合
 let pendingSelectionMode = false;
@@ -134,6 +164,142 @@ function sendUmamiPageview() {
     fetch(host.replace(/\/$/, '') + '/api/send', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ type: 'event', payload: payload }), keepalive: true }).catch(function(){});
   } catch (e) {}
 }
+
+function setCloudSyncStatusElement(element) {
+  cloudSyncStatusElement = element || null;
+}
+
+function setCloudSyncStatus(text) {
+  const el = cloudSyncStatusElement || document.getElementById('cloud-sync-status');
+  if (!el) return;
+  el.textContent = text || '';
+}
+
+function refreshCloudViewLink() {
+  const cloudViewLink = document.getElementById('cloud-view-link');
+  if (!cloudViewLink) return;
+  const gistId = localStorage.getItem('gistId');
+  if (gistId) {
+    cloudViewLink.href = `https://gist.github.com/${gistId}`;
+    cloudViewLink.style.display = 'inline-flex';
+  } else {
+    cloudViewLink.style.display = 'none';
+  }
+}
+
+function loadAutoCloudSyncEnabled(checkboxEl) {
+  try {
+    autoCloudSyncEnabled = localStorage.getItem(AUTO_CLOUD_SYNC_STORAGE_KEY) === 'true';
+  } catch (error) {
+    autoCloudSyncEnabled = false;
+  }
+  if (!autoCloudSyncEnabled) {
+    autoCloudSyncPending = false;
+    if (autoCloudSyncTimer) {
+      clearTimeout(autoCloudSyncTimer);
+      autoCloudSyncTimer = null;
+    }
+  }
+  if (checkboxEl) {
+    checkboxEl.checked = !!autoCloudSyncEnabled;
+  }
+}
+
+function saveAutoCloudSyncEnabled(enabled) {
+  autoCloudSyncEnabled = !!enabled;
+  localStorage.setItem(AUTO_CLOUD_SYNC_STORAGE_KEY, String(autoCloudSyncEnabled));
+}
+
+function shouldAutoCloudSyncByKey(key) {
+  return !!key && AUTO_CLOUD_SYNC_TRACKED_KEYS.has(key);
+}
+
+async function withAutoCloudSyncSuppressed(task) {
+  autoCloudSyncSuppressDepth += 1;
+  try {
+    return await task();
+  } finally {
+    autoCloudSyncSuppressDepth = Math.max(0, autoCloudSyncSuppressDepth - 1);
+  }
+}
+
+function scheduleAutoCloudSync(reason = 'data-change') {
+  if (!autoCloudSyncEnabled) return;
+  autoCloudSyncPending = true;
+  if (autoCloudSyncTimer) {
+    clearTimeout(autoCloudSyncTimer);
+  }
+  autoCloudSyncTimer = setTimeout(() => {
+    autoCloudSyncTimer = null;
+    void flushAutoCloudSync(reason);
+  }, AUTO_CLOUD_SYNC_DEBOUNCE_MS);
+}
+
+async function flushAutoCloudSync(reason = 'data-change') {
+  if (!autoCloudSyncEnabled || !autoCloudSyncPending) return;
+  if (autoCloudSyncInProgress) return;
+  const token = (localStorage.getItem('gistToken') || '').trim();
+  if (!token) {
+    setCloudSyncStatus('自动上云已开启，请先填写 GitHub Token');
+    return;
+  }
+
+  autoCloudSyncInProgress = true;
+  autoCloudSyncPending = false;
+  setCloudSyncStatus('自动上云中...');
+  try {
+    await syncToGist(token, 'upload', { silent: true, source: reason });
+    setCloudSyncStatus('自动上云成功 ' + new Date().toLocaleString());
+    refreshCloudViewLink();
+  } catch (error) {
+    const msg = error && error.message ? error.message : '请求失败';
+    setCloudSyncStatus('自动上云失败: ' + msg);
+    console.error('自动上云失败:', error);
+  } finally {
+    autoCloudSyncInProgress = false;
+    if (autoCloudSyncPending && autoCloudSyncEnabled) {
+      scheduleAutoCloudSync('queued-change');
+    }
+  }
+}
+
+function notifyAutoCloudSyncByStorageChange(key) {
+  if (autoCloudSyncSuppressDepth > 0) return;
+  if (!shouldAutoCloudSyncByKey(key)) return;
+  scheduleAutoCloudSync(`storage:${key}`);
+}
+
+function installAutoCloudSyncStorageHook() {
+  if (autoCloudSyncStorageHookInstalled) return;
+  try {
+    const storageProto = Object.getPrototypeOf(localStorage);
+    if (!storageProto || typeof storageProto.setItem !== 'function' || typeof storageProto.removeItem !== 'function') return;
+    const rawSetItem = storageProto.setItem;
+    const rawRemoveItem = storageProto.removeItem;
+
+    storageProto.setItem = function(key, value) {
+      const result = rawSetItem.call(this, key, value);
+      if (this === localStorage) {
+        notifyAutoCloudSyncByStorageChange(String(key || ''));
+      }
+      return result;
+    };
+
+    storageProto.removeItem = function(key) {
+      const result = rawRemoveItem.call(this, key);
+      if (this === localStorage) {
+        notifyAutoCloudSyncByStorageChange(String(key || ''));
+      }
+      return result;
+    };
+
+    autoCloudSyncStorageHookInstalled = true;
+  } catch (error) {
+    console.error('安装自动上云监听失败:', error);
+  }
+}
+
+installAutoCloudSyncStorageHook();
 
 // 项目颜色分配函数
 // 项目名称到颜色索引的映射缓存
@@ -1547,24 +1713,45 @@ function bindEventListeners() {
 
   // 云同步功能
   const gistTokenInput = document.getElementById('gist-token');
+  const autoCloudSyncCheckbox = document.getElementById('auto-cloud-sync-checkbox');
   const cloudUploadBtn = document.getElementById('cloud-upload-btn');
   const cloudDownloadBtn = document.getElementById('cloud-download-btn');
   const cloudSyncStatus = document.getElementById('cloud-sync-status');
-  const cloudViewLink = document.getElementById('cloud-view-link');
 
-  function updateCloudViewLink() {
-    const gistId = localStorage.getItem('gistId');
-    if (cloudViewLink) {
-      if (gistId) { cloudViewLink.href = `https://gist.github.com/${gistId}`; cloudViewLink.style.display = 'inline'; }
-      else { cloudViewLink.style.display = 'none'; }
-    }
+  setCloudSyncStatusElement(cloudSyncStatus);
+  refreshCloudViewLink();
+  loadAutoCloudSyncEnabled(autoCloudSyncCheckbox);
+  if (autoCloudSyncEnabled && !(localStorage.getItem('gistToken') || '').trim()) {
+    setCloudSyncStatus('自动上云已开启，请先填写 GitHub Token');
   }
-  updateCloudViewLink();
+
+  if (autoCloudSyncCheckbox) {
+    autoCloudSyncCheckbox.addEventListener('change', () => {
+      try {
+        saveAutoCloudSyncEnabled(!!autoCloudSyncCheckbox.checked);
+        showToast(autoCloudSyncEnabled ? '已开启自动上云' : '已关闭自动上云');
+        if (!autoCloudSyncEnabled) {
+          autoCloudSyncPending = false;
+          if (autoCloudSyncTimer) {
+            clearTimeout(autoCloudSyncTimer);
+            autoCloudSyncTimer = null;
+          }
+          setCloudSyncStatus('');
+        }
+      } catch (error) {
+        console.error('保存自动上云开关失败:', error);
+        showErrorToast('保存自动上云设置失败');
+      }
+    });
+  }
 
   if (gistTokenInput) {
     gistTokenInput.value = localStorage.getItem('gistToken') || '';
     gistTokenInput.addEventListener('change', () => {
       localStorage.setItem('gistToken', gistTokenInput.value.trim());
+      if (autoCloudSyncEnabled) {
+        scheduleAutoCloudSync('token-updated');
+      }
     });
   }
 
@@ -1572,13 +1759,13 @@ function bindEventListeners() {
     cloudUploadBtn.addEventListener('click', async () => {
       const token = gistTokenInput?.value?.trim();
       if (!token) { showErrorToast('请先填写 GitHub Token'); return; }
-      cloudSyncStatus.textContent = '正在上传...';
+      setCloudSyncStatus('正在上传...');
       try {
         await syncToGist(token, 'upload');
-        cloudSyncStatus.textContent = '上传成功 ' + new Date().toLocaleString();
-        updateCloudViewLink();
+        setCloudSyncStatus('上传成功 ' + new Date().toLocaleString());
+        refreshCloudViewLink();
       } catch (e) {
-        cloudSyncStatus.textContent = '';
+        setCloudSyncStatus('');
         showErrorToast('上传失败: ' + e.message);
       }
     });
@@ -1588,12 +1775,12 @@ function bindEventListeners() {
     cloudDownloadBtn.addEventListener('click', async () => {
       const token = gistTokenInput?.value?.trim();
       if (!token) { showErrorToast('请先填写 GitHub Token'); return; }
-      cloudSyncStatus.textContent = '正在下载...';
+      setCloudSyncStatus('正在下载...');
       try {
         await syncToGist(token, 'download');
-        cloudSyncStatus.textContent = '恢复成功 ' + new Date().toLocaleString();
+        setCloudSyncStatus('恢复成功 ' + new Date().toLocaleString());
       } catch (e) {
-        cloudSyncStatus.textContent = '';
+        setCloudSyncStatus('');
         showErrorToast('下载失败: ' + e.message);
       }
     });
@@ -1601,9 +1788,10 @@ function bindEventListeners() {
 }
 
 // GitHub Gist 同步
-async function syncToGist(token, action) {
+async function syncToGist(token, action, options = {}) {
   const GIST_FILENAME = 'epoint-worklog-sync.json';
   const gistId = localStorage.getItem('gistId');
+  const silent = !!(options && options.silent);
 
   if (action === 'upload') {
     const data = getPluginDataForExport();
@@ -1617,8 +1805,10 @@ async function syncToGist(token, action) {
     }
     if (!res.ok) throw new Error(res.status === 401 ? 'Token 无效' : '请求失败');
     const json = await res.json();
-    localStorage.setItem('gistId', json.id);
-    showToast('已上传到云');
+    await withAutoCloudSyncSuppressed(async () => {
+      localStorage.setItem('gistId', json.id);
+    });
+    if (!silent) showToast('已上传到云');
   } else {
     if (!gistId) throw new Error('未找到云端数据，请先上传');
     const res = await fetch(`https://api.github.com/gists/${gistId}`, { headers: { Authorization: `token ${token}` } });
@@ -1626,8 +1816,11 @@ async function syncToGist(token, action) {
     const json = await res.json();
     const content = json.files?.[GIST_FILENAME]?.content;
     if (!content) throw new Error('云端数据格式错误');
-    importPluginDataFromObject(JSON.parse(content));
-    showToast('已从云端恢复');
+    const imported = JSON.parse(content);
+    await withAutoCloudSyncSuppressed(async () => {
+      importPluginDataFromObject(imported);
+    });
+    if (!silent) showToast('已从云端恢复');
   }
 }
 
@@ -1644,7 +1837,8 @@ function getPluginDataForExport() {
       presetAutoFillPresets: getBool('presetAutoFillPresets', true),
       presetBlueprintAutoApply: getBool('presetBlueprintAutoApply', true),
       presetStageDemandAutoApply: getBool('presetStageDemandAutoApply', true),
-      presetTaskReviewerAutoApply: getBool('presetTaskReviewerAutoApply', true)
+      presetTaskReviewerAutoApply: getBool('presetTaskReviewerAutoApply', true),
+      autoCloudSyncEnabled: getBool(AUTO_CLOUD_SYNC_STORAGE_KEY, false)
     },
     captured: { presetBlueprints: safeParse('presetBlueprints', {}), presetStageDemands: safeParse('presetStageDemands', {}), presetTaskReviewers: safeParse('presetTaskReviewers', {}) },
     presets: { presetProjects: safeParse('presetProjects', []) }
@@ -1666,6 +1860,7 @@ function importPluginDataFromObject(obj) {
   writeBool('presetBlueprintAutoApply', settings.presetBlueprintAutoApply, true);
   writeBool('presetStageDemandAutoApply', settings.presetStageDemandAutoApply, true);
   writeBool('presetTaskReviewerAutoApply', settings.presetTaskReviewerAutoApply, true);
+  writeBool(AUTO_CLOUD_SYNC_STORAGE_KEY, settings.autoCloudSyncEnabled, false);
   writeJson('presetBlueprints', captured.presetBlueprints, {});
   writeJson('presetStageDemands', captured.presetStageDemands, {});
   writeJson('presetTaskReviewers', captured.presetTaskReviewers, {});
@@ -1673,6 +1868,7 @@ function importPluginDataFromObject(obj) {
   loadPresetDemandTag(); loadPresetWorkType(); loadPresetCloseReminders(); loadGroupByProjectEnabled();
   loadPresetAutoFillPresets(); loadPresetBlueprints(); loadPresetBlueprintAutoApply();
   loadPresetStageDemands(); loadPresetStageDemandAutoApply(); loadPresetTaskReviewers(); loadPresetTaskReviewerAutoApply();
+  loadAutoCloudSyncEnabled(document.getElementById('auto-cloud-sync-checkbox'));
   loadPresetProjects();
   try { renderUnifiedPresetsList(); } catch (e) {}
   try { updateExportProjectOptions(); } catch (e) {}
@@ -1754,6 +1950,7 @@ function clearPluginData() {
     localStorage.removeItem('presetBlueprintAutoApply');
     localStorage.removeItem('presetStageDemandAutoApply');
     localStorage.removeItem('presetTaskReviewerAutoApply');
+    localStorage.removeItem(AUTO_CLOUD_SYNC_STORAGE_KEY);
     
     // 清除捕获数据
     localStorage.removeItem('presetBlueprints');
@@ -1773,6 +1970,7 @@ function clearPluginData() {
     loadPresetStageDemandAutoApply();
     loadPresetTaskReviewers();
     loadPresetTaskReviewerAutoApply();
+    loadAutoCloudSyncEnabled(document.getElementById('auto-cloud-sync-checkbox'));
     loadPresetProjects();
     
     try { renderUnifiedPresetsList(); } catch (e) {}
@@ -1922,7 +2120,8 @@ function exportPluginDataToJson() {
         presetAutoFillPresets: getBool('presetAutoFillPresets', true),
         presetBlueprintAutoApply: getBool('presetBlueprintAutoApply', true),
         presetStageDemandAutoApply: getBool('presetStageDemandAutoApply', true),
-        presetTaskReviewerAutoApply: getBool('presetTaskReviewerAutoApply', true)
+        presetTaskReviewerAutoApply: getBool('presetTaskReviewerAutoApply', true),
+        autoCloudSyncEnabled: getBool(AUTO_CLOUD_SYNC_STORAGE_KEY, false)
       },
       captured: {
         presetBlueprints: safeParse('presetBlueprints', {}),
@@ -1981,6 +2180,7 @@ function importPluginDataFromJsonFile(file) {
         writeBool('presetBlueprintAutoApply', settings.presetBlueprintAutoApply, true);
         writeBool('presetStageDemandAutoApply', settings.presetStageDemandAutoApply, true);
         writeBool('presetTaskReviewerAutoApply', settings.presetTaskReviewerAutoApply, true);
+        writeBool(AUTO_CLOUD_SYNC_STORAGE_KEY, settings.autoCloudSyncEnabled, false);
 
         writeJson('presetBlueprints', captured.presetBlueprints, {});
         writeJson('presetStageDemands', captured.presetStageDemands, {});
@@ -1999,6 +2199,7 @@ function importPluginDataFromJsonFile(file) {
         loadPresetStageDemandAutoApply();
         loadPresetTaskReviewers();
         loadPresetTaskReviewerAutoApply();
+        loadAutoCloudSyncEnabled(document.getElementById('auto-cloud-sync-checkbox'));
         loadPresetProjects();
         try { renderUnifiedPresetsList(); } catch (e) {}
         try { updateExportProjectOptions(); } catch (e) {}

@@ -210,19 +210,29 @@
           </div>
 
           <!-- 云同步卡片 -->
-          <div class="config-card">
+          <div class="config-card cloud-sync-card">
             <h3>云同步 (GitHub Gist)</h3>
-            <div class="form-group">
+            <div class="form-group cloud-token-group">
               <label for="gist-token">GitHub Token</label>
-              <input type="password" id="gist-token" placeholder="ghp_xxxx..." style="width: 100%; padding: 6px; border: 1px solid #ccc; border-radius: 4px;">
-              <p class="explain-text" style="margin-top: 4px;">需要 gist 权限，<a href="https://github.com/settings/tokens/new?scopes=gist&description=epoint-worklog-sync" target="_blank">点击创建</a></p>
+              <input type="password" id="gist-token" placeholder="ghp_xxxx...">
+              <p class="explain-text cloud-help-text">需要 gist 权限，<a href="https://github.com/settings/tokens/new?scopes=gist&description=epoint-worklog-sync" target="_blank">点击创建</a></p>
             </div>
-            <div class="form-group">
+            <div class="form-group cloud-auto-group">
+              <div class="cloud-auto-row">
+                <span class="cloud-auto-label">自动上云</span>
+                <label class="apple-switch" title="开启后每次配置数据变化都会自动上传到 Gist">
+                  <input type="checkbox" id="auto-cloud-sync-checkbox">
+                  <span class="slider"></span>
+                </label>
+              </div>
+              <p class="explain-text cloud-help-text">开启后，配置数据变化会自动推送到 Gist</p>
+            </div>
+            <div class="form-group cloud-actions">
               <button id="cloud-upload-btn" class="btn-secondary" data-umami-event="cloud_upload_click">上传到云</button>
               <button id="cloud-download-btn" class="btn-secondary" data-umami-event="cloud_download_click">从云恢复</button>
-              <a id="cloud-view-link" href="#" target="_blank" style="display: none; margin-left: 8px;" data-umami-event="cloud_view_click">查看云端</a>
+              <a id="cloud-view-link" class="btn-secondary cloud-view-link" href="#" target="_blank" style="display: none;" data-umami-event="cloud_view_click">查看云端</a>
             </div>
-            <p id="cloud-sync-status" class="explain-text" style="margin-top: 4px;"></p>
+            <p id="cloud-sync-status" class="explain-text cloud-sync-status"></p>
           </div>
 
           <!-- 问题反馈卡片 -->
