@@ -3284,3 +3284,39 @@ html, body {
 #unified-details-modal .modal-body {
   overflow-y: auto;
 }
+
+
+/* 设置页面按钮统一样式 - 小巧苹果蓝 */
+.config-card .btn-secondary,
+.config-card .btn-capture,
+#preset-tab .btn-secondary,
+#preset-tab .btn-capture,
+#preset-tab button.btn-secondary {
+  background-color: #0a84ff !important;
+  color: white !important;
+  border: none !important;
+  padding: 6px 12px !important;
+  border-radius: 6px !important;
+  font-size: 12px !important;
+  font-weight: 500 !important;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.config-card .btn-secondary:hover,
+.config-card .btn-capture:hover,
+#preset-tab .btn-secondary:hover,
+#preset-tab .btn-capture:hover {
+  background-color: #0070e0 !important;
+  transform: translateY(-1px);
+}
+
+.config-card .btn-danger,
+#preset-tab .btn-danger {
+  background-color: #dc3545 !important;
+}
+
+.config-card .btn-danger:hover,
+#preset-tab .btn-danger:hover {
+  background-color: #c82333 !important;
+}
