@@ -677,7 +677,7 @@ document.addEventListener('DOMContentLoaded', function() {
       var host = 'https://api-gateway.umami.dev';
       var screen = (window.screen && window.screen.width + 'x' + window.screen.height) || '';
       var payload = { website: website, screen: screen, language: navigator.language || '', title: document.title || '', hostname: location.hostname || '', url: location.href || '', referrer: document.referrer || '', name: 'popup_open_manual', data: {} };
-      fetch(host.replace(/\/$/, '') + '/api/send', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ type: 'event', payload: payload }), keepalive: true }).then(function(r){ try { r.json().then(function(j){ try { console.log('umami manual', r.status, j); } catch(e){} }); } catch(e) { try { console.log('umami manual status', r.status); } catch(e2){} } }).catch(function(err){ try { console.error('umami manual error', err); } catch(e){} });
+      fetch(host.replace(/\/$/, '') + '/api/send', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ type: 'event', payload: payload }), keepalive: true }).catch(function(){});
     })();
   } catch (e) {}
   try { sendUmamiPageview(); } catch(e) {}
