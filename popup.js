@@ -520,64 +520,8 @@ async function initVersionBanner() {
       if (typeof chrome !== 'undefined' && chrome.runtime && typeof chrome.runtime.getManifest === 'function') {
         manifestLocal = chrome.runtime.getManifest();
       }
-      var forceLocal = !!(manifestLocal && manifestLocal.force_update && manifestLocal.force_update.enabled);
-      var forceRemote = false;
-      if (!forceLocal) {
-        var remoteObj = await fetchManifestObjectOnline(url);
-        forceRemote = !!(remoteObj && remoteObj.force_update && remoteObj.force_update.enabled);
-      }
-      if (forceLocal || forceRemote) {
-        showForceUpdateDialog(updateUrl, remoteVersion.trim());
-      }
     } catch (e) {}
   }
-}
-
-function showForceUpdateDialog(updateUrl, latestVersion) {
-  var existing = document.getElementById('force-update-dialog');
-  if (existing) { try { existing.remove(); } catch (e) {} }
-  var dlg = document.createElement('div');
-  dlg.id = 'force-update-dialog';
-  dlg.className = 'custom-dialog';
-  var overlay = document.createElement('div');
-  overlay.className = 'dialog-overlay';
-  var content = document.createElement('div');
-  content.className = 'dialog-content';
-  var header = document.createElement('div');
-  header.className = 'dialog-header';
-  var h = document.createElement('h3');
-  var icon = document.createElement('span');
-  icon.className = 'force-update-icon';
-  icon.innerHTML = '<svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true"><path d="M12 8v5" stroke="currentColor" stroke-width="2" stroke-linecap="round"/><path d="M12 16h.01" stroke="currentColor" stroke-width="2" stroke-linecap="round"/><path d="M10.29 3.86l-8.23 14.28a2 2 0 001.71 3h16.46a2 2 0 001.71-3L14.71 3.86a2 2 0 00-3.42 0z" fill="none" stroke="currentColor" stroke-width="2"/></svg>';
-  h.appendChild(icon);
-  h.appendChild(document.createTextNode('发现新版本，必须更新'));
-  header.appendChild(h);
-  var body = document.createElement('div');
-  body.className = 'modal-body';
-  var p = document.createElement('p');
-  p.textContent = '最新版本：' + (latestVersion || '') + '，请下载更新后继续使用';
-  body.appendChild(p);
-  var footer = document.createElement('div');
-  footer.className = 'modal-footer';
-  var btn = document.createElement('button');
-  btn.className = 'btn btn-primary';
-  btn.textContent = '下载更新';
-  btn.onclick = function() {
-    try {
-      if (typeof chrome !== 'undefined' && chrome.tabs && chrome.tabs.create) {
-        chrome.tabs.create({ url: updateUrl });
-        return;
-      }
-    } catch (e) {}
-    try { window.open(updateUrl, '_blank'); } catch (e2) {}
-  };
-  footer.appendChild(btn);
-  content.appendChild(header);
-  content.appendChild(body);
-  content.appendChild(footer);
-  overlay.appendChild(content);
-  dlg.appendChild(overlay);
-  document.body.appendChild(dlg);
 }
 
 // 初始化
@@ -835,13 +779,6 @@ document.addEventListener('DOMContentLoaded', function() {
       if (latestVersion && compareVersions(latestVersion.trim(), currentVersion) > 0) {
         var manifestLocal = null;
         try { if (typeof chrome !== 'undefined' && chrome.runtime && typeof chrome.runtime.getManifest === 'function') { manifestLocal = chrome.runtime.getManifest(); } } catch (e) {}
-        var forceLocal = !!(manifestLocal && manifestLocal.force_update && manifestLocal.force_update.enabled);
-        var remoteObj = await fetchManifestObjectOnline(url);
-        var forceRemote = !!(remoteObj && remoteObj.force_update && remoteObj.force_update.enabled);
-        if (forceLocal || forceRemote) {
-          showForceUpdateDialog(UPDATE_URL, latestVersion.trim());
-          return;
-        }
         if (updateInfo) updateInfo.style.display = 'block';
         var latestEl = document.getElementById('latest-version');
         if (latestEl) latestEl.textContent = latestVersion.trim();
