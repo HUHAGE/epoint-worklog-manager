@@ -108,6 +108,7 @@ let groupByProjectEnabled = true;
 const AUTO_CLOUD_SYNC_STORAGE_KEY = 'autoCloudSyncEnabled';
 const AUTO_CLOUD_SYNC_DEBOUNCE_MS = 800;
 const AUTO_CLOUD_SYNC_TRACKED_KEYS = new Set([
+  'worklogs',
   'presetProjects',
   'presetDemandTag',
   'presetWorkType',
@@ -1794,7 +1795,7 @@ async function syncToGist(token, action, options = {}) {
   const silent = !!(options && options.silent);
 
   if (action === 'upload') {
-    const data = getPluginDataForExport();
+    const data = getCloudSyncDataForExport();
     const body = { description: 'epoint-worklog-manager sync', public: false, files: { [GIST_FILENAME]: { content: JSON.stringify(data, null, 2) } } };
 
     let res;
@@ -1818,10 +1819,62 @@ async function syncToGist(token, action, options = {}) {
     if (!content) throw new Error('云端数据格式错误');
     const imported = JSON.parse(content);
     await withAutoCloudSyncSuppressed(async () => {
-      importPluginDataFromObject(imported);
+      importCloudSyncDataFromObject(imported);
     });
     if (!silent) showToast('已从云端恢复');
   }
+}
+
+function getCloudSyncDataForExport() {
+  return {
+    meta: { name: 'epoint-worklog-manager-cloud-sync-data', version: 2, exportedAt: new Date().toISOString() },
+    pluginData: getPluginDataForExport(),
+    taskData: getTaskDataForExport()
+  };
+}
+
+function getTaskDataForExport() {
+  let source = logs;
+  try {
+    const fromStorage = localStorage.getItem('worklogs');
+    if (fromStorage) source = JSON.parse(fromStorage);
+  } catch (error) {}
+  return { logs: normalizeWorklogsData(source) };
+}
+
+function normalizeWorklogsData(source) {
+  const srcPending = Array.isArray(source?.pending) ? source.pending : [];
+  const srcFilled = Array.isArray(source?.filled) ? source.filled : [];
+  const existingIds = new Set();
+  const makeId = () => String(Date.now()) + Math.random().toString(16).slice(2);
+  const today = new Date().toISOString().split('T')[0];
+
+  const normalize = (item, status) => {
+    let id = String(item && item.id ? item.id : '').trim();
+    if (!id || existingIds.has(id)) id = makeId();
+    existingIds.add(id);
+
+    const parsedHours = parseFloat(item && item.hours);
+    const hours = Number.isFinite(parsedHours) && parsedHours > 0 ? parsedHours : 0.5;
+    const rawDate = item && item.date ? String(item.date) : today;
+    const dateObj = new Date(rawDate);
+    const date = Number.isNaN(dateObj.getTime()) ? today : dateObj.toISOString().split('T')[0];
+
+    return {
+      id,
+      project: item && item.project ? String(item.project) : '',
+      taskName: item && item.taskName ? String(item.taskName) : '',
+      content: item && item.content ? String(item.content) : '',
+      hours,
+      date,
+      status
+    };
+  };
+
+  return {
+    pending: srcPending.map(item => normalize(item, 'pending')),
+    filled: srcFilled.map(item => normalize(item, 'filled'))
+  };
 }
 
 function getPluginDataForExport() {
@@ -1843,6 +1896,52 @@ function getPluginDataForExport() {
     captured: { presetBlueprints: safeParse('presetBlueprints', {}), presetStageDemands: safeParse('presetStageDemands', {}), presetTaskReviewers: safeParse('presetTaskReviewers', {}) },
     presets: { presetProjects: safeParse('presetProjects', []) }
   };
+}
+
+function importCloudSyncDataFromObject(obj) {
+  const hasPluginData = !!(obj && typeof obj === 'object' && (
+    obj.pluginData ||
+    obj.settings ||
+    obj.captured ||
+    obj.presets
+  ));
+
+  const taskSource = extractWorklogsFromCloudSyncObject(obj);
+  const hasTaskData = !!taskSource;
+
+  if (hasPluginData) {
+    importPluginDataFromObject(obj.pluginData || obj);
+  }
+  if (hasTaskData) {
+    importWorklogsFromObject(taskSource);
+  }
+  if (!hasPluginData && !hasTaskData) {
+    importPluginDataFromObject(obj);
+  }
+}
+
+function extractWorklogsFromCloudSyncObject(obj) {
+  if (!obj || typeof obj !== 'object') return null;
+  if (obj.taskData && typeof obj.taskData === 'object') {
+    const logsObj = obj.taskData.logs || obj.taskData;
+    if (Array.isArray(logsObj.pending) || Array.isArray(logsObj.filled)) return logsObj;
+  }
+  if (obj.logs && typeof obj.logs === 'object') {
+    if (Array.isArray(obj.logs.pending) || Array.isArray(obj.logs.filled)) return obj.logs;
+  }
+  if (Array.isArray(obj.pending) || Array.isArray(obj.filled)) return obj;
+  return null;
+}
+
+function importWorklogsFromObject(obj) {
+  logs = normalizeWorklogsData(obj || {});
+  saveLogs();
+  initializeProjectColorMapping();
+  renderLogs();
+  updateProjectTabs();
+  updateFilledProjectTabs();
+  updateHoursStatistics();
+  try { updateExportProjectOptions(); } catch (e) {}
 }
 
 function importPluginDataFromObject(obj) {
