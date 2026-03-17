@@ -144,6 +144,8 @@ const pendingSelectedIds = new Set();
 const filledSelectedIds = new Set();
 // 待申请页面的任务状态筛选
 let activePendingStatusFilter = 'pending';
+// 任务排序方向: 'desc' 倒序(新→旧，默认), 'asc' 升序(旧→新)
+let taskSortOrder = 'desc';
 let pendingAccordionState = {};
 
 function sendUmamiEvent(name, data) {
@@ -1467,6 +1469,15 @@ function bindEventListeners() {
       updateHoursStatistics();
     });
   }
+  // 待申请：排序按钮
+  const sortOrderBtn = document.getElementById('sort-order-btn');
+  if (sortOrderBtn) {
+    sortOrderBtn.addEventListener('click', () => {
+      taskSortOrder = taskSortOrder === 'desc' ? 'asc' : 'desc';
+      sortOrderBtn.classList.toggle('asc', taskSortOrder === 'asc');
+      renderPendingLogs();
+    });
+  }
   // 已申请：项目筛选
   if (filledProjectDropdown) {
     filledProjectDropdown.addEventListener('change', (e) => {
@@ -2445,7 +2456,7 @@ function updateHoursStatistics() {
   const filledHoursValue = document.querySelector('.filled-hours-value');
   const statusHours = document.querySelector('.status-hours');
   const statusFilledHours = document.querySelector('.status-filled-hours');
-  const statusIndicator = document.querySelector('.status-indicator');
+  const filterHoursIndicator = document.querySelector('.filter-hours-indicator');
 
   // 计算两类工时
   const pendingHours = calculateTotalHours(
@@ -2463,9 +2474,11 @@ function updateHoursStatistics() {
   if (activeTab === 'preset') {
     if (statusHours) statusHours.style.display = 'none';
     if (statusFilledHours) statusFilledHours.style.display = 'none';
-    if (statusIndicator) statusIndicator.style.display = 'none';
+    if (filterHoursIndicator) filterHoursIndicator.style.display = 'none';
     return;
   }
+
+  if (filterHoursIndicator) filterHoursIndicator.style.display = 'flex';
 
   // 在待申请标签页根据任务状态筛选显示
   if (activeTab === 'pending' && typeof activePendingStatusFilter !== 'undefined') {
@@ -2473,13 +2486,12 @@ function updateHoursStatistics() {
       if (filledHoursValue) filledHoursValue.textContent = filledHours.toFixed(1);
       if (statusHours) statusHours.style.display = 'none';
       if (statusFilledHours) statusFilledHours.style.display = 'flex';
-      if (statusIndicator) statusIndicator.style.display = 'flex';
       return;
     }
     if (activePendingStatusFilter === 'all') {
       if (statusHours) statusHours.style.display = 'none';
       if (statusFilledHours) statusFilledHours.style.display = 'none';
-      if (statusIndicator) statusIndicator.style.display = 'none';
+      if (filterHoursIndicator) filterHoursIndicator.style.display = 'none';
       return;
     }
   }
@@ -2487,7 +2499,6 @@ function updateHoursStatistics() {
   if (hoursValue) hoursValue.textContent = pendingHours.toFixed(1);
   if (statusHours) statusHours.style.display = 'flex';
   if (statusFilledHours) statusFilledHours.style.display = 'none';
-  if (statusIndicator) statusIndicator.style.display = 'flex';
 }
 
 // 更新项目标签
@@ -2542,6 +2553,13 @@ function renderPendingLogs() {
   if (activePendingDateFilter) {
     sourceItems = sourceItems.filter(item => item.log.date === activePendingDateFilter);
   }
+
+  // 按日期排序任务（不改变项目分组顺序）
+  sourceItems.sort((a, b) => {
+    const dateA = a.log.date || '';
+    const dateB = b.log.date || '';
+    return taskSortOrder === 'asc' ? dateA.localeCompare(dateB) : dateB.localeCompare(dateA);
+  });
   
   // 清空列表
   pendingLogsList.innerHTML = '';
