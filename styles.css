@@ -1276,6 +1276,13 @@ body {
   transition: transform 0.2s, box-shadow 0.2s;
 }
 
+.apply-non-public-container .btn-add-log-float {
+  position: static;
+  bottom: auto;
+  right: auto;
+  flex-shrink: 0;
+}
+
 .btn-add-log-float:hover {
   transform: translateY(-2px);
   box-shadow: 0 6px 24px rgba(10, 132, 255, 0.5);
